@@ -423,14 +423,34 @@ function buildGameData(library, spawnMap) {
   };
 }
 
+// data/monster-spawns.json is a flat list of {n: name, x, y, c: count, t: tier}
+// clusters (no floor axis — a cluster can be seen on any floor). Group them
+// back into the per-monster {name, tier, points} shape the map drawing code
+// and reclassifyTopTier() expect.
+function buildSpawnMap(clusters) {
+  const byName = {};
+  let xMin = Infinity, xMax = -Infinity, yMin = Infinity, yMax = -Infinity;
+  clusters.forEach(function (c) {
+    if (c.x < xMin) xMin = c.x;
+    if (c.x > xMax) xMax = c.x;
+    if (c.y < yMin) yMin = c.y;
+    if (c.y > yMax) yMax = c.y;
+    (byName[c.n] || (byName[c.n] = { name: c.n, tier: c.t, points: [] })).points.push([c.x, c.y, c.c]);
+  });
+  return {
+    bounds: { xMin: xMin, xMax: xMax, yMin: yMin, yMax: yMax },
+    monsters: Object.keys(byName).map(function (k) { return byName[k]; })
+  };
+}
+
 (async function boot() {
-  const [library, spawnMap, iconsData, mapFloorData] = await Promise.all([
+  const [library, spawnClusters, iconsData, mapFloorData] = await Promise.all([
     fetch("data/library.json").then((r) => r.json()),
-    fetch("data/spawn-map.json").then((r) => r.json()),
+    fetch("data/monster-spawns.json").then((r) => r.json()),
     fetch("data/icons.json").then((r) => r.json()),
     fetch("data/map-floors.json").then((r) => r.json())
   ]);
-  DATA = buildGameData(library, spawnMap);
+  DATA = buildGameData(library, buildSpawnMap(spawnClusters.clusters));
   ICONS = iconsData;
   MAP_FLOOR_PNG = mapFloorData;
 
