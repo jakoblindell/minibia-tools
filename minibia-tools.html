@@ -304,155 +304,18 @@
 </div>
 
 <script>
-let DATA, ICONS, MAP_FLOOR_PNG;
+let DATA, ICONS;
 
-// Builds the derived dataset the rest of this page renders (tiers, loot
-// pricing, sell-back listings, aggregate stats) from the raw library.json
-// export, so updating the tool is just replacing that one file.
-function buildGameData(library, spawnMap) {
-  const items = library.items.map(function (it) {
-    return Object.assign({}, it, {
-      sellTo: it.sellTo || [],
-      droppedBy: it.droppedBy || [],
-      bonuses: it.bonuses || [],
-      resists: it.resists || []
-    });
-  });
-
-  // sellTo entries carry a region per NPC (main/rook/unknown); reuse that
-  // to tag the reverse "soldBy" listing built below from npc.sells.
-  const npcRegionByName = {};
-  items.forEach(function (it) {
-    it.sellTo.forEach(function (s) { if (s.region) npcRegionByName[s.name] = s.region; });
-  });
-
-  const soldByName = {};
-  library.npcs.forEach(function (npc) {
-    (npc.sells || []).forEach(function (s) {
-      const key = s.name.toLowerCase();
-      (soldByName[key] || (soldByName[key] = [])).push({
-        name: npc.name,
-        price: s.price,
-        region: npcRegionByName[npc.name] || "unknown"
-      });
-    });
-  });
-  items.forEach(function (it) { it.soldBy = soldByName[it.name.toLowerCase()] || []; });
-
-  const priceByItemName = {};
-  items.forEach(function (it) {
-    const prices = it.sellTo.map(function (s) { return s.price || 0; });
-    priceByItemName[it.name.toLowerCase()] = prices.length ? Math.max.apply(null, prices) : 0;
-  });
-
-  // Difficulty tier has no field in library.json; it's a clean function of
-  // experience (verified against every previously-classified monster).
-  function tierForExperience(exp) {
-    if (exp < 28) return 0;
-    if (exp < 105) return 1;
-    if (exp < 500) return 2;
-    if (exp < 1550) return 3;
-    return 4;
-  }
-
-  let lootMatchedTotal = 0, lootLinesTotal = 0;
-  const monsters = library.monsters.map(function (m) {
-    let lootMatched = 0;
-    let goldPerKill = 0;
-    const loot = (m.loot || []).map(function (l) {
-      const unitPrice = priceByItemName[l.name.toLowerCase()] || 0;
-      const value = l.probability * ((l.min + l.max) / 2) * unitPrice;
-      if (unitPrice > 0) lootMatched++;
-      goldPerKill += value;
-      return Object.assign({}, l, { unitPrice: unitPrice, value: value });
-    });
-    lootMatchedTotal += lootMatched;
-    lootLinesTotal += loot.length;
-    goldPerKill = Math.round(goldPerKill * 100) / 100;
-    return {
-      name: m.name,
-      health: m.health,
-      experience: m.experience,
-      speed: m.speed,
-      armor: m.armor,
-      tier: tierForExperience(m.experience),
-      attacks: m.attacks || [],
-      elements: Object.keys(m.elements || {}).map(function (k) { return { key: k, pct: m.elements[k] }; }),
-      immunities: Object.keys(m.immunities || {}).filter(function (k) { return m.immunities[k]; }),
-      loot: loot,
-      lootMatched: lootMatched,
-      lootTotal: loot.length,
-      goldPerKill: goldPerKill,
-      goldPerExp: m.experience > 0 ? Math.round((goldPerKill / m.experience) * 1000) / 1000 : null
-    };
-  });
-
-  // Keep the spawn-map's per-monster tier (used for the Boss reclassification
-  // below) in sync with the tier just computed, until spawns.json is rebuilt
-  // from raw data too.
-  const tierByName = {};
-  monsters.forEach(function (m) { tierByName[m.name.toLowerCase()] = m.tier; });
-  if (spawnMap && spawnMap.monsters) {
-    spawnMap.monsters.forEach(function (sm) {
-      const t = tierByName[sm.name.toLowerCase()];
-      if (t != null) sm.tier = t;
-    });
-  }
-
-  return {
-    summary: {
-      monsters: monsters.length,
-      items: items.length,
-      npcs: library.npcs.length,
-      spells: library.spells.length,
-      runes: library.runes.length,
-      achievements: library.achievements.length
-    },
-    monsters: monsters,
-    items: items,
-    npcs: library.npcs,
-    spells: library.spells,
-    runes: library.runes,
-    achievements: library.achievements,
-    lootCoverage: {
-      matched: lootMatchedTotal,
-      total: lootLinesTotal,
-      pct: Math.round((lootMatchedTotal / lootLinesTotal) * 1000) / 10
-    },
-    spawnMap: spawnMap
-  };
-}
-
-// data/monster-spawns.json is a flat list of {n: name, x, y, c: count, t: tier}
-// clusters (no floor axis — a cluster can be seen on any floor). Group them
-// back into the per-monster {name, tier, points} shape the map drawing code
-// and reclassifyTopTier() expect.
-function buildSpawnMap(clusters) {
-  const byName = {};
-  let xMin = Infinity, xMax = -Infinity, yMin = Infinity, yMax = -Infinity;
-  clusters.forEach(function (c) {
-    if (c.x < xMin) xMin = c.x;
-    if (c.x > xMax) xMax = c.x;
-    if (c.y < yMin) yMin = c.y;
-    if (c.y > yMax) yMax = c.y;
-    (byName[c.n] || (byName[c.n] = { name: c.n, tier: c.t, points: [] })).points.push([c.x, c.y, c.c]);
-  });
-  return {
-    bounds: { xMin: xMin, xMax: xMax, yMin: yMin, yMax: yMax },
-    monsters: Object.keys(byName).map(function (k) { return byName[k]; })
-  };
-}
-
+// data/derived/compendium.json is built by scripts/build-data.py from the raw
+// exports in data/raw/ (library.json, monster-spawns.json) plus the minimap
+// metadata from scripts/gen-minimap.py — see README.md for the update flow.
 (async function boot() {
-  const [library, spawnClusters, iconsData, mapFloorData] = await Promise.all([
-    fetch("data/library.json").then((r) => r.json()),
-    fetch("data/monster-spawns.json").then((r) => r.json()),
-    fetch("data/icons.json").then((r) => r.json()),
-    fetch("data/map-floors.json").then((r) => r.json())
+  const [compendium, iconsData] = await Promise.all([
+    fetch("data/derived/compendium.json").then((r) => r.json()),
+    fetch("data/icons.json").then((r) => r.json())
   ]);
-  DATA = buildGameData(library, buildSpawnMap(spawnClusters.clusters));
+  DATA = compendium;
   ICONS = iconsData;
-  MAP_FLOOR_PNG = mapFloorData;
 
 
 function escAttr(s) {
@@ -1172,28 +1035,9 @@ let mapTerrainImg = null, mapTerrainMeta = null, mapTerrainReady = false;
 
 // Per-floor terrain, kept in sync with minimap.meta.json (both regenerated by
 // gen-minimap.py from the client's minimap.bin — one minimap-z<z>.png per floor).
-// Inlined rather than fetched so the terrain still loads when the page is opened
-// straight off disk: file:// blocks fetch() for the sibling JSON, which silently
-// left the map with dots on a blank background. <img> has no such restriction, so
-// the PNGs themselves load fine either way. Floors are lazy-loaded on first view.
-const MAP_FLOOR_META = {
-  0: { worldOriginX: 30976, worldOriginY: 30976, imageWidth: 2432, imageHeight: 2048 },
-  1: { worldOriginX: 30976, worldOriginY: 30976, imageWidth: 2432, imageHeight: 2048 },
-  2: { worldOriginX: 30976, worldOriginY: 30976, imageWidth: 2432, imageHeight: 2048 },
-  3: { worldOriginX: 30976, worldOriginY: 30976, imageWidth: 2432, imageHeight: 2048 },
-  4: { worldOriginX: 30976, worldOriginY: 30976, imageWidth: 2432, imageHeight: 2048 },
-  5: { worldOriginX: 30976, worldOriginY: 30976, imageWidth: 2432, imageHeight: 2048 },
-  6: { worldOriginX: 30976, worldOriginY: 30976, imageWidth: 2432, imageHeight: 2048 },
-  7: { worldOriginX: 30976, worldOriginY: 30976, imageWidth: 2432, imageHeight: 2048 },
-  8: { worldOriginX: 30976, worldOriginY: 30976, imageWidth: 2432, imageHeight: 2048 },
-  9: { worldOriginX: 30976, worldOriginY: 30976, imageWidth: 2432, imageHeight: 2048 },
-  10: { worldOriginX: 31104, worldOriginY: 30976, imageWidth: 2304, imageHeight: 2048 },
-  11: { worldOriginX: 31104, worldOriginY: 30976, imageWidth: 2304, imageHeight: 2048 },
-  12: { worldOriginX: 31104, worldOriginY: 30976, imageWidth: 2304, imageHeight: 2048 },
-  13: { worldOriginX: 31104, worldOriginY: 30976, imageWidth: 2304, imageHeight: 2048 },
-  14: { worldOriginX: 32000, worldOriginY: 30848, imageWidth: 1408, imageHeight: 2176 },
-  15: { worldOriginX: 32128, worldOriginY: 30976, imageWidth: 1280, imageHeight: 2048 }
-};
+// DATA.minimapMeta (built by scripts/gen-minimap.py, embedded in
+// compendium.json by scripts/build-data.py) gives per-floor worldOriginX/Y +
+// imageWidth/Height for data/derived/minimap-z<z>.png.
 const MAP_FLOOR_MIN = 0, MAP_FLOOR_MAX = 15, MAP_FLOOR_GROUND = 7;
 const mapTerrainCache = {};   // z -> { img, ready:false } once requested
 
@@ -1207,7 +1051,7 @@ function mapFloorLabel(z) {
 function setMapFloor(z) {
   z = Math.max(MAP_FLOOR_MIN, Math.min(MAP_FLOOR_MAX, z));
   state.mapFloor = z;
-  mapTerrainMeta = MAP_FLOOR_META[z];
+  mapTerrainMeta = DATA.minimapMeta[z];
 
   let entry = mapTerrainCache[z];
   if (!entry) {
@@ -1217,7 +1061,7 @@ function setMapFloor(z) {
       if (state.tab === "map" && state.mapFloor === z) { mapTerrainReady = true; mapTerrainImg = entry.img; drawMap(); }
     };
     entry.img.onerror = function () { console.warn("minimap-z" + z + ".png failed to load — that floor renders without terrain."); };
-    entry.img.src = MAP_FLOOR_PNG[z] || ("minimap-z" + z + ".png");
+    entry.img.src = "data/derived/minimap-z" + z + ".png";
   }
   mapTerrainReady = entry.ready;
   mapTerrainImg = entry.ready ? entry.img : null;
