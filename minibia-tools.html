@@ -306,13 +306,131 @@
 <script>
 let DATA, ICONS, MAP_FLOOR_PNG;
 
+// Builds the derived dataset the rest of this page renders (tiers, loot
+// pricing, sell-back listings, aggregate stats) from the raw library.json
+// export, so updating the tool is just replacing that one file.
+function buildGameData(library, spawnMap) {
+  const items = library.items.map(function (it) {
+    return Object.assign({}, it, {
+      sellTo: it.sellTo || [],
+      droppedBy: it.droppedBy || [],
+      bonuses: it.bonuses || [],
+      resists: it.resists || []
+    });
+  });
+
+  // sellTo entries carry a region per NPC (main/rook/unknown); reuse that
+  // to tag the reverse "soldBy" listing built below from npc.sells.
+  const npcRegionByName = {};
+  items.forEach(function (it) {
+    it.sellTo.forEach(function (s) { if (s.region) npcRegionByName[s.name] = s.region; });
+  });
+
+  const soldByName = {};
+  library.npcs.forEach(function (npc) {
+    (npc.sells || []).forEach(function (s) {
+      const key = s.name.toLowerCase();
+      (soldByName[key] || (soldByName[key] = [])).push({
+        name: npc.name,
+        price: s.price,
+        region: npcRegionByName[npc.name] || "unknown"
+      });
+    });
+  });
+  items.forEach(function (it) { it.soldBy = soldByName[it.name.toLowerCase()] || []; });
+
+  const priceByItemName = {};
+  items.forEach(function (it) {
+    const prices = it.sellTo.map(function (s) { return s.price || 0; });
+    priceByItemName[it.name.toLowerCase()] = prices.length ? Math.max.apply(null, prices) : 0;
+  });
+
+  // Difficulty tier has no field in library.json; it's a clean function of
+  // experience (verified against every previously-classified monster).
+  function tierForExperience(exp) {
+    if (exp < 28) return 0;
+    if (exp < 105) return 1;
+    if (exp < 500) return 2;
+    if (exp < 1550) return 3;
+    return 4;
+  }
+
+  let lootMatchedTotal = 0, lootLinesTotal = 0;
+  const monsters = library.monsters.map(function (m) {
+    let lootMatched = 0;
+    let goldPerKill = 0;
+    const loot = (m.loot || []).map(function (l) {
+      const unitPrice = priceByItemName[l.name.toLowerCase()] || 0;
+      const value = l.probability * ((l.min + l.max) / 2) * unitPrice;
+      if (unitPrice > 0) lootMatched++;
+      goldPerKill += value;
+      return Object.assign({}, l, { unitPrice: unitPrice, value: value });
+    });
+    lootMatchedTotal += lootMatched;
+    lootLinesTotal += loot.length;
+    goldPerKill = Math.round(goldPerKill * 100) / 100;
+    return {
+      name: m.name,
+      health: m.health,
+      experience: m.experience,
+      speed: m.speed,
+      armor: m.armor,
+      tier: tierForExperience(m.experience),
+      attacks: m.attacks || [],
+      elements: Object.keys(m.elements || {}).map(function (k) { return { key: k, pct: m.elements[k] }; }),
+      immunities: Object.keys(m.immunities || {}).filter(function (k) { return m.immunities[k]; }),
+      loot: loot,
+      lootMatched: lootMatched,
+      lootTotal: loot.length,
+      goldPerKill: goldPerKill,
+      goldPerExp: m.experience > 0 ? Math.round((goldPerKill / m.experience) * 1000) / 1000 : null
+    };
+  });
+
+  // Keep the spawn-map's per-monster tier (used for the Boss reclassification
+  // below) in sync with the tier just computed, until spawns.json is rebuilt
+  // from raw data too.
+  const tierByName = {};
+  monsters.forEach(function (m) { tierByName[m.name.toLowerCase()] = m.tier; });
+  if (spawnMap && spawnMap.monsters) {
+    spawnMap.monsters.forEach(function (sm) {
+      const t = tierByName[sm.name.toLowerCase()];
+      if (t != null) sm.tier = t;
+    });
+  }
+
+  return {
+    summary: {
+      monsters: monsters.length,
+      items: items.length,
+      npcs: library.npcs.length,
+      spells: library.spells.length,
+      runes: library.runes.length,
+      achievements: library.achievements.length
+    },
+    monsters: monsters,
+    items: items,
+    npcs: library.npcs,
+    spells: library.spells,
+    runes: library.runes,
+    achievements: library.achievements,
+    lootCoverage: {
+      matched: lootMatchedTotal,
+      total: lootLinesTotal,
+      pct: Math.round((lootMatchedTotal / lootLinesTotal) * 1000) / 10
+    },
+    spawnMap: spawnMap
+  };
+}
+
 (async function boot() {
-  const [gameData, iconsData, mapFloorData] = await Promise.all([
-    fetch("data/game-data.json").then((r) => r.json()),
+  const [library, spawnMap, iconsData, mapFloorData] = await Promise.all([
+    fetch("data/library.json").then((r) => r.json()),
+    fetch("data/spawn-map.json").then((r) => r.json()),
     fetch("data/icons.json").then((r) => r.json()),
     fetch("data/map-floors.json").then((r) => r.json())
   ]);
-  DATA = gameData;
+  DATA = buildGameData(library, spawnMap);
   ICONS = iconsData;
   MAP_FLOOR_PNG = mapFloorData;
 
