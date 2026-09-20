@@ -184,6 +184,17 @@
   .loot-value.zero { color: var(--text-muted); font-weight: 400; }
   @media (max-width: 620px) { .loot-row { grid-template-columns: 1fr auto; } .loot-bar-wrap { display: none; } }
 
+  .sim-block { display: flex; flex-direction: column; gap: 10px; }
+  .sim-controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 12.5px; color: var(--text-secondary); }
+  .sim-count-input {
+    font: inherit; font-size: 13px; width: 90px; background: var(--surface-1); color: var(--text-primary);
+    border: 1px solid var(--border); border-radius: 6px; padding: 5px 9px;
+  }
+  .sim-summary { display: flex; gap: 8px; flex-wrap: wrap; }
+  .sim-row { display: grid; grid-template-columns: 1fr 70px 90px; align-items: center; gap: 10px; font-size: 12.5px; }
+  .sim-row .loot-pct { text-align: right; }
+  @media (max-width: 620px) { .sim-row { grid-template-columns: 1fr auto; } .sim-row .loot-pct { display: none; } }
+
   .price-list { display: flex; flex-direction: column; gap: 4px; }
   .price-row { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; }
   .price-row .who { color: var(--text-secondary); display: flex; align-items: center; gap: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -536,7 +547,11 @@ function goToNpcOnMap(name) {
   drawMap();
 }
 
-document.addEventListener("DOMContentLoaded", function () {
+// Not wrapped in DOMContentLoaded: this runs inside boot(), after the data
+// fetch has already resolved, so the DOM (including #results) is long since
+// parsed — waiting for an event that has almost certainly already fired
+// would mean this listener never gets attached at all.
+(function () {
   const results = document.getElementById("results");
   if (!results) return;
   results.addEventListener("click", function (e) {
@@ -550,8 +565,29 @@ document.addEventListener("DOMContentLoaded", function () {
     if (mapMonsterLink) { e.preventDefault(); e.stopPropagation(); goToMonsterOnMap(mapMonsterLink.getAttribute("data-goto-map-monster")); return; }
     const mapNpcLink = e.target.closest("[data-goto-map-npc]");
     if (mapNpcLink) { e.preventDefault(); e.stopPropagation(); goToNpcOnMap(mapNpcLink.getAttribute("data-goto-map-npc")); return; }
+    const simRunBtn = e.target.closest("[data-sim-run]");
+    if (simRunBtn) {
+      e.preventDefault(); e.stopPropagation();
+      const m = findMonsterByName(simRunBtn.getAttribute("data-sim-run"));
+      const block = simRunBtn.closest(".sim-block");
+      if (!m || !block) return;
+      const input = block.querySelector(".sim-count-input");
+      let kills = Math.round(Number(input.value));
+      if (!Number.isFinite(kills) || kills < 1) kills = 1;
+      if (kills > 100000) kills = 100000;
+      input.value = kills;
+      const output = block.querySelector(".sim-output");
+      output.hidden = false;
+      output.innerHTML = renderSimResults(m, kills);
+      return;
+    }
   });
-});
+  results.addEventListener("keydown", function (e) {
+    if (e.key !== "Enter" || !e.target.classList.contains("sim-count-input")) return;
+    const btn = e.target.closest(".sim-block").querySelector("[data-sim-run]");
+    if (btn) { e.preventDefault(); btn.click(); }
+  });
+})();
 
 
 const TABS = [
@@ -769,8 +805,60 @@ function renderMonsterCard(m) {
       '<div><div class="row-label">Elements</div><div class="chip-row">' + elChips + immChips + '</div></div>' +
       '<div><div class="row-label">Attacks</div><div class="chip-row">' + atkChips + '</div></div>' +
       '<div><div class="row-label">Loot (' + m.loot.length + ' drops, ' + m.lootMatched + ' priced)</div><div class="loot-list">' + lootRows + '</div></div>' +
+      '<div class="sim-block" data-sim-for="' + escAttr(m.name) + '">' +
+        '<div class="row-label">Kill Simulator</div>' +
+        '<div class="sim-controls">' +
+          '<input type="number" class="sim-count-input" min="1" max="100000" step="1" value="100"> kills' +
+          '<button class="map-btn" type="button" data-sim-run="' + escAttr(m.name) + '">Simulate</button>' +
+        '</div>' +
+        '<div class="sim-output" hidden></div>' +
+      '</div>' +
     '</div>' +
   '</details>';
+}
+
+// Rolls m.loot's drop chance + quantity range `kills` times and totals what
+// actually came out, rather than the expected-value math goldPerKill uses —
+// this is what a real hunt's variance looks like, not just the average.
+function simulateKills(m, kills) {
+  const totals = {};
+  let totalValue = 0;
+  for (let k = 0; k < kills; k++) {
+    for (let i = 0; i < m.loot.length; i++) {
+      const l = m.loot[i];
+      if (Math.random() >= l.probability) continue;
+      const qty = l.min + Math.floor(Math.random() * (l.max - l.min + 1));
+      if (!totals[l.name]) totals[l.name] = { qty: 0, unitPrice: l.unitPrice };
+      totals[l.name].qty += qty;
+      totalValue += qty * l.unitPrice;
+    }
+  }
+  return { totals: totals, totalValue: totalValue };
+}
+
+function renderSimResults(m, kills) {
+  const sim = simulateKills(m, kills);
+  const rows = Object.keys(sim.totals).map(function (name) {
+    return { name: name, qty: sim.totals[name].qty, value: sim.totals[name].qty * sim.totals[name].unitPrice };
+  }).sort(function (a, b) { return b.value - a.value; });
+
+  const rowsHtml = rows.length ? rows.map(function (r) {
+    const valueCls = r.value > 0 ? "" : " zero";
+    const valueLabel = r.value > 0 ? ("≈" + fmt(Math.round(r.value * 100) / 100) + "gp") : "—";
+    const linkOpen = itemLinkOpen(r.name);
+    return '<div class="sim-row">' +
+      '<span class="loot-name">' + linkOpen + '<span class="xlink-text">' + r.name + '</span></span></span>' +
+      '<span class="loot-pct num">×' + fmt(r.qty) + '</span>' +
+      '<span class="loot-value num' + valueCls + '">' + valueLabel + '</span>' +
+      '</div>';
+  }).join("") : '<span class="stat-chip">no loot dropped</span>';
+
+  const perKill = kills > 0 ? sim.totalValue / kills : 0;
+  return '<div class="sim-summary">' +
+      '<span class="stat-chip" style="color:var(--good)">' + fmt(kills) + ' kills ≈<b>' + fmt(Math.round(sim.totalValue * 100) / 100) + '</b>gp total</span>' +
+      '<span class="stat-chip">avg <b>' + fmt(Math.round(perKill * 100) / 100) + '</b>gp/kill</span>' +
+    '</div>' +
+    '<div class="loot-list">' + rowsHtml + '</div>';
 }
 
 function renderItemCard(i) {
