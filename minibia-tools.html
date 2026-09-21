@@ -261,7 +261,9 @@
   .hunt-panel-head h2 { font-size: 18px; margin: 0; }
   .hunt-close { font: inherit; font-size: 13px; font-weight: 600; background: var(--surface-2); color: var(--text-primary); border: 1px solid var(--border); border-radius: 6px; padding: 5px 11px; cursor: pointer; }
   .hunt-close:hover { border-color: var(--accent); }
-  #hunt-input { font: inherit; font-size: 12.5px; font-family: 'SF Mono', Consolas, monospace; width: 100%; min-height: 220px; resize: vertical; background: var(--surface-2); color: var(--text-primary); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; }
+  .hunt-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 620px) { .hunt-inputs { grid-template-columns: 1fr; } }
+  .hunt-inputs textarea { font: inherit; font-size: 12.5px; font-family: 'SF Mono', Consolas, monospace; width: 100%; min-height: 220px; resize: vertical; background: var(--surface-2); color: var(--text-primary); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; }
   .hunt-actions { display: flex; align-items: center; gap: 10px; }
   .hunt-verdict { border-radius: 8px; padding: 12px 16px; font-size: 13.5px; border: 1px solid var(--border); }
   .hunt-verdict.good { color: var(--good); border-color: color-mix(in srgb, var(--good) 40%, var(--border)); background: color-mix(in srgb, var(--good) 10%, transparent); }
@@ -344,8 +346,11 @@
       <h2>Hunt Analyzer <span class="beta-tag">hidden</span></h2>
       <button class="hunt-close" id="hunt-close" type="button">Close</button>
     </div>
-    <div>Paste a hunting session's Kills + Loot text below (as copied from the client's hunt analyzer window).</div>
-    <textarea id="hunt-input" placeholder="Kills:&#10;Ghoul&#10;414&#10;...&#10;&#10;gold coin&#10;28,862 (28.9k)&#10;..."></textarea>
+    <div>Paste a hunting session's Kills and Loot text below (as copied from the client's hunt analyzer window), then Analyze.</div>
+    <div class="hunt-inputs">
+      <div><div class="row-label">Kills</div><textarea id="hunt-kills-input" placeholder="Kills:&#10;Ghoul&#10;414&#10;Crypt Shambler&#10;279&#10;..."></textarea></div>
+      <div><div class="row-label">Loot</div><textarea id="hunt-loot-input" placeholder="gold coin&#10;28,862 (28.9k)&#10;bag&#10;1,004&#10;..."></textarea></div>
+    </div>
     <div class="hunt-actions">
       <button class="map-btn" id="hunt-run" type="button">Analyze</button>
       <button class="map-btn" id="hunt-clear" type="button">Clear</button>
@@ -633,22 +638,27 @@ function goToNpcOnMap(name) {
 (function () {
   const overlay = document.getElementById("hunt-overlay");
   if (!overlay) return;
-  const input = document.getElementById("hunt-input");
+  const killsInput = document.getElementById("hunt-kills-input");
+  const lootInput = document.getElementById("hunt-loot-input");
   const output = document.getElementById("hunt-output");
 
-  function openHuntAnalyzer() { overlay.classList.add("active"); input.focus(); }
+  function openHuntAnalyzer() { overlay.classList.add("active"); killsInput.focus(); }
   function closeHuntAnalyzer() {
     overlay.classList.remove("active");
     if (location.hash.toLowerCase() === "#hunt-analyzer") history.replaceState(null, "", location.pathname + location.search);
   }
 
   document.getElementById("hunt-run").addEventListener("click", function () {
-    output.innerHTML = renderHuntAnalysis(parseHuntText(input.value));
+    output.innerHTML = renderHuntAnalysis({
+      kills: parseKillsText(killsInput.value),
+      loot: parseLootText(lootInput.value)
+    });
   });
   document.getElementById("hunt-clear").addEventListener("click", function () {
-    input.value = "";
+    killsInput.value = "";
+    lootInput.value = "";
     output.innerHTML = "";
-    input.focus();
+    killsInput.focus();
   });
   document.getElementById("hunt-close").addEventListener("click", closeHuntAnalyzer);
   overlay.addEventListener("click", function (e) { if (e.target === overlay) closeHuntAnalyzer(); });
@@ -662,54 +672,31 @@ function goToNpcOnMap(name) {
   if (location.hash.toLowerCase() === "#hunt-analyzer") openHuntAnalyzer();
 })();
 
-// Splits pasted hunt-analyzer text into kill pairs and loot pairs. Prefers the
-// blank line the client's own export puts between the two lists; if that's
-// gone (reformatted paste), falls back to reading name+number pairs for as
-// long as the name matches a known monster, then treating the rest as loot.
-function parseHuntText(text) {
-  function parseCount(s) { return parseInt(String(s).replace(/[,\s]/g, ""), 10) || 0; }
-  function toLootEntry(name, valueLine) {
-    const m = String(valueLine).match(/^([\d,]+)/);
-    return { name: name, qty: m ? parseCount(m[1]) : 0 };
-  }
-  function pairUp(lines) {
-    const out = [];
-    for (let i = 0; i + 1 < lines.length; i += 2) out.push([lines[i], lines[i + 1]]);
-    return out;
-  }
-
-  const clean = function (lines, headerRe) {
-    return lines.map(function (l) { return l.trim(); }).filter(function (l) { return l !== "" && !headerRe.test(l); });
-  };
-  function byNameMatching(pairs) {
-    let i = 0;
-    const kills = [];
-    for (; i < pairs.length; i++) {
-      if (!findMonsterByName(pairs[i][0]) || !/^[\d,]+$/.test(pairs[i][1])) break;
-      kills.push({ name: pairs[i][0], count: parseCount(pairs[i][1]) });
-    }
-    return { kills: kills, loot: pairs.slice(i).map(function (p) { return toLootEntry(p[0], p[1]); }) };
-  }
-
-  // Trim first so a trailing blank line (near-universal after a paste) can't
-  // be mistaken for the real separator between the two lists.
-  const rawLines = String(text || "").trim().split(/\r?\n/);
-  let splitIdx = -1;
-  for (let i = 1; i < rawLines.length; i++) {
-    if (rawLines[i].trim() === "") { splitIdx = i; break; }
-  }
-  if (splitIdx === -1) return byNameMatching(pairUp(clean(rawLines, /^kills:?$/i)));
-
-  const killLines = clean(rawLines.slice(0, splitIdx), /^kills:?$/i);
-  const lootLines = clean(rawLines.slice(splitIdx + 1), /^loot:?$/i);
-  // A run of several blank lines (or one right before a trailing "Loot:"
-  // header with nothing under it) can leave lootLines empty even after
-  // trimming — fall back rather than reporting a hunt with no loot at all.
-  if (!lootLines.length) return byNameMatching(pairUp(clean(rawLines, /^kills:?$/i)));
-  return {
-    kills: pairUp(killLines).map(function (p) { return { name: p[0], count: parseCount(p[1]) }; }),
-    loot: pairUp(lootLines).map(function (p) { return toLootEntry(p[0], p[1]); })
-  };
+// Kills and loot each come from their own textarea, so there's no need to
+// guess where one list ends and the other begins - just strip a leading
+// "Kills:"/"Loot:" label (in case it was copied along with the list) and
+// blank lines, then pair up name/number lines.
+function huntParseCount(s) { return parseInt(String(s).replace(/[,\s]/g, ""), 10) || 0; }
+function huntCleanLines(text, headerRe) {
+  return String(text || "").split(/\r?\n/)
+    .map(function (l) { return l.trim(); })
+    .filter(function (l) { return l !== "" && !headerRe.test(l); });
+}
+function huntPairUp(lines) {
+  const out = [];
+  for (let i = 0; i + 1 < lines.length; i += 2) out.push([lines[i], lines[i + 1]]);
+  return out;
+}
+function parseKillsText(text) {
+  return huntPairUp(huntCleanLines(text, /^kills:?$/i)).map(function (p) {
+    return { name: p[0], count: huntParseCount(p[1]) };
+  });
+}
+function parseLootText(text) {
+  return huntPairUp(huntCleanLines(text, /^loot:?$/i)).map(function (p) {
+    const m = String(p[1]).match(/^([\d,]+)/);
+    return { name: p[0], qty: m ? huntParseCount(m[1]) : 0 };
+  });
 }
 
 // Cross-references parsed kills against each monster's known goldPerKill to
@@ -753,7 +740,7 @@ function analyzeHunt(parsed) {
 
 function renderHuntAnalysis(parsed) {
   if (!parsed.kills.length && !parsed.loot.length) {
-    return '<div class="empty-state">Paste a Kills list and a Loot list (blank line between them), then Analyze.</div>';
+    return '<div class="empty-state">Paste a Kills list into the left box and a Loot list into the right box, then Analyze.</div>';
   }
   const a = analyzeHunt(parsed);
 
