@@ -247,6 +247,29 @@
 
   footer { margin-top: 44px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 12.5px; }
 
+  /* Hunt Analyzer - unlisted, opened via #hunt-analyzer or Alt+H */
+  #hunt-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 50;
+    align-items: flex-start; justify-content: center; padding: 5vh 16px; overflow-y: auto;
+  }
+  #hunt-overlay.active { display: flex; }
+  .hunt-panel {
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow);
+    padding: 20px 22px; width: 100%; max-width: 900px; display: flex; flex-direction: column; gap: 14px;
+  }
+  .hunt-panel-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .hunt-panel-head h2 { font-size: 18px; margin: 0; }
+  .hunt-close { font: inherit; font-size: 13px; font-weight: 600; background: var(--surface-2); color: var(--text-primary); border: 1px solid var(--border); border-radius: 6px; padding: 5px 11px; cursor: pointer; }
+  .hunt-close:hover { border-color: var(--accent); }
+  #hunt-input { font: inherit; font-size: 12.5px; font-family: 'SF Mono', Consolas, monospace; width: 100%; min-height: 220px; resize: vertical; background: var(--surface-2); color: var(--text-primary); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; }
+  .hunt-actions { display: flex; align-items: center; gap: 10px; }
+  .hunt-verdict { border-radius: 8px; padding: 12px 16px; font-size: 13.5px; border: 1px solid var(--border); }
+  .hunt-verdict.good { color: var(--good); border-color: color-mix(in srgb, var(--good) 40%, var(--border)); background: color-mix(in srgb, var(--good) 10%, transparent); }
+  .hunt-verdict.bad { color: var(--bad); border-color: color-mix(in srgb, var(--bad) 40%, var(--border)); background: color-mix(in srgb, var(--bad) 10%, transparent); }
+  .hunt-verdict b { font-family: 'SF Mono', Consolas, monospace; }
+  .hunt-unmatched { color: var(--text-muted); font-size: 12px; }
+  @media (max-width: 620px) { .hunt-panel .two-col { grid-template-columns: 1fr; } }
+
   @media (max-width: 900px) { .stats { grid-template-columns: repeat(4, 1fr); } }
   @media (max-width: 560px) { .stats { grid-template-columns: repeat(3, 1fr); } #map-canvas { height: 460px; } }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
@@ -312,6 +335,23 @@
 
   <footer>Static snapshot from <code>library.json.txt</code> and <code>spawns.json.txt</code>. Loot/drop probabilities, sell prices and spawn points are the design database's values, not verified against the live server.</footer>
 
+</div>
+
+<!-- Hunt Analyzer: unlisted, not linked from the tab bar. Open with #hunt-analyzer or Alt+H. -->
+<div id="hunt-overlay">
+  <div class="hunt-panel">
+    <div class="hunt-panel-head">
+      <h2>Hunt Analyzer <span class="beta-tag">hidden</span></h2>
+      <button class="hunt-close" id="hunt-close" type="button">Close</button>
+    </div>
+    <div>Paste a hunting session's Kills + Loot text below (as copied from the client's hunt analyzer window).</div>
+    <textarea id="hunt-input" placeholder="Kills:&#10;Ghoul&#10;414&#10;...&#10;&#10;gold coin&#10;28,862 (28.9k)&#10;..."></textarea>
+    <div class="hunt-actions">
+      <button class="map-btn" id="hunt-run" type="button">Analyze</button>
+      <button class="map-btn" id="hunt-clear" type="button">Clear</button>
+    </div>
+    <div id="hunt-output"></div>
+  </div>
 </div>
 
 <script>
@@ -588,6 +628,174 @@ function goToNpcOnMap(name) {
     if (btn) { e.preventDefault(); btn.click(); }
   });
 })();
+
+// --- Hunt Analyzer: unlisted feature, opened via #hunt-analyzer or Alt+H ---
+(function () {
+  const overlay = document.getElementById("hunt-overlay");
+  if (!overlay) return;
+  const input = document.getElementById("hunt-input");
+  const output = document.getElementById("hunt-output");
+
+  function openHuntAnalyzer() { overlay.classList.add("active"); input.focus(); }
+  function closeHuntAnalyzer() {
+    overlay.classList.remove("active");
+    if (location.hash.toLowerCase() === "#hunt-analyzer") history.replaceState(null, "", location.pathname + location.search);
+  }
+
+  document.getElementById("hunt-run").addEventListener("click", function () {
+    output.innerHTML = renderHuntAnalysis(parseHuntText(input.value));
+  });
+  document.getElementById("hunt-clear").addEventListener("click", function () {
+    input.value = "";
+    output.innerHTML = "";
+    input.focus();
+  });
+  document.getElementById("hunt-close").addEventListener("click", closeHuntAnalyzer);
+  overlay.addEventListener("click", function (e) { if (e.target === overlay) closeHuntAnalyzer(); });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && overlay.classList.contains("active")) { closeHuntAnalyzer(); return; }
+    if (e.altKey && (e.key === "h" || e.key === "H")) { e.preventDefault(); openHuntAnalyzer(); }
+  });
+  window.addEventListener("hashchange", function () {
+    if (location.hash.toLowerCase() === "#hunt-analyzer") openHuntAnalyzer();
+  });
+  if (location.hash.toLowerCase() === "#hunt-analyzer") openHuntAnalyzer();
+})();
+
+// Splits pasted hunt-analyzer text into kill pairs and loot pairs. Prefers the
+// blank line the client's own export puts between the two lists; if that's
+// gone (reformatted paste), falls back to reading name+number pairs for as
+// long as the name matches a known monster, then treating the rest as loot.
+function parseHuntText(text) {
+  function parseCount(s) { return parseInt(String(s).replace(/[,\s]/g, ""), 10) || 0; }
+  function toLootEntry(name, valueLine) {
+    const m = String(valueLine).match(/^([\d,]+)/);
+    return { name: name, qty: m ? parseCount(m[1]) : 0 };
+  }
+  function pairUp(lines) {
+    const out = [];
+    for (let i = 0; i + 1 < lines.length; i += 2) out.push([lines[i], lines[i + 1]]);
+    return out;
+  }
+
+  const clean = function (lines, headerRe) {
+    return lines.map(function (l) { return l.trim(); }).filter(function (l) { return l !== "" && !headerRe.test(l); });
+  };
+  function byNameMatching(pairs) {
+    let i = 0;
+    const kills = [];
+    for (; i < pairs.length; i++) {
+      if (!findMonsterByName(pairs[i][0]) || !/^[\d,]+$/.test(pairs[i][1])) break;
+      kills.push({ name: pairs[i][0], count: parseCount(pairs[i][1]) });
+    }
+    return { kills: kills, loot: pairs.slice(i).map(function (p) { return toLootEntry(p[0], p[1]); }) };
+  }
+
+  // Trim first so a trailing blank line (near-universal after a paste) can't
+  // be mistaken for the real separator between the two lists.
+  const rawLines = String(text || "").trim().split(/\r?\n/);
+  let splitIdx = -1;
+  for (let i = 1; i < rawLines.length; i++) {
+    if (rawLines[i].trim() === "") { splitIdx = i; break; }
+  }
+  if (splitIdx === -1) return byNameMatching(pairUp(clean(rawLines, /^kills:?$/i)));
+
+  const killLines = clean(rawLines.slice(0, splitIdx), /^kills:?$/i);
+  const lootLines = clean(rawLines.slice(splitIdx + 1), /^loot:?$/i);
+  // A run of several blank lines (or one right before a trailing "Loot:"
+  // header with nothing under it) can leave lootLines empty even after
+  // trimming — fall back rather than reporting a hunt with no loot at all.
+  if (!lootLines.length) return byNameMatching(pairUp(clean(rawLines, /^kills:?$/i)));
+  return {
+    kills: pairUp(killLines).map(function (p) { return { name: p[0], count: parseCount(p[1]) }; }),
+    loot: pairUp(lootLines).map(function (p) { return toLootEntry(p[0], p[1]); })
+  };
+}
+
+// Cross-references parsed kills against each monster's known goldPerKill to
+// get an "expected" total for that exact kill mix, and parsed loot against
+// our own item sell prices (not the pasted (value) hints, which are the
+// live server's numbers, not ours) to get a same-source "actual" total.
+function analyzeHunt(parsed) {
+  const killRows = parsed.kills.map(function (k) {
+    const mo = findMonsterByName(k.name);
+    const expected = mo ? mo.goldPerKill * k.count : 0;
+    return { name: k.name, count: k.count, matched: !!mo, goldPerKill: mo ? mo.goldPerKill : 0, expected: expected };
+  });
+
+  const priceByName = { "gold coin": 1 };
+  (DATA.items || []).forEach(function (it) {
+    const key = it.name.toLowerCase();
+    if (Object.prototype.hasOwnProperty.call(priceByName, key)) return;
+    const prices = (it.sellTo || []).map(function (s) { return s.price || 0; });
+    if (prices.length) priceByName[key] = Math.max.apply(null, prices);
+  });
+  const itemNames = {};
+  (DATA.items || []).forEach(function (it) { itemNames[it.name.toLowerCase()] = true; });
+
+  const lootRows = parsed.loot.map(function (l) {
+    const key = l.name.toLowerCase();
+    const known = key === "gold coin" || !!itemNames[key];
+    const unitPrice = priceByName[key] || 0;
+    return { name: l.name, qty: l.qty, matched: known, unitPrice: unitPrice, value: l.qty * unitPrice };
+  });
+
+  const totalKills = killRows.reduce(function (s, r) { return s + r.count; }, 0);
+  const expectedTotal = killRows.reduce(function (s, r) { return s + r.expected; }, 0);
+  const actualTotal = lootRows.reduce(function (s, r) { return s + r.value; }, 0);
+
+  return {
+    killRows: killRows, lootRows: lootRows, totalKills: totalKills,
+    expectedTotal: expectedTotal, actualTotal: actualTotal,
+    diffPct: expectedTotal > 0 ? ((actualTotal - expectedTotal) / expectedTotal) * 100 : null
+  };
+}
+
+function renderHuntAnalysis(parsed) {
+  if (!parsed.kills.length && !parsed.loot.length) {
+    return '<div class="empty-state">Paste a Kills list and a Loot list (blank line between them), then Analyze.</div>';
+  }
+  const a = analyzeHunt(parsed);
+
+  const verdictCls = a.diffPct == null ? "" : (a.diffPct >= 0 ? " good" : " bad");
+  const verdictText = a.diffPct == null
+    ? "No matched monsters to compute an expected value against."
+    : (Math.abs(a.diffPct) < 0.5
+      ? "Right about at the expected average."
+      : (a.diffPct > 0 ? "≈" + Math.abs(a.diffPct).toFixed(1) + "% ABOVE the expected average." : "≈" + Math.abs(a.diffPct).toFixed(1) + "% BELOW the expected average."));
+
+  const killRowsSorted = a.killRows.slice().sort(function (x, y) { return y.expected - x.expected; });
+  const maxExpected = killRowsSorted.length ? killRowsSorted[0].expected : 1;
+  const killHtml = killRowsSorted.length ? killRowsSorted.map(function (r) {
+    const cls = r.matched ? "" : " zero";
+    return '<div class="loot-row">' +
+      '<span class="loot-name">' + r.name + (r.matched ? "" : ' <span class="hunt-unmatched">(unknown monster)</span>') + '</span>' +
+      '<span class="loot-pct num">×' + fmt(r.count) + '</span>' +
+      '<span class="loot-bar-wrap"><span class="loot-bar" style="width:' + (maxExpected > 0 ? r.expected / maxExpected * 100 : 0) + '%"></span></span>' +
+      '<span class="loot-value num' + cls + '">' + (r.matched ? "≈" + fmt(Math.round(r.expected * 100) / 100) + "gp" : "—") + '</span>' +
+      '</div>';
+  }).join("") : '<span class="stat-chip">no kills parsed</span>';
+
+  const lootRowsSorted = a.lootRows.slice().sort(function (x, y) { return y.value - x.value; });
+  const maxValue = lootRowsSorted.length ? lootRowsSorted[0].value : 1;
+  const lootHtml = lootRowsSorted.length ? lootRowsSorted.map(function (r) {
+    const cls = r.value > 0 ? "" : " zero";
+    return '<div class="loot-row">' +
+      '<span class="loot-name">' + r.name + (r.matched ? "" : ' <span class="hunt-unmatched">(unknown item)</span>') + '</span>' +
+      '<span class="loot-pct num">×' + fmt(r.qty) + '</span>' +
+      '<span class="loot-bar-wrap"><span class="loot-bar" style="width:' + (maxValue > 0 ? r.value / maxValue * 100 : 0) + '%"></span></span>' +
+      '<span class="loot-value num' + cls + '">' + (r.value > 0 ? "≈" + fmt(Math.round(r.value * 100) / 100) + "gp" : "—") + '</span>' +
+      '</div>';
+  }).join("") : '<span class="stat-chip">no loot parsed</span>';
+
+  return '<div class="hunt-verdict' + verdictCls + '">' +
+      fmt(a.totalKills) + ' kills — actual loot ≈<b>' + fmt(Math.round(a.actualTotal * 100) / 100) + '</b>gp, expected ≈<b>' + fmt(Math.round(a.expectedTotal * 100) / 100) + '</b>gp for this exact kill mix.<br>' + verdictText +
+    '</div>' +
+    '<div class="two-col">' +
+      '<div><div class="row-label">Kills (expected value)</div><div class="loot-list">' + killHtml + '</div></div>' +
+      '<div><div class="row-label">Loot (priced by our item data, not the pasted values)</div><div class="loot-list">' + lootHtml + '</div></div>' +
+    '</div>';
+}
 
 
 const TABS = [
