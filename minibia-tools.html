@@ -51,10 +51,12 @@
 
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
+  html { overflow-x: hidden; }
   body {
     background: var(--bg); color: var(--text-primary);
     font-family: 'Avenir Next', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     font-size: 15px; line-height: 1.55; -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
   }
   .num { font-family: 'SF Mono', 'Cascadia Code', 'JetBrains Mono', Consolas, 'Courier New', monospace; font-variant-numeric: tabular-nums; }
   h1, h2, h3 { font-family: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif; font-weight: 600; text-wrap: balance; margin: 0; }
@@ -140,7 +142,7 @@
 
   /* generic collapsible card (monsters, items, npcs) */
   .card { background: var(--surface-1); border: 1px solid var(--border); border-radius: 8px; padding: 12px 18px; }
-  .card summary { list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+  .card summary { list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
   .card summary::-webkit-details-marker { display: none; }
   .card-head-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
   .card-head-left .name { font-weight: 600; font-size: 14.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -214,8 +216,8 @@
   /* flat single-row cards (spells, runes, achievements) */
   .flat-row { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 14px; background: var(--surface-1); border: 1px solid var(--border); border-radius: 8px; padding: 12px 18px; }
   .flat-left { display: flex; align-items: baseline; gap: 12px; min-width: 0; }
-  .flat-left .name { font-weight: 600; font-size: 14.5px; white-space: nowrap; }
-  .words { font-family: 'SF Mono', Consolas, monospace; font-size: 13px; color: var(--accent); background: var(--surface-2); padding: 2px 8px; border-radius: 4px; }
+  .flat-left .name { font-weight: 600; font-size: 14.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .words { font-family: 'SF Mono', Consolas, monospace; font-size: 13px; color: var(--accent); background: var(--surface-2); padding: 2px 8px; border-radius: 4px; white-space: nowrap; flex-shrink: 0; }
   .flat-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
   .voc-chip { font-size: 11px; color: var(--text-secondary); background: var(--surface-2); border-radius: 999px; padding: 2px 8px; }
   .badge-alpha { font-size: 10px; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; color: var(--accent-ink); background: var(--accent); padding: 2px 7px; border-radius: 999px; }
@@ -279,7 +281,22 @@
   @media (max-width: 620px) { .hunt-panel .two-col { grid-template-columns: 1fr; } }
 
   @media (max-width: 900px) { .stats { grid-template-columns: repeat(4, 1fr); } }
-  @media (max-width: 560px) { .stats { grid-template-columns: repeat(3, 1fr); } #map-canvas { height: 460px; } }
+  @media (max-width: 560px) {
+    .stats { grid-template-columns: repeat(3, 1fr); }
+    #map-canvas { height: 460px; }
+    /* .card-head-right has flex-shrink:0 so it can hold its own width and
+       wrap its chips internally when there's room; on a narrow card that
+       width is wider than the card itself, so let it drop to its own full
+       line under the name instead (card summary now has flex-wrap: wrap). */
+    .card-head-right { width: 100%; justify-content: flex-start; }
+    .npc-pos { display: none; }
+    /* Same problem as .card-head-right, different container: the "auto"
+       column claims whatever width its chips need, which on a narrow
+       screen is most of the row, squeezing the name column to a sliver.
+       Stack name above chips instead of sharing one line. */
+    .flat-row { grid-template-columns: 1fr; }
+    .flat-right { justify-content: flex-start; }
+  }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 
