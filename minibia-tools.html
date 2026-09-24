@@ -2235,7 +2235,10 @@ const PATH_BLOCKING_IDX = [0, 12, 40, 86, 114, 186, 192];
 
 const PATH_WORKER_SRC = function () {
   let W = 0, H = 0, WH = 0, floors = [], pbits = [], portals = new Map(), goal = -1;
-  const SQRT2 = Math.SQRT2, EXPAND_LIMIT = 1500000, PORTAL_COST = 3;
+  // Edge kinds: 0 = stairs/ladder/hole (fixed cost), 1 = assumed door
+  // through a 1-tile wall (2 steps + a penalty, so real openings and known
+  // stairs win whenever they're comparable).
+  const SQRT2 = Math.SQRT2, EXPAND_LIMIT = 1500000, EDGE_COST = [3, 12];
 
   function walk(z, x, y) {
     if (x < 0 || y < 0 || x >= W || y >= H) return false;
@@ -2355,7 +2358,7 @@ const PATH_WORKER_SRC = function () {
     if (!g) return { ok: false, reason: "end isn't near any walkable tile on that floor" };
     const start = (sz * H + s[1]) * W + s[0];
     goal = (gz * H + g[1]) * W + g[0];
-    const gScore = new Map(), parent = new Map(), closed = new Set();
+    const gScore = new Map(), parent = new Map(), closed = new Set(), viaDoor = new Set();
     hI = []; hF = [];
     gScore.set(start, 0); parent.set(start, -1);
     hPush(start, octile(Math.abs(s[0] - g[0]), Math.abs(s[1] - g[1])));
@@ -2366,13 +2369,16 @@ const PATH_WORKER_SRC = function () {
       if (closed.has(cur)) continue;
       closed.add(cur);
       if (cur === goal) {
-        const path = [];
+        const path = [], door = [];
         for (let n = cur; n !== -1; n = parent.get(n)) {
           const x = n % W, t = (n - x) / W, y = t % H;
           path.push([(t - y) / H, x, y]);
+          door.push(viaDoor.has(n) ? 1 : 0);
         }
-        path.reverse();
-        return { ok: true, path: path, expanded: expanded };
+        path.reverse(); door.reverse();
+        const doors = [];
+        for (let i = 0; i < door.length; i++) if (door[i]) doors.push(i); // path[i] was entered through an assumed door
+        return { ok: true, path: path, doors: doors, expanded: expanded };
       }
       if (++expanded > EXPAND_LIMIT) return { ok: false, reason: "gave up after " + EXPAND_LIMIT + " nodes" };
       const x = cur % W, t = (cur - x) / W, y = t % H, z = (t - y) / H;
@@ -2392,20 +2398,21 @@ const PATH_WORKER_SRC = function () {
         const ng = gc + octile(Math.abs(jx - x), Math.abs(jy - y));
         const old = gScore.get(jp);
         if (old === undefined || ng < old) {
-          gScore.set(jp, ng); parent.set(jp, cur);
+          gScore.set(jp, ng); parent.set(jp, cur); viaDoor.delete(jp);
           hPush(jp, ng + octile(Math.abs(jx - g[0]), Math.abs(jy - g[1])) * 1.001);
         }
       }
       if (isP(z, x, y)) {
         const targets = portals.get(cur);
-        for (let k = 0; k < targets.length; k++) {
-          const tn = targets[k];
+        for (let k = 0; k < targets.length; k += 2) {
+          const tn = targets[k], kind = targets[k + 1];
           if (closed.has(tn)) continue;
-          const ng = gc + PORTAL_COST;
+          const ng = gc + EDGE_COST[kind];
           const old = gScore.get(tn);
           if (old === undefined || ng < old) {
             const tx = tn % W, ty = ((tn - tx) / W) % H;
             gScore.set(tn, ng); parent.set(tn, cur);
+            if (kind === 1) viaDoor.add(tn); else viaDoor.delete(tn);
             hPush(tn, ng + octile(Math.abs(tx - g[0]), Math.abs(ty - g[1])) * 1.001);
           }
         }
@@ -2419,12 +2426,12 @@ const PATH_WORKER_SRC = function () {
     if (m.type === "init") {
       W = m.W; H = m.H; WH = W * H;
       for (const z in m.floors) floors[+z] = new Uint8Array(m.floors[z]);
-      const pr = m.portals; // Int32Array [src, dst, src, dst, ...]
+      const pr = m.portals; // Int32Array [src, dst, kind, src, dst, kind, ...]
       const bitLen = Math.ceil(WH / 8);
-      for (let i = 0; i < pr.length; i += 2) {
+      for (let i = 0; i < pr.length; i += 3) {
         const src = pr[i], dst = pr[i + 1];
         let list = portals.get(src); if (!list) { list = []; portals.set(src, list); }
-        list.push(dst);
+        list.push(dst, pr[i + 2]);
         const z = Math.floor(src / WH), local = src - z * WH;
         if (!pbits[z]) pbits[z] = new Uint8Array(bitLen);
         pbits[z][local >> 3] |= 1 << (local & 7);
@@ -2547,10 +2554,26 @@ function pathPrepare() {
         const x = c[0] - minX, y = c[1] - minY;
         if (!walkBit(z, x, y)) return;
         const src = (z * H + y) * W + x;
-        if (c[2] & 1) { const t = landing(z - 1, x, y); if (t >= 0) pairs.push(src, t); }
-        if (c[2] & 2) { const t = landing(z + 1, x, y); if (t >= 0) pairs.push(src, t); }
+        if (c[2] & 1) { const t = landing(z - 1, x, y); if (t >= 0) pairs.push(src, t, 0); }
+        if (c[2] & 2) { const t = landing(z + 1, x, y); if (t >= 0) pairs.push(src, t, 0); }
       });
     });
+    // Assumed doors (see gen-floor-connections.py): each candidate wall tile
+    // links the walkable tiles on its two sides, both ways. Optional - if
+    // the file is missing, routes just can't pass sealed walls.
+    try {
+      const doors = await fetch("data/derived/door-candidates.json").then(function (r) { return r.ok ? r.json() : {}; });
+      Object.keys(doors).forEach(function (zk) {
+        const z = +zk, v = doors[zk];
+        for (let i = 0; i < v.length; i += 3) {
+          const x = v[i] - minX, y = v[i + 1] - minY, horiz = v[i + 2] === 0;
+          const ax = horiz ? x - 1 : x, ay = horiz ? y : y - 1, bx = horiz ? x + 1 : x, by = horiz ? y : y + 1;
+          if (!walkBit(z, ax, ay) || !walkBit(z, bx, by)) continue;
+          const a = (z * H + ay) * W + ax, b = (z * H + by) * W + bx;
+          pairs.push(a, b, 1, b, a, 1);
+        }
+      });
+    } catch (e) { /* no door data - carry on without it */ }
     const portalArr = new Int32Array(pairs);
 
     const blob = new Blob(["(" + PATH_WORKER_SRC + ")();"], { type: "text/javascript" });
@@ -2645,11 +2668,13 @@ function pathShowResult(r) {
     else segs.push({ z: nodes[i].z, from: i, to: i });
   }
   const st = pathNodeStats(nodes), steps = st.steps, changes = st.changes;
-  pathState.result = { nodes: nodes, segs: segs, steps: steps, changes: changes };
+  const doors = r.doors || [];
+  pathState.result = { nodes: nodes, segs: segs, steps: steps, changes: changes, doors: doors };
   const chips = segs.map(function (sg, i) {
     return '<button class="chip" type="button" data-path-seg="' + i + '">' + esc(mapFloorLabel(sg.z)) + '</button>';
   }).join(" → ");
   pathSetStatus("Route: ~" + fmt(steps) + " steps, " + changes + " floor change" + (changes === 1 ? "" : "s") +
+    (doors.length ? ", passes " + doors.length + " assumed door" + (doors.length === 1 ? "" : "s") + " (white squares - walls the minimap draws with no door, check these)" : "") +
     " (" + Math.round(r.ms) + " ms, " + fmt(r.expanded) + " jump points).", chips);
   pathShowSegment(0);
 }
@@ -2702,6 +2727,23 @@ function pathToggle() {
   drawMap();
 }
 
+// An assumed door sits on the wall tile between the two route nodes it
+// joins (they're exactly two tiles apart, one each side of the wall).
+function drawDoorMarkers(nodes, doors, z) {
+  if (!doors || !doors.length) return;
+  mapCtx.save();
+  for (let k = 0; k < doors.length; k++) {
+    const b = nodes[doors[k]], a = nodes[doors[k] - 1];
+    if (!a || a.z !== z || b.z !== z) continue;
+    const [sx, sy] = worldToScreen((a.x + b.x) / 2 + 0.5, (a.y + b.y) / 2 + 0.5);
+    const r = Math.max(4, Math.min(9, mapView.scale * 0.6));
+    mapCtx.fillStyle = "#fff"; mapCtx.strokeStyle = "#000"; mapCtx.lineWidth = 2;
+    mapCtx.fillRect(sx - r, sy - r, r * 2, r * 2);
+    mapCtx.strokeRect(sx - r, sy - r, r * 2, r * 2);
+  }
+  mapCtx.restore();
+}
+
 function drawPathOverlay(w, h) {
   const z = state.mapFloor;
   const dot = function (x, y, color) {
@@ -2740,6 +2782,7 @@ function drawPathOverlay(w, h) {
       if (b.z === z) dot(b.x, b.y, "#ffd600");
     }
   }
+  if (res) drawDoorMarkers(res.nodes, res.doors, z);
   if (pathState.start && pathState.start.z === z) dot(pathState.start.x, pathState.start.y, "#22c55e");
   if (pathState.goal && pathState.goal.z === z) dot(pathState.goal.x, pathState.goal.y, "#ef4444");
   mapCtx.restore();
@@ -2809,7 +2852,7 @@ function routeRecompute() {
     for (let k = 0; k < missing.length; k++) {
       const i = missing[k], a = pairs[i][0], b = pairs[i][1];
       const r = await pathRequest(a, b);
-      const leg = r.ok ? { ok: true, nodes: r.nodes } : { ok: false, reason: r.reason };
+      const leg = r.ok ? { ok: true, nodes: r.nodes, doors: r.doors || [] } : { ok: false, reason: r.reason };
       routeLegCache.set(routeLegKey(a, b), leg);
       if (gen !== routeState.gen) return;
       routeState.legs[i] = leg;
@@ -2825,14 +2868,15 @@ function routeRenderStatus() {
   const n = routeState.points.length;
   if (routeState.prepText) { el.textContent = routeState.prepText; return; }
   if (!n) { el.textContent = routeState.mode === "edit" ? "Click the map to add the first point. Change floors with ▲/▼ between clicks if the route goes up or down." : ""; return; }
-  let steps = 0, changes = 0, pending = 0, failed = 0;
+  let steps = 0, changes = 0, pending = 0, failed = 0, doors = 0;
   routeState.legs.forEach(function (leg) {
     if (!leg) { pending++; return; }
     if (!leg.ok) { failed++; return; }
-    const st = pathNodeStats(leg.nodes); steps += st.steps; changes += st.changes;
+    const st = pathNodeStats(leg.nodes); steps += st.steps; changes += st.changes; doors += leg.doors.length;
   });
   let txt = n + " point" + (n === 1 ? "" : "s");
   if (routeState.legs.length) txt += " · ~" + fmt(steps) + " steps" + (changes ? " · " + changes + " floor change" + (changes === 1 ? "" : "s") : "");
+  if (doors) txt += " · passes " + doors + " assumed door" + (doors === 1 ? "" : "s") + " (white squares)";
   if (routeState.loop && n > 2) txt += " · loops back to start";
   if (pending) txt += " · calculating " + pending + " leg" + (pending === 1 ? "" : "s") + "…";
   if (failed) txt += " · " + failed + " leg" + (failed === 1 ? "" : "s") + " couldn't be walked (drawn dashed)";
@@ -2987,6 +3031,7 @@ function drawRouteOverlay() {
         mapCtx.fillStyle = "#ffd600"; mapCtx.fill(); mapCtx.lineWidth = 2; mapCtx.strokeStyle = "#000"; mapCtx.stroke();
         mapCtx.fillStyle = "#000"; mapCtx.fillText(v.z < u.z ? "↑" : "↓", sx, sy + 0.5);
       }
+      drawDoorMarkers(leg.nodes, leg.doors, z);
     } else if (a.z === z && b.z === z) {
       const [ax, ay] = worldToScreen(a.x + 0.5, a.y + 0.5), [bx, by] = worldToScreen(b.x + 0.5, b.y + 0.5);
       mapCtx.setLineDash([7, 6]);
