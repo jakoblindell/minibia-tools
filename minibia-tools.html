@@ -856,7 +856,7 @@ function analyzeHunt(parsed) {
     return { name: k.name, count: k.count, matched: !!mo, goldPerKill: mo ? mo.goldPerKill : 0, expected: expected };
   });
 
-  const priceByName = { "gold coin": 1 };
+  const priceByName = { "gold coin": 1, "platinum coin": 100, "crystal coin": 10000 };
   (DATA.items || []).forEach(function (it) {
     const key = it.name.toLowerCase();
     if (Object.prototype.hasOwnProperty.call(priceByName, key)) return;
