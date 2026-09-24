@@ -236,6 +236,26 @@
   /* map tab */
   #map-wrap { display: none; }
   #map-wrap.active { display: block; }
+
+  /* rune making tab */
+  #rune-wrap { display: none; }
+  #rune-wrap.active { display: block; }
+  .rc-card { background: var(--surface-1); border: 1px solid var(--border); border-radius: 8px; padding: 16px 18px; display: flex; flex-direction: column; gap: 18px; }
+  .rc-section { display: flex; flex-direction: column; gap: 8px; }
+  .rc-inline-field { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--text-secondary); flex-wrap: wrap; }
+  .rc-inline-field input[type="number"] {
+    font: inherit; font-size: 12.5px; width: 76px; background: var(--surface-2); color: var(--text-primary);
+    border: 1px solid var(--border); border-radius: 6px; padding: 4px 8px;
+  }
+  .rc-inline-field input[type="number"].wide { width: 100px; }
+  .rc-hint { color: var(--text-muted); font-size: 12px; }
+  .rc-output-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  @media (max-width: 620px) { .rc-output-grid { grid-template-columns: repeat(2, 1fr); } }
+  .rc-output-tile { background: var(--surface-2); border-radius: 8px; padding: 10px 12px; }
+  .rc-output-tile .value { font-family: 'Iowan Old Style', Georgia, serif; font-size: 16.5px; font-weight: 600; }
+  .rc-output-tile .value.good { color: var(--good); }
+  .rc-output-tile .value.bad { color: var(--bad); }
+  .rc-output-tile .label { color: var(--text-secondary); font-size: 10.5px; letter-spacing: .02em; margin-top: 2px; text-transform: uppercase; }
   .map-shell { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 10px; box-shadow: var(--shadow); }
   #map-canvas { width: 100%; height: 640px; display: block; border-radius: 6px; background: var(--surface-2); cursor: grab; touch-action: none; }
   #map-canvas.dragging { cursor: grabbing; }
@@ -358,6 +378,56 @@
         </div>
       </div>
       <div class="map-hint">Scroll to zoom, drag to pan, hover a dot for details. Terrain is decoded from the client's own <code>minimap.bin</code> at full 1&nbsp;px&nbsp;=&nbsp;1&nbsp;tile resolution — colors and coverage match what the game itself would show, not a live render. Use ▲/▼ to change floor (16 floors, z=7 is ground). Only the main explored region is drawn; a few far-flung spawn clusters sit outside it. <strong>Spawn data has no floor axis</strong>, so the same spawn dots are shown on every floor — the floor control only swaps the terrain behind them.</div>
+    </div>
+  </div>
+
+  <div id="rune-wrap">
+    <div class="rc-card">
+      <div class="rc-section">
+        <div class="row-label">Vocation</div>
+        <div class="chip-row" id="rc-voc-chips"></div>
+      </div>
+
+      <div class="rc-section">
+        <div class="row-label">Ring</div>
+        <div class="chip-row" id="rc-ring-chips"></div>
+        <div class="rc-hint" id="rc-ring-info"></div>
+      </div>
+
+      <div class="rc-section">
+        <label class="rc-inline-field" style="cursor:pointer;">
+          <input type="checkbox" id="rc-fluids"> Use mana fluids to top up mana instantly
+        </label>
+        <div class="rc-hint">100gp each, avg 110 mana/fluid (80-140 range), 1s cooldown between fluids</div>
+      </div>
+
+      <div class="rc-section">
+        <div class="row-label">What do you want to make?</div>
+        <div class="chip-row" id="rc-spell-chips"></div>
+      </div>
+
+      <div class="rc-section">
+        <div class="row-label">How many?</div>
+        <div class="chip-row" id="rc-qty-chips"></div>
+        <div class="rc-inline-field" id="rc-qty-custom-field" style="display:none;">
+          <input type="number" id="rc-qty-custom" class="wide" value="100" min="1"> <span>charges (arrows count as charges too)</span>
+        </div>
+      </div>
+
+      <div class="rc-section">
+        <div class="row-label" id="rc-price-label">Sell price for 100 charges</div>
+        <div class="rc-inline-field">
+          <span>Low</span><input type="number" id="rc-price-low" class="wide" min="0">
+          <span>gp &nbsp;·&nbsp; High</span><input type="number" id="rc-price-high" class="wide" min="0">
+          <span>gp</span>
+        </div>
+      </div>
+
+      <div class="rc-section">
+        <div class="row-label">Result</div>
+        <div class="rc-output-grid" id="rc-output"></div>
+        <div class="rc-hint">Souls are shown as a total only — we assume you always have enough banked, not a time constraint. Without fluids, mana regen dominates and casting cooldown (2s) is negligible. With fluids, time is capped by whichever is slower: casting every 2s, or drinking a fluid every 1s (fluids aren't instant).</div>
+      </div>
     </div>
   </div>
 
@@ -820,6 +890,230 @@ function renderHuntAnalysis(parsed) {
 }
 
 
+// --- Rune Making calculator ---
+// mana/souls/perCast are per spell cast; a cast produces one rune item with
+// perCast charges (or, for Burst Arrow, perCast arrows) - not one charge per
+// cast. Sell prices are given as a low/high range (the market doesn't sell
+// at one fixed number), and shown/edited only for whichever stack size
+// (100 or a full backpack of 2000) you're actually targeting - not as two
+// always-visible fields on the rune itself - since the market doesn't
+// price them proportionally anyway (e.g. Burst Arrow's bp is only 10x its
+// 100-price, not 20x, so one can't be derived from the other).
+const RUNE_RECIPES = [
+  { key: "heavyMagicMissile", label: "Heavy Magic Missile Rune", mana: 210, souls: 1, perCast: 10, price100Low: 1500, price100High: 1500, priceBpLow: 30000, priceBpHigh: 30000, vocations: ["sorcerer", "druid", "paladin"] },
+  { key: "greatFireball", label: "Great Fireball Rune", mana: 480, souls: 2, perCast: 4, price100Low: 7000, price100High: 7000, priceBpLow: 140000, priceBpHigh: 140000, vocations: ["sorcerer", "druid"] },
+  { key: "explosion", label: "Explosion Rune", mana: 720, souls: 3, perCast: 6, price100Low: 13000, price100High: 14000, priceBpLow: 270000, priceBpHigh: 280000, vocations: ["sorcerer", "druid"] },
+  { key: "suddenDeath", label: "Sudden Death Rune", mana: 880, souls: 3, perCast: 2, price100Low: 25000, price100High: 30000, priceBpLow: 500000, priceBpHigh: 600000, vocations: ["sorcerer"] },
+  { key: "ultimateHealing", label: "Ultimate Healing Rune", mana: 400, souls: 2, perCast: 2, price100Low: 10000, price100High: 10000, priceBpLow: 200000, priceBpHigh: 200000, vocations: ["druid"] },
+  { key: "burstArrow", label: "Burst Arrow", mana: 120, souls: 1, perCast: 9, price100Low: 1500, price100High: 1500, priceBpLow: 30000, priceBpHigh: 30000, vocations: ["paladin"] }
+];
+// Natural mana regen is tick-based (a flat amount every N seconds), not a
+// flat per-second rate - Royal Paladin's slower 3s tick matters for how
+// much a ring's flat per-tick bonus actually contributes.
+const RUNE_VOCATIONS = [
+  { key: "sorcerer", label: "Master Sorcerer", manaPerTick: 2, tickSeconds: 1 },
+  { key: "druid", label: "Elder Druid", manaPerTick: 2, tickSeconds: 1 },
+  { key: "paladin", label: "Royal Paladin", manaPerTick: 3, tickSeconds: 3 }
+];
+// A ring adds a flat bonus to whatever regen tick you already have (not an
+// independent per-second rate) - so the same ring is worth less per second
+// on a slower-tick vocation. Only one ring slot exists, so this is a single
+// picker, not independent toggles. Ring/fluid prices are fixed NPC prices,
+// not editable - only rune sell prices fluctuate enough to be worth editing.
+const RUNE_RINGS = [
+  { key: "none", label: "No ring", bonusPerTick: 0, price: 0, durationMin: 0 },
+  { key: "life", label: "Life Ring", bonusPerTick: 4, price: 900, durationMin: 20 },
+  { key: "healing", label: "Ring of Healing", bonusPerTick: 12, price: 2800, durationMin: 10 }
+];
+const RUNE_FLUID = { price: 100, avgMana: 110, cooldownSeconds: 1 };
+
+function runesForVocation(vocKey) {
+  return RUNE_RECIPES.filter(function (r) { return r.vocations.indexOf(vocKey) !== -1; });
+}
+function rcCurrentSpell() { return RUNE_RECIPES.find(function (r) { return r.key === state.rcSpell; }); }
+function rcCurrentRing() { return RUNE_RINGS.find(function (r) { return r.key === state.rcRing; }); }
+function rcCurrentVoc() { return RUNE_VOCATIONS.find(function (v) { return v.key === state.rcVoc; }); }
+
+// Which stack size to price against - the two explicit modes derive it
+// directly; "custom" picks whichever reference is closer, decided once
+// when you switch into custom (not re-derived on every keystroke, so
+// editing the price fields afterward doesn't get clobbered).
+function rcPriceBasis() {
+  if (state.rcQtyMode === "100") return "100";
+  if (state.rcQtyMode === "bp") return "bp";
+  const customQty = Math.max(1, Math.round(rcParseNum("rc-qty-custom", 100)));
+  return customQty <= 100 ? "100" : "bp";
+}
+function rcRefreshPriceFields() {
+  state.rcPriceBasis = rcPriceBasis();
+  const spell = rcCurrentSpell();
+  const is100 = state.rcPriceBasis === "100";
+  document.getElementById("rc-price-label").textContent = is100 ? "Sell price for 100 charges" : "Sell price for 1 bp (2,000 charges)";
+  document.getElementById("rc-price-low").value = is100 ? spell.price100Low : spell.priceBpLow;
+  document.getElementById("rc-price-high").value = is100 ? spell.price100High : spell.priceBpHigh;
+}
+
+function rcSetSpell(key) {
+  state.rcSpell = key;
+  rcRefreshPriceFields();
+}
+function rcSetRing(key) {
+  state.rcRing = key;
+  const ring = rcCurrentRing();
+  document.getElementById("rc-ring-info").textContent = ring.key === "none" ? "" : (fmt(ring.price) + "gp, lasts " + ring.durationMin + " min while worn");
+}
+function rcSetVoc(key) {
+  state.rcVoc = key;
+  const allowed = runesForVocation(key);
+  if (!allowed.some(function (r) { return r.key === state.rcSpell; })) rcSetSpell(allowed[0].key);
+}
+function rcSetQtyMode(mode) {
+  state.rcQtyMode = mode;
+  document.getElementById("rc-qty-custom-field").style.display = mode === "custom" ? "" : "none";
+  rcRefreshPriceFields();
+}
+
+function renderRuneCalcChips() {
+  function chipRow(elId, items, activeKey, onClick) {
+    const wrap = document.getElementById(elId);
+    wrap.innerHTML = items.map(function (it) {
+      return '<button class="chip' + (it.key === activeKey ? " active" : "") + '" data-v="' + it.key + '">' + it.label + '</button>';
+    }).join("");
+    wrap.querySelectorAll("button").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        onClick(btn.getAttribute("data-v"));
+        renderRuneCalcChips();
+        renderRuneCalcOutput();
+      });
+    });
+  }
+  chipRow("rc-voc-chips", RUNE_VOCATIONS, state.rcVoc, rcSetVoc);
+  chipRow("rc-ring-chips", RUNE_RINGS, state.rcRing, rcSetRing);
+  chipRow("rc-spell-chips", runesForVocation(state.rcVoc), state.rcSpell, rcSetSpell);
+  chipRow("rc-qty-chips", [{ key: "100", label: "100 charges" }, { key: "bp", label: "1 bp (2,000)" }, { key: "custom", label: "Custom" }], state.rcQtyMode, rcSetQtyMode);
+}
+
+function rcParseNum(id, fallback) {
+  const el = document.getElementById(id);
+  if (!el) return fallback;
+  const n = Number(el.value);
+  return Number.isFinite(n) && n >= 0 ? n : fallback;
+}
+function rcFmtTime(sec) {
+  if (!isFinite(sec)) return "∞";
+  sec = Math.round(sec);
+  const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
+  const parts = [];
+  if (h) parts.push(h + "h");
+  if (h || m) parts.push(m + "m");
+  parts.push(s + "s");
+  return parts.join(" ");
+}
+function rcTile(label, value, cls) {
+  return '<div class="rc-output-tile"><div class="value' + (cls ? " " + cls : "") + '">' + value + '</div><div class="label">' + label + '</div></div>';
+}
+
+function rcSigned(n) { return (n >= 0 ? "+" : "") + fmt(Math.round(n)) + "gp"; }
+function rcRangeSigned(low, high) {
+  const lo = Math.round(low), hi = Math.round(high);
+  return lo === hi ? rcSigned(lo) : (rcSigned(lo) + " – " + rcSigned(hi));
+}
+function rcRangePlain(low, high) {
+  const lo = Math.round(low), hi = Math.round(high);
+  return (lo === hi ? fmt(lo) : (fmt(lo) + "–" + fmt(hi))) + "gp";
+}
+function rcRangeCls(low, high) {
+  if (low >= 0 && high >= 0) return "good";
+  if (low < 0 && high < 0) return "bad";
+  return "";
+}
+
+function renderRuneCalcOutput() {
+  const spell = rcCurrentSpell();
+  const voc = rcCurrentVoc();
+  const ring = rcCurrentRing();
+
+  const manaPerTick = voc.manaPerTick;
+  const tickSeconds = voc.tickSeconds;
+
+  const useFluids = document.getElementById("rc-fluids").checked;
+
+  const is100 = state.rcPriceBasis === "100";
+  const refStackSize = is100 ? 100 : 2000;
+  const priceLow = rcParseNum("rc-price-low", is100 ? spell.price100Low : spell.priceBpLow);
+  const priceHigh = rcParseNum("rc-price-high", is100 ? spell.price100High : spell.priceBpHigh);
+
+  let targetCharges;
+  if (state.rcQtyMode === "100") targetCharges = 100;
+  else if (state.rcQtyMode === "bp") targetCharges = 2000;
+  else targetCharges = Math.max(1, Math.round(rcParseNum("rc-qty-custom", 100)));
+
+  const casts = Math.ceil(targetCharges / spell.perCast);
+  const totalMana = casts * spell.mana;
+  const totalSouls = casts * spell.souls;
+
+  const passiveRate = (manaPerTick + ring.bonusPerTick) / tickSeconds; // mana/sec while sustained this way
+  // Casting (any rune/arrow spell) has its own 2s cooldown, same category as
+  // the fluid's 1s cooldown - you can never finish faster than casts x 2s
+  // regardless of how much mana is available, fluids or not. With the
+  // current recipe/regen numbers this floor is only ever the binding one
+  // for the no-fluids path (natural regen is always far slower than 2s per
+  // cast), but it's applied unconditionally rather than assumed.
+  const COOLDOWN_SECONDS = 2;
+  const castFloorSeconds = casts * COOLDOWN_SECONDS;
+
+  let timeSeconds, fluidsUsed = 0, fluidCost = 0, ringsUsed = 0, ringCost = 0;
+  if (useFluids) {
+    // Fluids aren't instant refills - spamming them is capped by their own
+    // 1s cooldown, so the fastest possible mana income while chugging is
+    // (one fluid's mana / its cooldown) + whatever passive regen still
+    // trickles in alongside it. Time is bounded below by both that and the
+    // cast cooldown; solved directly for the continuous rate, then the
+    // ceiling on fluid count (can't buy a fractional fluid) can only push
+    // the time up slightly further, so it's re-maxed against that.
+    const fluidRate = RUNE_FLUID.avgMana / RUNE_FLUID.cooldownSeconds;
+    timeSeconds = Math.max(castFloorSeconds, totalMana / (passiveRate + fluidRate));
+    const manaFromPassive = passiveRate * timeSeconds;
+    const manaToBuy = Math.max(0, totalMana - manaFromPassive);
+    fluidsUsed = Math.ceil(manaToBuy / RUNE_FLUID.avgMana);
+    timeSeconds = Math.max(timeSeconds, fluidsUsed * RUNE_FLUID.cooldownSeconds);
+    fluidCost = fluidsUsed * RUNE_FLUID.price;
+  } else {
+    timeSeconds = passiveRate > 0 ? Math.max(castFloorSeconds, totalMana / passiveRate) : Infinity;
+  }
+
+  if (ring.key !== "none" && isFinite(timeSeconds) && timeSeconds > 0) {
+    ringsUsed = Math.max(1, Math.ceil(timeSeconds / (ring.durationMin * 60)));
+    ringCost = ringsUsed * ring.price;
+  }
+
+  const totalCost = fluidCost + ringCost;
+  const sellLow = (priceLow / refStackSize) * targetCharges;
+  const sellHigh = (priceHigh / refStackSize) * targetCharges;
+
+  const profitLow = sellLow - totalCost;
+  const profitHigh = sellHigh - totalCost;
+  const hours = timeSeconds / 3600;
+  const perHourLow = hours > 0 ? profitLow / hours : (profitLow >= 0 ? Infinity : -Infinity);
+  const perHourHigh = hours > 0 ? profitHigh / hours : (profitHigh >= 0 ? Infinity : -Infinity);
+  const perHourStr = (!isFinite(perHourLow) || !isFinite(perHourHigh))
+    ? (perHourLow >= 0 ? "∞" : "-∞")
+    : rcRangeSigned(perHourLow, perHourHigh);
+
+  const out = document.getElementById("rc-output");
+  out.innerHTML =
+    rcTile("Casts needed", fmt(casts)) +
+    rcTile("Total mana", fmt(totalMana)) +
+    rcTile("Total souls", fmt(totalSouls)) +
+    rcTile("Time needed", rcFmtTime(timeSeconds)) +
+    rcTile("Mana fluids used", useFluids ? (fmt(fluidsUsed) + " (" + fmt(fluidCost) + "gp)") : "not used") +
+    rcTile(ring.key !== "none" ? (ring.label + "s used") : "Ring used", ring.key !== "none" ? (fmt(ringsUsed) + " (" + fmt(ringCost) + "gp)") : "none") +
+    rcTile("Total cost", fmt(Math.round(totalCost)) + "gp") +
+    rcTile("Sell value", rcRangePlain(sellLow, sellHigh)) +
+    rcTile("Profit / loss", rcRangeSigned(profitLow, profitHigh), rcRangeCls(profitLow, profitHigh)) +
+    rcTile("Profit / hour", perHourStr, rcRangeCls(perHourLow, perHourHigh));
+}
+
 const TABS = [
   { key: "monsters", label: "Monsters", count: DATA.summary.monsters },
   { key: "items", label: "Items", count: DATA.summary.items },
@@ -827,7 +1121,8 @@ const TABS = [
   { key: "spells", label: "Spells", count: DATA.summary.spells },
   { key: "runes", label: "Runes", count: DATA.summary.runes },
   { key: "achievements", label: "Achievements", count: DATA.summary.achievements },
-  { key: "map", label: "Spawn Map", count: DATA.spawnMap.monsters.length }
+  { key: "map", label: "Spawn Map", count: DATA.spawnMap.monsters.length },
+  { key: "runecalc", label: "Rune Making", count: RUNE_RECIPES.length }
 ];
 
 const SORTS = {
@@ -848,7 +1143,10 @@ const TIER_LABELS = { 0: "Novice", 1: "Easy", 2: "Medium", 3: "Hard", 4: "Very H
 const TIER_ORDER = [0, 1, 2, 3, 4, 5];
 const PAGE_SIZE = 40;
 
-let state = { tab: "monsters", query: "", sort: "goldPerKill", category: "all", tier: "all", page: 1, mapFloor: 7, filterImplausibleFloors: false };
+let state = {
+  tab: "monsters", query: "", sort: "goldPerKill", category: "all", tier: "all", page: 1, mapFloor: 7, filterImplausibleFloors: false,
+  rcVoc: "sorcerer", rcRing: "none", rcSpell: "heavyMagicMissile", rcQtyMode: "100"
+};
 
 function esc(s) { return String(s == null ? "" : s); }
 function fmt(n) { return Number(n).toLocaleString("en-US"); }
@@ -905,6 +1203,8 @@ function renderStatTabs() {
         buildMapLegend();
         setMapFloor(state.mapFloor);   // pick up a terrain image that finished loading on another tab
         drawMap();
+      } else if (t.key === "runecalc") {
+        renderRuneCalcOutput();
       } else {
         render();
       }
@@ -916,22 +1216,33 @@ function renderStatTabs() {
 function renderControlsVisibility() {
   const controlsRow = document.getElementById("controls-row");
   const mapWrap = document.getElementById("map-wrap");
+  const runeWrap = document.getElementById("rune-wrap");
   const resultsEl = document.getElementById("results");
   const pag = document.getElementById("pagination");
   const countEl = document.getElementById("result-count");
+
+  mapWrap.classList.toggle("active", state.tab === "map");
+  runeWrap.classList.toggle("active", state.tab === "runecalc");
+
+  if (state.tab === "runecalc") {
+    controlsRow.style.display = "none";
+    resultsEl.style.display = "none";
+    pag.style.display = "none";
+    countEl.style.display = "none";
+    return;
+  }
+  controlsRow.style.display = "";
   if (state.tab === "map") {
     controlsRow.querySelector("#sort").style.display = "none";
     controlsRow.querySelector("#cat-filters").style.display = "none";
     document.getElementById("search").placeholder = "Filter by monster name…";
-    mapWrap.classList.add("active");
     resultsEl.style.display = "none";
     pag.style.display = "none";
     countEl.style.display = "none";
   } else {
-    controlsRow.querySelector("#sort").style.display = (state.tab === "map") ? "none" : "";
+    controlsRow.querySelector("#sort").style.display = "";
     controlsRow.querySelector("#cat-filters").style.display = "";
     document.getElementById("search").placeholder = "Search…";
-    mapWrap.classList.remove("active");
     resultsEl.style.display = "";
     pag.style.display = "";
     countEl.style.display = "";
@@ -1753,9 +2064,24 @@ document.getElementById("loot-coverage-text").textContent =
 document.getElementById("search").addEventListener("input", function (e) {
   state.query = e.target.value;
   state.page = 1;
-  if (state.tab === "map") drawMap(); else render();
+  if (state.tab === "map") drawMap();
+  else if (state.tab !== "runecalc") render();
 });
 document.getElementById("sort").addEventListener("change", function (e) { state.sort = e.target.value; state.page = 1; render(); });
+
+// Rune Making calculator: chip rows are rebuilt by renderRuneCalcChips()
+// (see rcSetVoc/rcSetRing/rcSetSpell/rcSetQtyMode above), but the price/qty
+// number inputs and the fluids checkbox stay as static elements so typing
+// in them doesn't lose focus - a single delegated listener recomputes the
+// output on any change to those.
+renderRuneCalcChips();
+rcSetVoc(state.rcVoc);
+rcSetRing(state.rcRing);
+rcSetSpell(state.rcSpell);
+rcSetQtyMode(state.rcQtyMode);
+renderRuneCalcChips();
+document.getElementById("rune-wrap").addEventListener("input", renderRuneCalcOutput);
+renderRuneCalcOutput();
 
 renderStatTabs();
 renderSortOptions();
