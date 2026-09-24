@@ -2154,7 +2154,7 @@ function mapConnectionAt(sx, sy) {
 function floorConnectionLabel(c) {
   const guessed = (c[2] & 4) !== 0;
   const up = (c[2] & 1) !== 0, down = (c[2] & 2) !== 0;
-  const dir = up && down ? "connects up & down (stacked shaft)" : up ? "connects up" : "connects down";
+  const dir = up && down ? "connects up & down" : up ? "connects up" : "connects down";
   return "Stairs/ladder/hole — " + dir + (guessed ? " (guessed)" : " (confirmed)");
 }
 
