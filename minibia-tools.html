@@ -324,23 +324,13 @@
 
 <div class="page">
 
-  <div class="topnav"><a href="#" onclick="try{parent.__nav('home')}catch(e){}return false">&larr; Tools</a><span>Minibia reference tools</span></div>
+  <div class="topnav"><span>Minibia reference tools</span></div>
 
   <header class="masthead">
     <div class="eyebrow">Minibia &middot; World Compendium</div>
     <h1>World Compendium</h1>
     <p class="lede">Monsters, items, NPCs, spells, runes, achievements and spawn locations, browsable in one place &mdash; built from <code>library.json</code> and <code>spawns.json</code>.</p>
   </header>
-
-  <details class="callout" open>
-    <summary><span class="chevron">▶</span> Not client data — reference material only</summary>
-    <p>Grepping <code>src/</code> found no fetch for <code>library.json</code> or <code>spawns.json</code> anywhere in the game client, so nothing on this page is something a player can see in-game.</p>
-  </details>
-
-  <details class="callout" id="profit-callout" open>
-    <summary><span class="chevron">▶</span> How "gold/kill" is calculated</summary>
-    <p>Each loot line's <code>drop chance × average quantity × best NPC sell price</code>, summed. <strong id="loot-coverage-text">–</strong> of loot lines matched a known sell price in <code>library.json</code>'s item list — unmatched drops (usually quest items, decorations, or items no NPC buys) count as 0gp, so real value may run slightly higher for monsters with unmatched drops.</p>
-  </details>
 
   <div class="stats" id="stat-tabs"></div>
 
@@ -560,7 +550,6 @@ function refreshTabChrome() {
   renderSortOptions();
   renderCatFilters();
   renderTierFilters();
-  refreshProfitCallout();
   renderControlsVisibility();
 }
 
@@ -1195,7 +1184,6 @@ function renderStatTabs() {
       renderSortOptions();
       renderCatFilters();
       renderTierFilters();
-      refreshProfitCallout();
       renderControlsVisibility();
       if (t.key === "map") {
         mapView.pinnedNpc = null;
@@ -1536,10 +1524,6 @@ function renderAchievementRow(a) {
       '<span class="stat-chip">kill <b>' + fmt(a.required) + '</b></span>' +
     '</div>' +
   '</div>';
-}
-
-function refreshProfitCallout() {
-  document.getElementById("profit-callout").style.display = state.tab === "monsters" ? "" : "none";
 }
 
 function matchesQuery(obj, tab, q) {
@@ -2058,9 +2042,6 @@ function initMap() {
   document.getElementById("map-floor-down").addEventListener("click", function () { setMapFloor(state.mapFloor + 1); });
 }
 
-document.getElementById("loot-coverage-text").textContent =
-  DATA.lootCoverage.matched + " of " + DATA.lootCoverage.total + " loot lines (" + DATA.lootCoverage.pct + "%)";
-
 document.getElementById("search").addEventListener("input", function (e) {
   state.query = e.target.value;
   state.page = 1;
@@ -2088,7 +2069,6 @@ renderSortOptions();
 renderCatFilters();
 renderTierFilters();
 renderControlsVisibility();
-refreshProfitCallout();
 initMap();
 loadMapTerrain();
 buildMapLegend();
