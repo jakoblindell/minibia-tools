@@ -12,10 +12,15 @@ but it doesn't say which way it goes, so direction is inferred by looking at
 the same spot (+/- a couple tiles, since a staircase often lands a tile or
 two off from where it starts) on the floor above and below:
 
-  1. Confirmed - the adjacent floor also has a yellow marker nearby. Two
-     stacked markers is strong evidence of a real connection; if both floors
-     around this one qualify, the tile continues in both directions (a
-     landing partway up/down a multi-floor staircase or tower).
+  1. Confirmed - paired with a marker on the adjacent floor (pair_markers).
+     A stair/hole and its arrival tile are stacked at the same x/y, so an
+     exact partner above or below decides it; otherwise one within a couple
+     of tiles, provided that partner isn't already going the same way. One
+     tile is one staircase: it goes up or down - except the middle of a
+     stacked shaft (same x/y marked on 3+ floors in a row, like a ladder
+     tower), where any one-way reading contradicts its neighbours.
+     Yellow patches bigger than a staircase (or rings) are roofs/ground
+     painted the same yellow and aren't markers at all (yellow_points).
   2. Guessed - neither adjacent floor has a yellow marker nearby, but
      exactly one side has plain walkable ground there and the other doesn't
      (void/unexplored or blocked terrain). Weaker evidence - there's no
@@ -27,7 +32,7 @@ two off from where it starts) on the floor above and below:
      also draws in yellow. Dropped, not queued for labeling.
   4. Unknown - both adjacent floors have walkable ground nearby but no
      marker on either, so the terrain can't tell which way it goes. About
-     0.7% of markers land here (another ~6% are dead ends). They're written
+     2% of markers land here (another ~3% are dead ends). They're written
      to a separate "floorConnectionsUnknown" list instead of guessed, for a
      hidden map tool that lets a human step through them one at a time and
      label each up/down/unknown, then export a JSON of those answers to
@@ -36,14 +41,16 @@ two off from where it starts) on the floor above and below:
 Hidden stair tops: some stairs/holes going down are drawn light grey
 (153,153,153) on the floor they start from, not yellow - only the arrival
 tile below is yellow. So a light grey tile directly above a yellow marker
-(same x/y, one floor up) with no yellow near it on its own floor is taken
+(same x/y, one floor up) with no yellow near it on its own floor, over a
+yellow that doesn't already pair downward with another marker, is taken
 as a confirmed way down, written into floorConnections like any marker, and
 counts as the paired marker when classifying the yellow below it (which then
 confirms "up"). Light grey is also ordinary stone floor, so only the tile
 exactly above a yellow qualifies, never light grey in general.
 
-Validated against this snapshot: of ~34,700 yellow markers, 93% resolve to
-a confirmed or guessed direction with this method (radius 2, see RADIUS).
+Validated against this snapshot: of ~14,300 staircase-sized yellow markers
+(another ~20,000 yellow tiles are roofs/ground), 95% resolve to a confirmed
+or guessed direction with this method (radius 2, see RADIUS).
 
 Doors: the minimap draws doors in the same color as the wall around them,
 so a house is a sealed box as far as the terrain can tell. The script also
@@ -74,6 +81,7 @@ YELLOW_RGB = (255, 255, 0)
 # Same table gen-floor-plausibility.py uses - see that script for how it was derived.
 BLOCKING_IDX = {0, 12, 40, 86, 114, 186, 192}
 RADIUS = 2
+MAX_MARKER_PATCH = 12  # bigger yellow patches are roofs/ground, not stairs
 
 # Bit flags packed into each connection point's 3rd array element.
 UP = 1
@@ -157,10 +165,56 @@ def load_floors(minimap_meta):
     return floors
 
 
+def encloses_something(blob):
+    """True if a blob (boolean crop, tight bounding box) surrounds tiles that
+    aren't part of it - a ring, like a roof edge around its core."""
+    h, w = blob.shape
+    if h < 3 or w < 3:
+        return False
+    outside = np.zeros((h + 2, w + 2), dtype=bool)
+    solid = np.pad(blob, 1)
+    stack = [(0, 0)]
+    outside[0, 0] = True
+    while stack:
+        y, x = stack.pop()
+        for ny, nx in ((y - 1, x), (y + 1, x), (y, x - 1), (y, x + 1)):
+            if 0 <= ny < h + 2 and 0 <= nx < w + 2 and not outside[ny, nx] and not solid[ny, nx]:
+                outside[ny, nx] = True
+                stack.append((ny, nx))
+    return bool((~outside & ~solid).any())
+
+
 def yellow_points(arr, m):
+    """Yellow tiles that can be stair/hole markers. The same yellow also paints
+    some roofs (pyramid-like rings shrinking floor by floor) and ground areas,
+    so a yellow patch only counts if it's staircase-sized - at most
+    MAX_MARKER_PATCH tiles, 4-connected - and not a ring around something."""
     opaque = arr[:, :, 3] > 0
     is_yellow = (arr[:, :, 0] == YELLOW_RGB[0]) & (arr[:, :, 1] == YELLOW_RGB[1]) & (arr[:, :, 2] == YELLOW_RGB[2])
-    ys, xs = np.where(is_yellow & opaque)
+    is_yellow &= opaque
+    lab = label_components(is_yellow)
+    sizes = np.bincount(lab.ravel())
+    n = len(sizes)
+    ys, xs = np.nonzero(lab)
+    ls = lab[ys, xs]
+    y0 = np.full(n, 1 << 30); y1 = np.full(n, -1); x0 = np.full(n, 1 << 30); x1 = np.full(n, -1)
+    np.minimum.at(y0, ls, ys); np.maximum.at(y1, ls, ys)
+    np.minimum.at(x0, ls, xs); np.maximum.at(x1, ls, xs)
+    keep = (sizes <= MAX_MARKER_PATCH)
+    keep[0] = False
+    for i in np.nonzero(keep & (sizes >= 8))[0].tolist():  # a ring needs >= 8 tiles
+        if encloses_something(lab[y0[i]:y1[i] + 1, x0[i]:x1[i] + 1] == i):
+            keep[i] = False
+    ys, xs = np.nonzero(keep[lab] & is_yellow)
+    ox, oy = m["worldOriginX"], m["worldOriginY"]
+    return set(zip((xs + ox).tolist(), (ys + oy).tolist()))
+
+
+def yellow_all(arr, m):
+    """Every yellow tile, marker or not."""
+    is_yellow = (arr[:, :, 3] > 0) & (arr[:, :, 0] == YELLOW_RGB[0]) & \
+                (arr[:, :, 1] == YELLOW_RGB[1]) & (arr[:, :, 2] == YELLOW_RGB[2])
+    ys, xs = np.nonzero(is_yellow)
     ox, oy = m["worldOriginX"], m["worldOriginY"]
     return set(zip((xs + ox).tolist(), (ys + oy).tolist()))
 
@@ -235,19 +289,81 @@ def load_manual_labels():
     return out
 
 
-def classify(floors, yellow_sets, z, wx, wy, manual_labels):
+def pair_markers(marker_sets, fixed):
+    """Direction for every marker that has a partner marker on an adjacent
+    floor - {(z, x, y): UP or DOWN}. A tile is one stair/hole/ladder, so it
+    goes one way only (never both), and its partner must go the other way:
+
+      1. Exact stacks first - a staircase or hole and its arrival tile sit at
+         the same x/y (the floor-change moves you off it afterwards), so a
+         partner directly above or below decides it outright.
+      2. Only then within RADIUS, for markers without an unambiguous exact
+         partner - but a candidate that already goes the same way is taken
+         (e.g. a hole 2 tiles away whose own exact partner is one floor
+         further down can't also be the arrival of this staircase). Repeated
+         until nothing changes, first where only one side has a usable
+         candidate, then letting a strictly nearer side win.
+    `fixed` is pre-assigned (the hidden stair tops, always DOWN)."""
+    assign = dict(fixed)
+    keys = [(z, x, y) for z, pts in marker_sets.items() for (x, y) in pts]
+    for k in keys:
+        if k in assign:
+            continue
+        z, x, y = k
+        up0 = (x, y) in marker_sets.get(z - 1, ())
+        dn0 = (x, y) in marker_sets.get(z + 1, ())
+        if up0 != dn0:
+            assign[k] = UP if up0 else DOWN
+
+    def nearest_usable(z, x, y, dz, taken_dir):
+        pts = marker_sets.get(z + dz)
+        if not pts:
+            return None
+        best = None
+        for dx in range(-RADIUS, RADIUS + 1):
+            for dy in range(-RADIUS, RADIUS + 1):
+                if (x + dx, y + dy) in pts and assign.get((z + dz, x + dx, y + dy)) != taken_dir:
+                    d = max(abs(dx), abs(dy))
+                    best = d if best is None else min(best, d)
+        return best
+
+    for allow_nearer in (False, True):
+        changed = True
+        while changed:
+            changed = False
+            for k in keys:
+                if k in assign:
+                    continue
+                z, x, y = k
+                up = nearest_usable(z, x, y, -1, UP)    # partner above must go down
+                down = nearest_usable(z, x, y, 1, DOWN)  # partner below must go up
+                if up is not None and down is None:
+                    assign[k] = UP
+                elif down is not None and up is None:
+                    assign[k] = DOWN
+                elif allow_nearer and up is not None and down is not None and up != down:
+                    assign[k] = UP if up < down else DOWN
+                else:
+                    continue
+                changed = True
+    # What's left with exact partners both above and below (each still
+    # willing to pair back) is a stacked shaft - the same x/y marked on 3+
+    # floors in a row, e.g. a ladder tower. A one-way reading contradicts
+    # the tiles above and below it, so this is the one case that's both.
+    for k in keys:
+        if k not in assign:
+            z, x, y = k
+            if (x, y) in marker_sets.get(z - 1, ()) and (x, y) in marker_sets.get(z + 1, ()):
+                assign[k] = UP | DOWN
+    return assign
+
+
+def classify(floors, paired, z, wx, wy, manual_labels):
     manual = manual_labels.get((z, wx, wy))
     if manual is not None:
         return manual
-
-    up_yellow = has_yellow_nearby(yellow_sets, z - 1, wx, wy, RADIUS)
-    down_yellow = has_yellow_nearby(yellow_sets, z + 1, wx, wy, RADIUS)
-    if up_yellow or down_yellow:
-        flags = 0
-        if up_yellow:
-            flags |= UP
-        if down_yellow:
-            flags |= DOWN
+    flags = paired.get((z, wx, wy))
+    if flags is not None:
         return flags
 
     up_state = terrain_state(floors, z - 1, wx, wy, RADIUS)
@@ -275,10 +391,20 @@ def main():
         raise SystemExit("no data/derived/minimap-z*.png found - run gen-minimap.py first")
 
     yellow_sets = {z: yellow_points(arr, m) for z, (arr, m) in floors.items()}
-    stair_tops = hidden_stair_tops(floors, yellow_sets)
-    # Stair tops count as markers when classifying the yellows around them.
+    n_patch = sum(len(yellow_all(arr, m)) for (arr, m) in floors.values()) - sum(len(v) for v in yellow_sets.values())
+    # Pair the yellows among themselves first. A light grey tile above a
+    # yellow only counts as a stair top if that yellow isn't already going
+    # down - otherwise it's just floor or roof (upper floors are mostly
+    # light grey roof) that happens to sit over a staircase.
+    paired = pair_markers(yellow_sets, {})
+    stair_tops = {}
+    for z, pts in hidden_stair_tops(floors, yellow_sets).items():
+        ok = {(x, y) for (x, y) in pts if paired.get((z + 1, x, y)) != DOWN}
+        if ok:
+            stair_tops[z] = ok
     marker_sets = {z: yellow_sets.get(z, set()) | stair_tops.get(z, set())
                    for z in set(yellow_sets) | set(stair_tops)}
+    paired = pair_markers(marker_sets, {(z, x, y): DOWN for z, pts in stair_tops.items() for (x, y) in pts})
     manual_labels = load_manual_labels()
 
     connections = {}
@@ -291,7 +417,7 @@ def main():
         for (wx, wy) in pts:
             n_total += 1
             is_manual = (z, wx, wy) in manual_labels
-            flags = classify(floors, marker_sets, z, wx, wy, manual_labels)
+            flags = classify(floors, paired, z, wx, wy, manual_labels)
             if flags == DEAD_END:
                 n_dead += 1
                 continue
@@ -334,6 +460,7 @@ def main():
     print("floor connections: %d yellow markers found, %d confirmed, %d guessed, %d manually labeled, "
           "%d dead ends (dropped), %d still unresolved"
           % (n_total, n_confirmed, n_guessed, n_manual, n_dead, n_unknown))
+    print("yellow roof/ground patches skipped: %d tiles (patches > %d tiles, or rings)" % (n_patch, MAX_MARKER_PATCH))
     print("hidden stair tops: %d light grey tiles above a yellow marker, added as confirmed 'down'" % n_tops)
     print("door candidates: %d (written to door-candidates.json)" % n_doors)
 
