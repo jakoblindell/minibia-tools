@@ -36,9 +36,19 @@ two off from where it starts) on the floor above and below:
 Validated against this snapshot: of ~34,700 yellow markers, 93% resolve to
 a confirmed or guessed direction with this method (radius 2, see RADIUS).
 
+Doors: the minimap draws doors in the same color as the wall around them,
+so a house is a sealed box as far as the terrain can tell. The script also
+writes data/derived/door-candidates.json: every 1-tile-thick building wall
+tile (grey stone or red wall color) with walkable ground on two opposite
+sides *that aren't otherwise connected on that floor*. The pathfinder may
+step through those as assumed doors (at a small extra cost). Because a
+crossing must join two separate walkable areas, a route can never use it
+to cut through a wall it could have walked around.
+
 Run:  python scripts/gen-floor-connections.py   (after gen-minimap.py and
       build-data.py - loads their output and rewrites compendium.json/.js
-      in place, adding the floorConnections key)
+      in place, adding the floorConnections key, and writes
+      door-candidates.json. scipy speeds up the door step if installed.)
 """
 import json
 import os
@@ -69,6 +79,61 @@ def idx_to_rgb(idx):
 
 
 BLOCKING_RGB = {idx_to_rgb(i) for i in BLOCKING_IDX}
+DOOR_WALL_RGB = {idx_to_rgb(86), idx_to_rgb(186)}  # grey stone wall, red wall
+
+
+def label_components(walk):
+    """4-connected components of a boolean grid. 4-connectivity matches the
+    pathfinder, which never cuts a diagonal corner past a blocked tile."""
+    try:
+        from scipy import ndimage
+        lab, _ = ndimage.label(walk)
+        return lab
+    except ImportError:
+        pass
+    from collections import deque
+    H, W = walk.shape
+    lab = np.zeros((H, W), dtype=np.int32)
+    ys, xs = np.nonzero(walk)
+    n = 0
+    for sy, sx in zip(ys.tolist(), xs.tolist()):
+        if lab[sy, sx]:
+            continue
+        n += 1
+        lab[sy, sx] = n
+        q = deque([(sy, sx)])
+        while q:
+            y, x = q.popleft()
+            for ny, nx in ((y - 1, x), (y + 1, x), (y, x - 1), (y, x + 1)):
+                if 0 <= ny < H and 0 <= nx < W and walk[ny, nx] and not lab[ny, nx]:
+                    lab[ny, nx] = n
+                    q.append((ny, nx))
+    return lab
+
+
+def door_candidates(arr, m):
+    """Flat [x, y, orient, ...] (orient 0 = passes west<->east, 1 = north<->
+    south) for 1-thick wall tiles joining two different walkable areas."""
+    opaque = arr[:, :, 3] > 0
+    rgb = arr[:, :, :3]
+    blocking = np.zeros(opaque.shape, dtype=bool)
+    for c in BLOCKING_RGB:
+        blocking |= (rgb[:, :, 0] == c[0]) & (rgb[:, :, 1] == c[1]) & (rgb[:, :, 2] == c[2])
+    wall = np.zeros(opaque.shape, dtype=bool)
+    for c in DOOR_WALL_RGB:
+        wall |= (rgb[:, :, 0] == c[0]) & (rgb[:, :, 1] == c[1]) & (rgb[:, :, 2] == c[2])
+    lab = np.pad(label_components(opaque & ~blocking), 1)
+    wall &= opaque
+    lw, le, ln, ls = lab[1:-1, :-2], lab[1:-1, 2:], lab[:-2, 1:-1], lab[2:, 1:-1]
+    horiz = wall & (lw > 0) & (le > 0) & (lw != le)
+    vert = wall & (ln > 0) & (ls > 0) & (ln != ls) & ~horiz
+    out = []
+    ox, oy = m["worldOriginX"], m["worldOriginY"]
+    for orient, mask in ((0, horiz), (1, vert)):
+        ys, xs = np.nonzero(mask)
+        for x, y in zip((xs + ox).tolist(), (ys + oy).tolist()):
+            out.extend((x, y, orient))
+    return out
 
 
 def load_floors(minimap_meta):
@@ -222,9 +287,16 @@ def main():
 
     dump(comp, "compendium", "__MINIBIA_COMPENDIUM__")
 
+    doors = {str(z): door_candidates(arr, m) for z, (arr, m) in floors.items()}
+    doors = {z: v for z, v in doors.items() if v}
+    with open(os.path.join(DERIVED, "door-candidates.json"), "w", encoding="utf-8") as f:
+        json.dump(doors, f, separators=(",", ":"))
+    n_doors = sum(len(v) // 3 for v in doors.values())
+
     print("floor connections: %d yellow markers found, %d confirmed, %d guessed, %d manually labeled, "
           "%d dead ends (dropped), %d still unresolved"
           % (n_total, n_confirmed, n_guessed, n_manual, n_dead, n_unknown))
+    print("door candidates: %d (written to door-candidates.json)" % n_doors)
 
 
 if __name__ == "__main__":
