@@ -303,6 +303,17 @@
   .hunt-history-diff.bad { color: var(--bad); }
   .hunt-history-actions { display: flex; gap: 6px; flex-shrink: 0; }
 
+  /* stairs unknown-labeling tool - floating over the map, any tab */
+  #stairs-label-panel {
+    position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); z-index: 60;
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow);
+    padding: 12px 16px; display: flex; flex-direction: column; gap: 8px; align-items: center;
+    max-width: calc(100vw - 32px);
+  }
+  .stairs-label-progress { font-size: 12.5px; font-weight: 600; color: var(--text-primary); }
+  .stairs-label-coords { font-size: 12px; color: var(--text-muted); font-family: 'SF Mono', Consolas, monospace; }
+  .stairs-label-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+
   @media (max-width: 900px) { .stats { grid-template-columns: repeat(4, 1fr); } }
   @media (max-width: 560px) {
     .stats { grid-template-columns: repeat(3, 1fr); }
@@ -360,6 +371,12 @@
             <input type="checkbox" id="map-floor-filter">
             Hide implausible floors <span class="beta-tag">beta</span>
           </label>
+          <label class="map-floor-filter-toggle" id="map-connections-toggle-wrap" style="display:none;" title="Experimental: marks tiles the minimap draws as stairs/ladders/holes/ropeholes, and guesses which floor(s) each connects to from the terrain alone \u2014 solid marker = another such tile found on that floor, faint = inferred from walkable-vs-void asymmetry only. Click a marker to jump to the floor it connects to.">
+            <input type="checkbox" id="map-connections-toggle">
+            Show floor connections <span class="beta-tag">beta</span>
+          </label>
+          <button class="map-btn" id="map-label-unknowns-btn" style="display:none;" title="Step through markers the algorithm couldn't resolve and label each up/down/unknown by eye; export your answers as JSON to fold back into the data.">Label unknowns</button>
+          <span class="map-meta" id="map-cursor-coords"></span>
           <button class="map-btn" id="map-reset">Reset view</button>
         </div>
       </div>
@@ -448,6 +465,28 @@
 
   <footer>Static snapshot from <code>library.json.txt</code> and <code>spawns.json.txt</code>. Loot/drop probabilities, sell prices and spawn points are the design database's values, not verified against the live server.</footer>
 
+</div>
+
+<!-- Hidden data-curation tool, opened only via the "Label unknowns" button
+     under #stairs-beta. Steps through markers gen-floor-connections.py
+     couldn't resolve so a human can call each one up/down/unknown by eye,
+     then exports the answers as JSON to fold back into that script. -->
+<div id="stairs-label-panel" style="display:none;">
+  <div class="stairs-label-progress" id="stairs-label-progress"></div>
+  <div class="stairs-label-coords" id="stairs-label-coords"></div>
+  <div class="stairs-label-actions">
+    <button class="map-btn" id="stairs-label-up" type="button">Up</button>
+    <button class="map-btn" id="stairs-label-down" type="button">Down</button>
+    <button class="map-btn" id="stairs-label-unknown" type="button">Unknown</button>
+  </div>
+  <div class="stairs-label-actions">
+    <button class="map-btn" id="stairs-label-prev" type="button">&larr; Prev</button>
+    <button class="map-btn" id="stairs-label-next" type="button">Next &rarr;</button>
+  </div>
+  <div class="stairs-label-actions">
+    <button class="map-btn" id="stairs-label-export" type="button">Export JSON</button>
+    <button class="map-btn" id="stairs-label-exit" type="button">Exit</button>
+  </div>
 </div>
 
 <script>
@@ -1224,6 +1263,7 @@ const PAGE_SIZE = 40;
 
 let state = {
   tab: "monsters", query: "", sort: "goldPerKill", category: "all", tier: "all", page: 1, mapFloor: 7, filterImplausibleFloors: false,
+  showFloorConnections: false,
   rcVoc: "sorcerer", rcRing: "none", rcSpell: "heavyMagicMissile", rcQtyMode: "100"
 };
 
@@ -1913,6 +1953,55 @@ function drawMap() {
   }
   mapCtx.globalAlpha = 1;
 
+  if (state.showFloorConnections && DATA.floorConnections) {
+    const conns = DATA.floorConnections[String(state.mapFloor)];
+    if (conns) {
+      for (let ci = 0; ci < conns.length; ci++) {
+        const c = conns[ci];
+        const [sx, sy] = worldToScreen(c[0], c[1]);
+        if (sx < -10 || sx > w + 10 || sy < -10 || sy > h + 10) continue;
+        const guessed = (c[2] & 4) !== 0;
+        const glyph = (c[2] & 3) === 3 ? "↕" : (c[2] & 1) ? "↑" : "↓";
+        mapCtx.globalAlpha = guessed ? 0.55 : 0.95;
+        mapCtx.beginPath();
+        mapCtx.arc(sx, sy, 7, 0, Math.PI * 2);
+        mapCtx.fillStyle = "#00b8d9";
+        mapCtx.fill();
+        mapCtx.lineWidth = guessed ? 1 : 1.5;
+        mapCtx.setLineDash(guessed ? [2, 2] : []);
+        mapCtx.strokeStyle = "#00323b";
+        mapCtx.stroke();
+        mapCtx.setLineDash([]);
+        mapCtx.fillStyle = "#00232a";
+        mapCtx.font = "700 10px 'Segoe UI', sans-serif";
+        mapCtx.textAlign = "center";
+        mapCtx.textBaseline = "middle";
+        mapCtx.fillText(glyph, sx, sy + 0.5);
+        mapCtx.textAlign = "left";
+        mapCtx.textBaseline = "alphabetic";
+      }
+      mapCtx.globalAlpha = 1;
+    }
+  }
+
+  if (stairsLabeling.active && stairsLabeling.list.length) {
+    const pt = stairsLabeling.list[stairsLabeling.index];
+    if (pt && pt.z === state.mapFloor) {
+      const [sx, sy] = worldToScreen(pt.x, pt.y);
+      mapCtx.save();
+      mapCtx.beginPath();
+      mapCtx.arc(sx, sy, 11, 0, Math.PI * 2);
+      mapCtx.strokeStyle = "#ff3b3b";
+      mapCtx.lineWidth = 3;
+      mapCtx.stroke();
+      mapCtx.beginPath();
+      mapCtx.arc(sx, sy, 3, 0, Math.PI * 2);
+      mapCtx.fillStyle = "#ff3b3b";
+      mapCtx.fill();
+      mapCtx.restore();
+    }
+  }
+
   if (mapView.pinnedNpc) {
     const npc = findNpcByName(mapView.pinnedNpc);
     if (npc && npc.position) {
@@ -1962,6 +2051,132 @@ function mapPointAt(sx, sy) {
     }
   }
   return best;
+}
+
+function mapConnectionAt(sx, sy) {
+  if (!state.showFloorConnections || !DATA.floorConnections) return null;
+  const conns = DATA.floorConnections[String(state.mapFloor)];
+  if (!conns) return null;
+  let best = null, bestDist = 10 * 10;
+  for (let i = 0; i < conns.length; i++) {
+    const c = conns[i];
+    const [sx2, sy2] = worldToScreen(c[0], c[1]);
+    const d = (sx2 - sx) * (sx2 - sx) + (sy2 - sy) * (sy2 - sy);
+    if (d < bestDist) { bestDist = d; best = c; }
+  }
+  return best;
+}
+
+function floorConnectionLabel(c) {
+  const guessed = (c[2] & 4) !== 0;
+  const up = (c[2] & 1) !== 0, down = (c[2] & 2) !== 0;
+  const dir = up && down ? "connects up & down" : up ? "connects up" : "connects down";
+  return "Stairs/ladder/hole — " + dir + (guessed ? " (guessed)" : " (confirmed)");
+}
+
+// Jumps the floor view to whichever single direction a connection resolves
+// to. Ambiguous ones (both up and down) are left to the floor buttons
+// instead of guessing which the click meant.
+function jumpFloorConnection(c) {
+  const up = (c[2] & 1) !== 0, down = (c[2] & 2) !== 0;
+  if (up === down) return;
+  setMapFloor(state.mapFloor + (up ? -1 : 1));
+  mapFitToPoint(c[0], c[1]);
+  drawMap();
+}
+
+// --- Stairs unknown-labeling tool: hidden, entered via #stairs-beta's
+// "Label unknowns" button. Answers persist in this browser only
+// (localStorage) so a long labeling session survives a reload; "Export
+// JSON" turns them into the format gen-floor-connections.py's manual
+// overrides expect.
+const STAIRS_LABELS_KEY = "minibia-stairs-labels";
+function stairsLabelsLoad() {
+  try {
+    const obj = JSON.parse(localStorage.getItem(STAIRS_LABELS_KEY) || "{}");
+    return (obj && typeof obj === "object") ? obj : {};
+  } catch (e) { return {}; }
+}
+function stairsLabelsSave(obj) {
+  try { localStorage.setItem(STAIRS_LABELS_KEY, JSON.stringify(obj)); } catch (e) { /* ignore - not fatal, just won't persist */ }
+}
+
+const stairsLabeling = { active: false, list: [], index: 0, answers: stairsLabelsLoad() };
+
+function stairsUnknownList() {
+  const list = [];
+  const src = DATA.floorConnectionsUnknown || {};
+  Object.keys(src).forEach(function (z) {
+    src[z].forEach(function (p) { list.push({ z: Number(z), x: p[0], y: p[1] }); });
+  });
+  return list;
+}
+function stairsKey(pt) { return pt.z + "," + pt.x + "," + pt.y; }
+
+function stairsLabelGoTo(index) {
+  const list = stairsLabeling.list;
+  if (!list.length) return;
+  stairsLabeling.index = ((index % list.length) + list.length) % list.length;
+  const pt = list[stairsLabeling.index];
+  setMapFloor(pt.z);
+  mapFitToPoint(pt.x, pt.y);
+  drawMap();
+  stairsLabelRenderPanel();
+}
+function stairsLabelNextUnanswered() {
+  const list = stairsLabeling.list;
+  for (let step = 1; step <= list.length; step++) {
+    const i = (stairsLabeling.index + step) % list.length;
+    if (!stairsLabeling.answers[stairsKey(list[i])]) { stairsLabelGoTo(i); return; }
+  }
+  stairsLabelGoTo(stairsLabeling.index); // all answered - stay put
+}
+function stairsLabelSet(dir) {
+  const pt = stairsLabeling.list[stairsLabeling.index];
+  if (!pt) return;
+  stairsLabeling.answers[stairsKey(pt)] = dir;
+  stairsLabelsSave(stairsLabeling.answers);
+  stairsLabelNextUnanswered();
+}
+function stairsLabelRenderPanel() {
+  const list = stairsLabeling.list;
+  const pt = list[stairsLabeling.index];
+  if (!pt) return;
+  const answered = Object.keys(stairsLabeling.answers).filter(function (k) { return list.some(function (p) { return stairsKey(p) === k; }); }).length;
+  document.getElementById("stairs-label-progress").textContent =
+    "Labeling unknown stairs — " + (stairsLabeling.index + 1) + " / " + list.length + " (" + answered + " answered)";
+  const existing = stairsLabeling.answers[stairsKey(pt)];
+  document.getElementById("stairs-label-coords").textContent =
+    "x" + pt.x + " y" + pt.y + " z" + pt.z + (existing ? " — already marked: " + existing : "");
+}
+function stairsLabelExport() {
+  const rows = [];
+  Object.keys(stairsLabeling.answers).forEach(function (k) {
+    const parts = k.split(",");
+    rows.push({ z: Number(parts[0]), x: Number(parts[1]), y: Number(parts[2]), dir: stairsLabeling.answers[k] });
+  });
+  const blob = new Blob([JSON.stringify(rows, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = "floor-connection-labels.json";
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+function stairsLabelEnter() {
+  stairsLabeling.list = stairsUnknownList();
+  if (!stairsLabeling.list.length) return;
+  stairsLabeling.active = true;
+  document.getElementById("stairs-label-panel").style.display = "flex";
+  state.tab = "map";
+  refreshTabChrome();
+  resizeMapCanvas();
+  buildMapLegend();
+  stairsLabelGoTo(stairsLabeling.index);
+}
+function stairsLabelExit() {
+  stairsLabeling.active = false;
+  document.getElementById("stairs-label-panel").style.display = "none";
+  drawMap();
 }
 
 function resizeMapCanvas() {
@@ -2067,6 +2282,7 @@ function initMap() {
     if (!touchState.pinching && !touchState.moved && e.changedTouches.length === 1) {
       // A tap that didn't drag: show the same info a mouse hover would.
       const hit = mapPointAt(touchState.tapX, touchState.tapY);
+      const connHit = !hit ? mapConnectionAt(touchState.tapX, touchState.tapY) : null;
       if (hit) {
         mapTooltip.style.display = "block";
         mapTooltip.style.left = (touchState.tapX + 14) + "px";
@@ -2074,6 +2290,13 @@ function initMap() {
         mapTooltip.querySelector(".t-name").textContent = hit.mo.name;
         mapTooltip.querySelector(".t-meta").textContent =
           (hit.mo.tier != null ? TIER_LABELS[hit.mo.tier] + " · " : "") + "x" + hit.p[0] + " y" + hit.p[1] + (hit.p[2] > 1 ? " · cluster of " + hit.p[2] : "");
+      } else if (connHit) {
+        mapTooltip.style.display = "block";
+        mapTooltip.style.left = (touchState.tapX + 14) + "px";
+        mapTooltip.style.top = (touchState.tapY + 10) + "px";
+        mapTooltip.querySelector(".t-name").textContent = floorConnectionLabel(connHit);
+        mapTooltip.querySelector(".t-meta").textContent = "x" + connHit[0] + " y" + connHit[1] + " — tap again to jump";
+        jumpFloorConnection(connHit);
       } else {
         mapTooltip.style.display = "none";
       }
@@ -2091,13 +2314,26 @@ function initMap() {
   mapCanvas.addEventListener("mousedown", function (e) {
     mapView.dragging = true;
     mapView.lastX = e.clientX; mapView.lastY = e.clientY;
+    mapView.downX = e.clientX; mapView.downY = e.clientY; mapView.moved = false;
     mapCanvas.classList.add("dragging");
+    mapCanvas.style.cursor = ""; // let .dragging's cursor:grabbing win over any pointer/default set on hover
   });
-  window.addEventListener("mouseup", function () { mapView.dragging = false; mapCanvas.classList.remove("dragging"); });
+  window.addEventListener("mouseup", function (e) {
+    mapView.dragging = false;
+    mapCanvas.classList.remove("dragging");
+    if (state.tab !== "map" || mapView.moved) return;
+    // A mousedown+mouseup with no drag in between: treat it as a click.
+    const rect = mapCanvas.getBoundingClientRect();
+    const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
+    if (sx < 0 || sy < 0 || sx > rect.width || sy > rect.height) return;
+    const connHit = mapConnectionAt(sx, sy);
+    if (connHit) jumpFloorConnection(connHit);
+  });
   window.addEventListener("mousemove", function (e) {
     if (state.tab !== "map") return;
     const rect = mapCanvas.getBoundingClientRect();
     if (mapView.dragging) {
+      if (Math.abs(e.clientX - mapView.downX) > 3 || Math.abs(e.clientY - mapView.downY) > 3) mapView.moved = true;
       mapView.offX += (e.clientX - mapView.lastX);
       mapView.offY += (e.clientY - mapView.lastY);
       mapView.lastX = e.clientX; mapView.lastY = e.clientY;
@@ -2107,7 +2343,11 @@ function initMap() {
     }
     const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
     if (sx < 0 || sy < 0 || sx > rect.width || sy > rect.height) { mapTooltip.style.display = "none"; return; }
+    const [wx, wy] = screenToWorld(sx, sy);
+    const coordsEl = document.getElementById("map-cursor-coords");
+    if (coordsEl) coordsEl.textContent = "x" + Math.round(wx) + " y" + Math.round(wy) + " z" + state.mapFloor;
     const hit = mapPointAt(sx, sy);
+    const connHit = !hit ? mapConnectionAt(sx, sy) : null;
     if (hit) {
       mapTooltip.style.display = "block";
       mapTooltip.style.left = (sx + 14) + "px";
@@ -2115,8 +2355,18 @@ function initMap() {
       mapTooltip.querySelector(".t-name").textContent = hit.mo.name;
       mapTooltip.querySelector(".t-meta").textContent =
         (hit.mo.tier != null ? TIER_LABELS[hit.mo.tier] + " · " : "") + "x" + hit.p[0] + " y" + hit.p[1] + (hit.p[2] > 1 ? " · cluster of " + hit.p[2] : "");
+      mapCanvas.style.cursor = "default";
+    } else if (connHit) {
+      mapTooltip.style.display = "block";
+      mapTooltip.style.left = (sx + 14) + "px";
+      mapTooltip.style.top = (sy + 10) + "px";
+      mapTooltip.querySelector(".t-name").textContent = floorConnectionLabel(connHit);
+      mapTooltip.querySelector(".t-meta").textContent = "x" + connHit[0] + " y" + connHit[1] +
+        (((connHit[2] & 1) !== 0) !== ((connHit[2] & 2) !== 0) ? " — click to jump" : " — use the floor buttons");
+      mapCanvas.style.cursor = "pointer";
     } else {
       mapTooltip.style.display = "none";
+      mapCanvas.style.cursor = "grab";
     }
   });
 
@@ -2129,6 +2379,26 @@ function initMap() {
     state.filterImplausibleFloors = e.target.checked;
     drawMap();
   });
+
+  // Unlisted: the toggle only appears with #stairs-beta in the URL, while
+  // this is still being verified against the real map (see floorConnections
+  // in scripts/gen-floor-connections.py for how it's derived).
+  if (location.hash.toLowerCase().includes("stairs-beta")) {
+    document.getElementById("map-connections-toggle-wrap").style.display = "";
+    document.getElementById("map-label-unknowns-btn").style.display = "";
+  }
+  document.getElementById("map-connections-toggle").addEventListener("change", function (e) {
+    state.showFloorConnections = e.target.checked;
+    drawMap();
+  });
+  document.getElementById("map-label-unknowns-btn").addEventListener("click", stairsLabelEnter);
+  document.getElementById("stairs-label-up").addEventListener("click", function () { stairsLabelSet("up"); });
+  document.getElementById("stairs-label-down").addEventListener("click", function () { stairsLabelSet("down"); });
+  document.getElementById("stairs-label-unknown").addEventListener("click", function () { stairsLabelSet("unknown"); });
+  document.getElementById("stairs-label-prev").addEventListener("click", function () { stairsLabelGoTo(stairsLabeling.index - 1); });
+  document.getElementById("stairs-label-next").addEventListener("click", function () { stairsLabelGoTo(stairsLabeling.index + 1); });
+  document.getElementById("stairs-label-export").addEventListener("click", stairsLabelExport);
+  document.getElementById("stairs-label-exit").addEventListener("click", stairsLabelExit);
 
   // Floor up/down — swaps only the terrain backdrop; pan/zoom and dots are
   // unchanged (spawns share the same world coords on every floor).
