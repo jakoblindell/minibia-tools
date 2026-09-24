@@ -13,12 +13,11 @@ the same spot (+/- a couple tiles, since a staircase often lands a tile or
 two off from where it starts) on the floor above and below:
 
   1. Confirmed - paired with a marker on the adjacent floor (pair_markers).
-     A stair/hole and its arrival tile are stacked at the same x/y, so an
-     exact partner above or below decides it; otherwise one within a couple
-     of tiles, provided that partner isn't already going the same way. One
-     tile is one staircase: it goes up or down - except the middle of a
-     stacked shaft (same x/y marked on 3+ floors in a row, like a ladder
-     tower), where any one-way reading contradicts its neighbours.
+     A staircase and its arrival are the same shape stacked at the same
+     x/y, so patches pair with the best-overlapping patch above/below;
+     otherwise one within a couple of tiles. One staircase goes one way -
+     up or down, never both - and never pairs with one already going the
+     same way.
      Yellow patches bigger than a staircase (or rings) are roofs/ground
      painted the same yellow and aren't markers at all (yellow_points).
   2. Guessed - neither adjacent floor has a yellow marker nearby, but
@@ -290,72 +289,72 @@ def load_manual_labels():
 
 
 def pair_markers(marker_sets, fixed):
-    """Direction for every marker that has a partner marker on an adjacent
-    floor - {(z, x, y): UP or DOWN}. A tile is one stair/hole/ladder, so it
-    goes one way only (never both), and its partner must go the other way:
+    """Direction for every marker that has a partner on an adjacent floor -
+    {(z, x, y): UP or DOWN}. Works on patches (4-connected groups of marker
+    tiles on one floor, e.g. a 3-wide staircase), because a staircase and
+    its arrival are the same shape stacked at the same x/y:
 
-      1. Exact stacks first - a staircase or hole and its arrival tile sit at
-         the same x/y (the floor-change moves you off it afterwards), so a
-         partner directly above or below decides it outright.
-      2. Only then within RADIUS, for markers without an unambiguous exact
-         partner - but a candidate that already goes the same way is taken
-         (e.g. a hole 2 tiles away whose own exact partner is one floor
-         further down can't also be the arrival of this staircase). Repeated
-         until nothing changes, first where only one side has a usable
-         candidate, then letting a strictly nearer side win.
+      - Candidate pairs are a patch and a patch on the floor below that
+        overlap (scored by overlap / union, so a 3-wide staircase matches
+        the 3-wide one below it rather than a 1-tile stair it merely
+        touches), then non-overlapping ones within RADIUS (nearest first).
+      - Best candidates are taken first, each patch going one way only:
+        the upper one down, the lower one up, and never a patch already
+        paired the other way. Ties go top floor first, which splits a
+        column of identical markers into stacked pairs (z0-z1, z2-z3...)
+        - how ladder towers alternate their ladder and hole sides.
     `fixed` is pre-assigned (the hidden stair tops, always DOWN)."""
-    assign = dict(fixed)
-    keys = [(z, x, y) for z, pts in marker_sets.items() for (x, y) in pts]
-    for k in keys:
-        if k in assign:
-            continue
-        z, x, y = k
-        up0 = (x, y) in marker_sets.get(z - 1, ())
-        dn0 = (x, y) in marker_sets.get(z + 1, ())
-        if up0 != dn0:
-            assign[k] = UP if up0 else DOWN
+    patch_of = {}   # (z, x, y) -> patch id
+    patches = []    # id -> (z, [(x, y), ...])
+    for z, pts in marker_sets.items():
+        seen = set()
+        for p0 in pts:
+            if p0 in seen:
+                continue
+            tiles, stack = [], [p0]
+            seen.add(p0)
+            while stack:
+                x, y = stack.pop()
+                tiles.append((x, y))
+                for q in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
+                    if q in pts and q not in seen and ((z,) + q in fixed) == ((z,) + p0 in fixed):
+                        seen.add(q)
+                        stack.append(q)
+            for t in tiles:
+                patch_of[(z,) + t] = len(patches)
+            patches.append((z, tiles))
 
-    def nearest_usable(z, x, y, dz, taken_dir):
-        pts = marker_sets.get(z + dz)
-        if not pts:
-            return None
-        best = None
-        for dx in range(-RADIUS, RADIUS + 1):
-            for dy in range(-RADIUS, RADIUS + 1):
-                if (x + dx, y + dy) in pts and assign.get((z + dz, x + dx, y + dy)) != taken_dir:
+    direction = [None] * len(patches)
+    for k, d in fixed.items():
+        if k in patch_of:
+            direction[patch_of[k]] = d
+
+    candidates = []  # (sort key, upper id, lower id)
+    for a, (z, tiles) in enumerate(patches):
+        overlap, dist = {}, {}
+        for (x, y) in tiles:
+            for dx in range(-RADIUS, RADIUS + 1):
+                for dy in range(-RADIUS, RADIUS + 1):
+                    b = patch_of.get((z + 1, x + dx, y + dy))
+                    if b is None:
+                        continue
                     d = max(abs(dx), abs(dy))
-                    best = d if best is None else min(best, d)
-        return best
+                    dist[b] = min(dist.get(b, d), d)
+                    if d == 0:
+                        overlap[b] = overlap.get(b, 0) + 1
+        for b, d in dist.items():
+            if b in overlap:
+                iou = overlap[b] / float(len(tiles) + len(patches[b][1]) - overlap[b])
+                candidates.append(((0, -iou, z), a, b))
+            else:
+                candidates.append(((1, d, z), a, b))
+    candidates.sort()
+    for _, a, b in candidates:
+        if direction[a] in (None, DOWN) and direction[b] in (None, UP):
+            direction[a], direction[b] = DOWN, UP
 
-    for allow_nearer in (False, True):
-        changed = True
-        while changed:
-            changed = False
-            for k in keys:
-                if k in assign:
-                    continue
-                z, x, y = k
-                up = nearest_usable(z, x, y, -1, UP)    # partner above must go down
-                down = nearest_usable(z, x, y, 1, DOWN)  # partner below must go up
-                if up is not None and down is None:
-                    assign[k] = UP
-                elif down is not None and up is None:
-                    assign[k] = DOWN
-                elif allow_nearer and up is not None and down is not None and up != down:
-                    assign[k] = UP if up < down else DOWN
-                else:
-                    continue
-                changed = True
-    # What's left with exact partners both above and below (each still
-    # willing to pair back) is a stacked shaft - the same x/y marked on 3+
-    # floors in a row, e.g. a ladder tower. A one-way reading contradicts
-    # the tiles above and below it, so this is the one case that's both.
-    for k in keys:
-        if k not in assign:
-            z, x, y = k
-            if (x, y) in marker_sets.get(z - 1, ()) and (x, y) in marker_sets.get(z + 1, ()):
-                assign[k] = UP | DOWN
-    return assign
+    return {(z, x, y): direction[i] for i, (z, tiles) in enumerate(patches)
+            if direction[i] is not None for (x, y) in tiles}
 
 
 def classify(floors, paired, z, wx, wy, manual_labels):
