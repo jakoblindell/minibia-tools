@@ -248,6 +248,7 @@
     border: 1px solid var(--border); border-radius: 6px; padding: 4px 8px;
   }
   .rc-inline-field input[type="number"].wide { width: 100px; }
+  .rc-hint { color: var(--text-muted); font-size: 12px; }
   .rc-output-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
   @media (max-width: 620px) { .rc-output-grid { grid-template-columns: repeat(2, 1fr); } }
   .rc-output-tile { background: var(--surface-2); border-radius: 8px; padding: 10px 12px; }
@@ -397,7 +398,7 @@
         <label class="rc-inline-field" style="cursor:pointer;">
           <input type="checkbox" id="rc-fluids"> Use mana fluids to top up mana instantly
         </label>
-        <div class="rc-hint">100gp each, avg 110 mana/fluid (80-140 range)</div>
+        <div class="rc-hint">100gp each, avg 110 mana/fluid (80-140 range), 1s cooldown between fluids</div>
       </div>
 
       <div class="rc-section">
@@ -425,7 +426,7 @@
       <div class="rc-section">
         <div class="row-label">Result</div>
         <div class="rc-output-grid" id="rc-output"></div>
-        <div class="rc-hint">Souls are shown as a total only — we assume you always have enough banked, not a time constraint. Casting cooldown (2s) only matters once mana fluids remove the mana-wait bottleneck; otherwise mana regen dominates and cooldown is negligible.</div>
+        <div class="rc-hint">Souls are shown as a total only — we assume you always have enough banked, not a time constraint. Without fluids, mana regen dominates and casting cooldown (2s) is negligible. With fluids, time is capped by whichever is slower: casting every 2s, or drinking a fluid every 1s (fluids aren't instant).</div>
       </div>
     </div>
   </div>
@@ -924,7 +925,7 @@ const RUNE_RINGS = [
   { key: "life", label: "Life Ring", bonusPerTick: 4, price: 900, durationMin: 20 },
   { key: "healing", label: "Ring of Healing", bonusPerTick: 12, price: 2800, durationMin: 10 }
 ];
-const RUNE_FLUID = { price: 100, avgMana: 110 };
+const RUNE_FLUID = { price: 100, avgMana: 110, cooldownSeconds: 1 };
 
 function runesForVocation(vocKey) {
   return RUNE_RECIPES.filter(function (r) { return r.vocations.indexOf(vocKey) !== -1; });
@@ -1056,10 +1057,19 @@ function renderRuneCalcOutput() {
 
   let timeSeconds, fluidsUsed = 0, fluidCost = 0, ringsUsed = 0, ringCost = 0;
   if (useFluids) {
-    timeSeconds = casts * COOLDOWN_SECONDS;
+    // Fluids aren't instant refills - spamming them is capped by their own
+    // 1s cooldown, so the fastest possible mana income while chugging is
+    // (one fluid's mana / its cooldown) + whatever passive regen still
+    // trickles in alongside it. Time is bounded below by both that and the
+    // cast cooldown; solved directly for the continuous rate, then the
+    // ceiling on fluid count (can't buy a fractional fluid) can only push
+    // the time up slightly further, so it's re-maxed against that.
+    const fluidRate = RUNE_FLUID.avgMana / RUNE_FLUID.cooldownSeconds;
+    timeSeconds = Math.max(casts * COOLDOWN_SECONDS, totalMana / (passiveRate + fluidRate));
     const manaFromPassive = passiveRate * timeSeconds;
     const manaToBuy = Math.max(0, totalMana - manaFromPassive);
     fluidsUsed = Math.ceil(manaToBuy / RUNE_FLUID.avgMana);
+    timeSeconds = Math.max(timeSeconds, fluidsUsed * RUNE_FLUID.cooldownSeconds);
     fluidCost = fluidsUsed * RUNE_FLUID.price;
   } else {
     timeSeconds = passiveRate > 0 ? totalMana / passiveRate : Infinity;
