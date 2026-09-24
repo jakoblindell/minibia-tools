@@ -21,13 +21,17 @@ two off from where it starts) on the floor above and below:
      (void/unexplored or blocked terrain). Weaker evidence - there's no
      paired marker, just an asymmetry - so this is flagged as lower
      confidence rather than mixed in with confirmed connections.
-  3. Unknown - neither side gives any signal (both void, both blocked, or
-     both equally walkable with no marker either way). About 7% of markers
-     land here; they're written to a separate "floorConnectionsUnknown"
-     list instead of guessed, for a hidden map tool that lets a human
-     step through them one at a time and label each up/down/both, then
-     export a JSON of those answers to fold back into this script as a
-     manual override (see the MANUAL_OVERRIDES table below).
+  3. Dead end - neither adjacent floor has a marker or any walkable ground
+     nearby (only void, water, walls...). There's nothing to arrive on, so
+     it can't lead anywhere - the decorative/blocked holes the real client
+     also draws in yellow. Dropped, not queued for labeling.
+  4. Unknown - both adjacent floors have walkable ground nearby but no
+     marker on either, so the terrain can't tell which way it goes. About
+     1% of markers land here (another ~6% are dead ends). They're written
+     to a separate "floorConnectionsUnknown" list instead of guessed, for a
+     hidden map tool that lets a human step through them one at a time and
+     label each up/down/unknown, then export a JSON of those answers to
+     fold back into this script as a manual override (load_manual_labels).
 
 Validated against this snapshot: of ~34,700 yellow markers, 93% resolve to
 a confirmed or guessed direction with this method (radius 2, see RADIUS).
@@ -56,6 +60,7 @@ RADIUS = 2
 UP = 1
 DOWN = 2
 GUESSED = 4
+DEAD_END = -1  # classify() sentinel, never written out
 
 
 def idx_to_rgb(idx):
@@ -155,7 +160,9 @@ def classify(floors, yellow_sets, z, wx, wy, manual_labels):
         return UP | GUESSED
     if down_state == "walkable" and up_state != "walkable":
         return DOWN | GUESSED
-    return None  # unknown - both sides equally (in)conclusive
+    if up_state != "walkable" and down_state != "walkable":
+        return DEAD_END  # nothing to land on either way
+    return None  # unknown - walkable both ways, no marker to break the tie
 
 
 def main():
@@ -176,7 +183,7 @@ def main():
 
     connections = {}
     unknowns = {}
-    n_total = n_confirmed = n_guessed = n_manual = n_unknown = 0
+    n_total = n_confirmed = n_guessed = n_manual = n_dead = n_unknown = 0
     for z, pts in yellow_sets.items():
         rows = []
         unk_rows = []
@@ -184,6 +191,9 @@ def main():
             n_total += 1
             is_manual = (z, wx, wy) in manual_labels
             flags = classify(floors, yellow_sets, z, wx, wy, manual_labels)
+            if flags == DEAD_END:
+                n_dead += 1
+                continue
             if flags is None:
                 n_unknown += 1
                 unk_rows.append([wx, wy])
@@ -212,8 +222,9 @@ def main():
 
     dump(comp, "compendium", "__MINIBIA_COMPENDIUM__")
 
-    print("floor connections: %d yellow markers found, %d confirmed, %d guessed, %d manually labeled, %d still unresolved"
-          % (n_total, n_confirmed, n_guessed, n_manual, n_unknown))
+    print("floor connections: %d yellow markers found, %d confirmed, %d guessed, %d manually labeled, "
+          "%d dead ends (dropped), %d still unresolved"
+          % (n_total, n_confirmed, n_guessed, n_manual, n_dead, n_unknown))
 
 
 if __name__ == "__main__":
