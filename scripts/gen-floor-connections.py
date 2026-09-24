@@ -290,19 +290,21 @@ def load_manual_labels():
 
 def pair_markers(marker_sets, fixed):
     """Direction for every marker that has a partner on an adjacent floor -
-    {(z, x, y): UP or DOWN}. Works on patches (4-connected groups of marker
-    tiles on one floor, e.g. a 3-wide staircase), because a staircase and
-    its arrival are the same shape stacked at the same x/y:
+    {(z, x, y): UP or DOWN}. A staircase and its arrival are the same shape
+    stacked at the same x/y, so:
 
-      - Candidate pairs are a patch and a patch on the floor below that
-        overlap (scored by overlap / union, so a 3-wide staircase matches
-        the 3-wide one below it rather than a 1-tile stair it merely
-        touches), then non-overlapping ones within RADIUS (nearest first).
-      - Best candidates are taken first, each patch going one way only:
-        the upper one down, the lower one up, and never a patch already
-        paired the other way. Ties go top floor first, which splits a
-        column of identical markers into stacked pairs (z0-z1, z2-z3...)
-        - how ladder towers alternate their ladder and hole sides.
+      - Candidate pairs are a tile and the tile directly below it, scored by
+        how well their patches (4-connected groups of marker tiles, e.g. a
+        3-wide staircase) overlap - overlap / union, so a 3-wide staircase
+        matches the 3-wide one below it rather than a 1-tile stair it merely
+        touches - then non-stacked tiles within RADIUS, nearest first.
+      - Best candidates are taken first, each tile going one way only: the
+        upper one down, the lower one up, never one already paired the
+        other way. Pairing per tile (not per patch) keeps two different
+        stairs side by side in one yellow patch apart. Ties go top floor
+        first, which splits a column of identical markers into stacked
+        pairs (z0-z1, z2-z3...) - how ladder towers alternate their ladder
+        and hole sides.
     `fixed` is pre-assigned (the hidden stair tops, always DOWN)."""
     patch_of = {}   # (z, x, y) -> patch id
     patches = []    # id -> (z, [(x, y), ...])
@@ -324,37 +326,28 @@ def pair_markers(marker_sets, fixed):
                 patch_of[(z,) + t] = len(patches)
             patches.append((z, tiles))
 
-    direction = [None] * len(patches)
+    # Pairing is per tile (two different stairs can sit side by side in one
+    # yellow patch), but scored by how well the two tiles' patches match.
+    direction = {}
     for k, d in fixed.items():
         if k in patch_of:
-            direction[patch_of[k]] = d
-
-    candidates = []  # (sort key, upper id, lower id)
-    for a, (z, tiles) in enumerate(patches):
-        overlap, dist = {}, {}
-        for (x, y) in tiles:
-            for dx in range(-RADIUS, RADIUS + 1):
-                for dy in range(-RADIUS, RADIUS + 1):
-                    b = patch_of.get((z + 1, x + dx, y + dy))
-                    if b is None:
-                        continue
-                    d = max(abs(dx), abs(dy))
-                    dist[b] = min(dist.get(b, d), d)
-                    if d == 0:
-                        overlap[b] = overlap.get(b, 0) + 1
-        for b, d in dist.items():
-            if b in overlap:
-                iou = overlap[b] / float(len(tiles) + len(patches[b][1]) - overlap[b])
-                candidates.append(((0, -iou, z), a, b))
-            else:
-                candidates.append(((1, d, z), a, b))
+            direction[k] = d
+    candidates = []  # (sort key, upper tile, lower tile)
+    for (z, x, y), a in patch_of.items():
+        if (z + 1, x, y) in patch_of:
+            b = patch_of[(z + 1, x, y)]
+            inter = len({t for t in patches[a][1]} & {t for t in patches[b][1]})
+            iou = inter / float(len(patches[a][1]) + len(patches[b][1]) - inter)
+            candidates.append(((0, -iou, z), (z, x, y), (z + 1, x, y)))
+        for dx in range(-RADIUS, RADIUS + 1):
+            for dy in range(-RADIUS, RADIUS + 1):
+                if (dx or dy) and (z + 1, x + dx, y + dy) in patch_of:
+                    candidates.append(((1, max(abs(dx), abs(dy)), z), (z, x, y), (z + 1, x + dx, y + dy)))
     candidates.sort()
     for _, a, b in candidates:
-        if direction[a] in (None, DOWN) and direction[b] in (None, UP):
+        if direction.get(a) in (None, DOWN) and direction.get(b) in (None, UP):
             direction[a], direction[b] = DOWN, UP
-
-    return {(z, x, y): direction[i] for i, (z, tiles) in enumerate(patches)
-            if direction[i] is not None for (x, y) in tiles}
+    return direction
 
 
 def classify(floors, paired, z, wx, wy, manual_labels):
