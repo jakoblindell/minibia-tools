@@ -297,6 +297,12 @@
   .map-tooltip .t-name { font-weight: 700; }
   .map-tooltip .t-meta { color: var(--text-secondary); margin-top: 2px; }
   .map-canvas-wrap { position: relative; }
+  .map-copy-toast {
+    position: absolute; pointer-events: none; background: var(--surface-3); border: 1px solid var(--border);
+    border-radius: 6px; padding: 4px 9px; font-size: 12px; font-weight: 600; box-shadow: var(--shadow);
+    z-index: 6; white-space: nowrap; opacity: 0; transition: opacity .25s;
+  }
+  .map-copy-toast.show { opacity: 1; transition: none; }
   .map-hint { color: var(--text-muted); font-size: 12px; margin-top: 8px; }
 
   footer { margin-top: 44px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 12.5px; }
@@ -376,6 +382,7 @@
       <div class="map-canvas-wrap">
         <canvas id="map-canvas"></canvas>
         <div class="map-tooltip" id="map-tooltip"><div class="t-name"></div><div class="t-meta"></div></div>
+        <div class="map-copy-toast" id="map-copy-toast"></div>
       </div>
       <div class="map-toolbar">
         <div class="map-legend" id="map-legend"></div>
@@ -420,7 +427,7 @@
         </div>
         <input type="text" class="route-link edit-only" id="route-link" readonly aria-label="Share link">
       </div>
-      <div class="map-hint">Scroll to zoom, drag to pan, hover a dot for details. Terrain is decoded from the client's own <code>minimap.bin</code> at full 1&nbsp;px&nbsp;=&nbsp;1&nbsp;tile resolution — colors and coverage match what the game itself would show, not a live render. Use ▲/▼ to change floor (16 floors, z=7 is ground). Only the main explored region is drawn; a few far-flung spawn clusters sit outside it. <strong>Spawn data has no floor axis</strong>, so the same spawn dots are shown on every floor — the floor control only swaps the terrain behind them.</div>
+      <div class="map-hint">Scroll to zoom, drag to pan, hover a dot for details, click (or tap) the map to copy that tile's coordinates. Terrain is decoded from the client's own <code>minimap.bin</code> at full 1&nbsp;px&nbsp;=&nbsp;1&nbsp;tile resolution — colors and coverage match what the game itself would show, not a live render. Use ▲/▼ to change floor (16 floors, z=7 is ground). Only the main explored region is drawn; a few far-flung spawn clusters sit outside it. <strong>Spawn data has no floor axis</strong>, so the same spawn dots are shown on every floor — the floor control only swaps the terrain behind them.</div>
     </div>
   </div>
 
@@ -2096,6 +2103,40 @@ function mapPointAt(sx, sy) {
   return best;
 }
 
+// Tile under a screen point, as "x32480 y31644 z10". A tile spans
+// [x, x+1) in world units, so this floors rather than rounds.
+function mapTileText(sx, sy) {
+  const [wx, wy] = screenToWorld(sx, sy);
+  return "x" + Math.floor(wx) + " y" + Math.floor(wy) + " z" + state.mapFloor;
+}
+
+let mapCopyToastTimer = 0;
+function mapCopyCoords(sx, sy) {
+  const text = mapTileText(sx, sy);
+  const toast = document.getElementById("map-copy-toast");
+  const show = function (msg) {
+    toast.textContent = msg;
+    const wrapW = toast.parentElement.clientWidth;
+    toast.style.left = Math.max(4, Math.min(sx + 12, wrapW - toast.offsetWidth - 4)) + "px";
+    toast.style.top = Math.max(4, sy - 30) + "px";
+    toast.classList.add("show");
+    clearTimeout(mapCopyToastTimer);
+    mapCopyToastTimer = setTimeout(function () { toast.classList.remove("show"); }, 1400);
+  };
+  const fallback = function () {
+    const ta = document.createElement("textarea");
+    ta.value = text; ta.setAttribute("readonly", ""); ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select();
+    let ok = false;
+    try { ok = document.execCommand("copy"); } catch (err) { ok = false; }
+    document.body.removeChild(ta);
+    show(ok ? "Copied " + text : text);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(function () { show("Copied " + text); }, fallback);
+  } else fallback();
+}
+
 function mapConnectionAt(sx, sy) {
   if (!state.showFloorConnections || !DATA.floorConnections) return null;
   const conns = DATA.floorConnections[String(state.mapFloor)];
@@ -2113,7 +2154,7 @@ function mapConnectionAt(sx, sy) {
 function floorConnectionLabel(c) {
   const guessed = (c[2] & 4) !== 0;
   const up = (c[2] & 1) !== 0, down = (c[2] & 2) !== 0;
-  const dir = up && down ? "connects up & down" : up ? "connects up" : "connects down";
+  const dir = up && down ? "connects up & down (stacked shaft)" : up ? "connects up" : "connects down";
   return "Stairs/ladder/hole — " + dir + (guessed ? " (guessed)" : " (confirmed)");
 }
 
@@ -2526,21 +2567,24 @@ function pathPrepare() {
       const b = bits[z]; if (!b || x < 0 || y < 0 || x >= W || y >= H) return false;
       const i = y * W + x; return ((b[i >> 3] >> (i & 7)) & 1) === 1;
     };
+    // Per floor: tile index -> connection flags, so a staircase lands on
+    // the marker that leads back (an arrival going down must be a marker
+    // that goes up, and vice versa), not just the nearest one.
     const markerAt = {};
     const conns = DATA.floorConnections || {};
     Object.keys(conns).forEach(function (z) {
-      const set = new Set();
-      conns[z].forEach(function (c) { set.add((c[1] - minY) * W + (c[0] - minX)); });
-      markerAt[z] = set;
+      const map = new Map();
+      conns[z].forEach(function (c) { map.set((c[1] - minY) * W + (c[0] - minX), c[2]); });
+      markerAt[z] = map;
     });
-    const landing = function (tz, x, y) {
+    const landing = function (tz, x, y, want) {
       if (!bits[tz]) return -1;
       let best = -1, bestD = Infinity;
       for (let pass = 0; pass < 2 && best < 0; pass++) {
         for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) {
           const nx = x + dx, ny = y + dy;
           if (!walkBit(tz, nx, ny)) continue;
-          if (pass === 0 && !(markerAt[tz] && markerAt[tz].has(ny * W + nx))) continue;
+          if (pass === 0 && !(markerAt[tz] && (markerAt[tz].get(ny * W + nx) & want))) continue;
           const d = dx * dx + dy * dy;
           if (d < bestD) { bestD = d; best = (tz * H + ny) * W + nx; }
         }
@@ -2554,8 +2598,8 @@ function pathPrepare() {
         const x = c[0] - minX, y = c[1] - minY;
         if (!walkBit(z, x, y)) return;
         const src = (z * H + y) * W + x;
-        if (c[2] & 1) { const t = landing(z - 1, x, y); if (t >= 0) pairs.push(src, t, 0); }
-        if (c[2] & 2) { const t = landing(z + 1, x, y); if (t >= 0) pairs.push(src, t, 0); }
+        if (c[2] & 1) { const t = landing(z - 1, x, y, 2); if (t >= 0) pairs.push(src, t, 0); }
+        if (c[2] & 2) { const t = landing(z + 1, x, y, 1); if (t >= 0) pairs.push(src, t, 0); }
       });
     });
     // Assumed doors (see gen-floor-connections.py): each candidate wall tile
@@ -3183,6 +3227,7 @@ function initMap() {
         jumpFloorConnection(connHit);
       } else {
         mapTooltip.style.display = "none";
+        mapCopyCoords(touchState.tapX, touchState.tapY);
       }
     }
     if (e.touches.length === 0) { mapView.dragging = false; touchState.pinching = false; }
@@ -3215,6 +3260,7 @@ function initMap() {
     if (pathState.active) { pathHandleClick(sx, sy); return; }
     const connHit = mapConnectionAt(sx, sy);
     if (connHit) jumpFloorConnection(connHit);
+    else mapCopyCoords(sx, sy);
   });
   window.addEventListener("mousemove", function (e) {
     if (state.tab !== "map") return;
@@ -3232,7 +3278,7 @@ function initMap() {
     if (sx < 0 || sy < 0 || sx > rect.width || sy > rect.height) { mapTooltip.style.display = "none"; return; }
     const [wx, wy] = screenToWorld(sx, sy);
     const coordsEl = document.getElementById("map-cursor-coords");
-    if (coordsEl) coordsEl.textContent = "x" + Math.round(wx) + " y" + Math.round(wy) + " z" + state.mapFloor;
+    if (coordsEl) coordsEl.textContent = mapTileText(sx, sy);
     const hit = mapPointAt(sx, sy);
     const connHit = !hit ? mapConnectionAt(sx, sy) : null;
     if (hit) {
