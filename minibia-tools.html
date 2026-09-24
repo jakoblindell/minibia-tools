@@ -272,6 +272,21 @@
   .map-path-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 12.5px; color: var(--text-secondary); margin-top: 8px; }
   .map-path-floors { display: inline-flex; align-items: center; gap: 4px; flex-wrap: wrap; }
   .map-path-floors .chip { padding: 3px 9px; font-size: 12px; }
+  .route-panel { margin-top: 10px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-1); display: flex; flex-direction: column; gap: 8px; }
+  .route-panel.edit .view-only, .route-panel.view .edit-only { display: none !important; }
+  .route-title { font-size: 16px; margin: 0; }
+  .route-title-input, .route-link { font: inherit; font-size: 13px; width: 100%; background: var(--surface-2); color: var(--text-primary); border: 1px solid var(--border); border-radius: 6px; padding: 6px 9px; }
+  .route-link { font-family: 'SF Mono', Consolas, monospace; font-size: 11.5px; color: var(--text-secondary); }
+  .route-status { font-size: 12.5px; color: var(--text-secondary); }
+  .route-points { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; max-height: 260px; overflow-y: auto; }
+  .route-points li { display: flex; align-items: center; gap: 8px; font-size: 12.5px; min-width: 0; }
+  .route-points .route-num { flex: none; width: 22px; height: 22px; border-radius: 50%; background: #ff8c00; color: #111; font-weight: 700; font-size: 11.5px; display: inline-flex; align-items: center; justify-content: center; }
+  .route-points .route-where { flex: none; color: var(--text-muted); font-family: 'SF Mono', Consolas, monospace; font-size: 11.5px; }
+  .route-points .route-note { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  .route-points input.route-note { font: inherit; font-size: 12.5px; background: var(--surface-2); color: var(--text-primary); border: 1px solid var(--border); border-radius: 6px; padding: 3px 7px; }
+  .route-points .map-btn { padding: 3px 8px; font-size: 12px; flex: none; }
+  .route-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  @media (max-width: 560px) { .route-points .route-where { display: none; } }
   .map-floor { display: inline-flex; align-items: center; gap: 6px; }
   .map-floor-btn { padding: 4px 9px; line-height: 1; }
   .map-floor-label { color: var(--text-secondary); font-size: 12.5px; min-width: 132px; text-align: center; }
@@ -380,6 +395,7 @@
             Show floor connections <span class="beta-tag">beta</span>
           </label>
           <button class="map-btn" id="map-label-unknowns-btn" style="display:none;" title="Step through markers the algorithm couldn't resolve and label each up/down/unknown by eye; export your answers as JSON to fold back into the data.">Label unknowns</button>
+          <button class="map-btn" id="map-route-btn" style="display:none;" title="Click out waypoints to draw a hunting route; share it as a link.">Draw route</button>
           <button class="map-btn" id="map-path-btn" style="display:none;" title="Experimental: click a start and an end point on the map to find a walking route, using detected stairs/ladders/holes to change floors.">Find path</button>
           <span class="map-meta" id="map-cursor-coords"></span>
           <button class="map-btn" id="map-reset">Reset view</button>
@@ -388,6 +404,21 @@
       <div class="map-path-bar" id="map-path-bar" style="display:none;">
         <span id="map-path-status"></span>
         <span class="map-path-floors" id="map-path-floors"></span>
+      </div>
+      <div class="route-panel" id="route-panel" style="display:none;">
+        <input type="text" class="route-title-input edit-only" id="route-title" maxlength="120" placeholder="Route title, e.g. Dragon hunt north of the city">
+        <h3 class="route-title view-only" id="route-title-view"></h3>
+        <div class="route-status" id="route-status"></div>
+        <ol class="route-points" id="route-points"></ol>
+        <div class="route-actions">
+          <label class="map-floor-filter-toggle edit-only"><input type="checkbox" id="route-loop"> Loop back to start</label>
+          <button class="map-btn edit-only" id="route-undo" type="button">Undo last point</button>
+          <button class="map-btn edit-only" id="route-clear" type="button">Clear</button>
+          <button class="map-btn edit-only" id="route-copy" type="button">Copy share link</button>
+          <button class="map-btn view-only" id="route-edit" type="button" style="display:none;">Edit a copy</button>
+          <button class="map-btn" id="route-close" type="button">Close route</button>
+        </div>
+        <input type="text" class="route-link edit-only" id="route-link" readonly aria-label="Share link">
       </div>
       <div class="map-hint">Scroll to zoom, drag to pan, hover a dot for details. Terrain is decoded from the client's own <code>minimap.bin</code> at full 1&nbsp;px&nbsp;=&nbsp;1&nbsp;tile resolution — colors and coverage match what the game itself would show, not a live render. Use ▲/▼ to change floor (16 floors, z=7 is ground). Only the main explored region is drawn; a few far-flung spawn clusters sit outside it. <strong>Spawn data has no floor axis</strong>, so the same spawn dots are shown on every floor — the floor control only swaps the terrain behind them.</div>
     </div>
@@ -1993,6 +2024,7 @@ function drawMap() {
     }
   }
 
+  if (routeState.mode !== "off") drawRouteOverlay();
   if (pathState.active) drawPathOverlay(w, h);
 
   if (stairsLabeling.active && stairsLabeling.list.length) {
@@ -2454,7 +2486,7 @@ function pathPrepare() {
     const bits = {};
     for (let k = 0; k < zs.length; k++) {
       const z = zs[k], m = meta[z];
-      pathSetStatus("Preparing walkable terrain (first use only)… floor " + (k + 1) + " / " + zs.length + ". " + pathState.hint);
+      pathReportPrep("Preparing walkable terrain (first use only)… floor " + (k + 1) + " / " + zs.length + ".");
       const img = await pathLoadImage(z);
       canvas.width = img.width; canvas.height = img.height;
       ctx.clearRect(0, 0, img.width, img.height);
@@ -2531,48 +2563,88 @@ function pathPrepare() {
       worker.onerror = function (e) { reject(new Error(e.message || "worker failed")); };
       worker.postMessage({ type: "init", W: W, H: H, floors: floorsMsg, portals: portalArr }, transfer);
     });
-    worker.onmessage = pathOnResult;
-    if (!pathState.busy) pathSetStatus(pathState.hint);
-    worker.onerror = function (e) { pathState.busy = false; pathSetStatus("Pathfinding worker error: " + (e.message || "unknown")); };
+    worker.onmessage = pathWorkerMessage;
+    worker.onerror = function (e) {
+      const reason = "pathfinding worker error: " + (e.message || "unknown");
+      pathPending.forEach(function (resolve) { resolve({ ok: false, reason: reason }); });
+      pathPending.clear();
+    };
+    pathReportPrep("");
   })();
   pathState.ready.catch(function (err) {
     pathState.ready = null;
-    pathSetStatus("Couldn't prepare pathfinding: " + err.message);
+    pathReportPrep("Couldn't prepare pathfinding: " + err.message);
   });
   return pathState.ready;
+}
+
+// Shows prep progress in whichever tool is waiting on it; "" = done, so
+// each tool puts its own status back.
+function pathReportPrep(text) {
+  if (pathState.active) pathSetStatus(text ? text + " " + pathState.hint : pathState.hint);
+  if (routeState.mode !== "off") { routeState.prepText = text; routeRenderStatus(); }
+}
+
+// Promise-based find: any number of requests can be in flight (a route
+// asks for one per leg), each matched back to its caller by id.
+const pathPending = new Map();
+let pathMsgSeq = 0;
+function pathRequest(a, b) {
+  return pathPrepare().then(function () {
+    return new Promise(function (resolve) {
+      const id = ++pathMsgSeq, gr = pathState.grid;
+      pathPending.set(id, resolve);
+      pathState.worker.postMessage({ type: "find", id: id,
+        s: [a.z, a.x - gr.minX, a.y - gr.minY], g: [b.z, b.x - gr.minX, b.y - gr.minY] });
+    });
+  });
+}
+function pathWorkerMessage(e) {
+  const r = e.data;
+  if (r.type !== "result") return;
+  const resolve = pathPending.get(r.id);
+  if (!resolve) return;
+  pathPending.delete(r.id);
+  if (r.ok) {
+    const gr = pathState.grid;
+    r.nodes = r.path.map(function (p) { return { z: p[0], x: p[1] + gr.minX, y: p[2] + gr.minY }; });
+  }
+  resolve(r);
+}
+function pathNodeStats(nodes) {
+  let steps = 0, changes = 0;
+  for (let i = 1; i < nodes.length; i++) {
+    const a = nodes[i - 1], b = nodes[i];
+    if (a.z === b.z) steps += Math.max(Math.abs(b.x - a.x), Math.abs(b.y - a.y)); else changes++;
+  }
+  return { steps: steps, changes: changes };
 }
 
 function pathRun() {
   pathState.busy = true;
   pathState.result = null;
-  const id = ++pathState.reqId;
-  pathPrepare().then(function () {
-    if (id !== pathState.reqId || !pathState.active) return;
-    pathSetStatus("Calculating route…");
-    const gr = pathState.grid, s = pathState.start, g = pathState.goal;
-    pathState.worker.postMessage({ type: "find", id: id,
-      s: [s.z, s.x - gr.minX, s.y - gr.minY], g: [g.z, g.x - gr.minX, g.y - gr.minY] });
+  const token = ++pathState.reqId;
+  pathHint("Calculating route…");
+  pathRequest(pathState.start, pathState.goal).then(function (r) {
+    if (token !== pathState.reqId || !pathState.active) return;
+    pathShowResult(r);
   });
 }
 
-function pathOnResult(e) {
-  const r = e.data;
-  if (r.type !== "result" || r.id !== pathState.reqId) return;
+function pathShowResult(r) {
   pathState.busy = false;
   if (!r.ok) {
     pathSetStatus("No path found: " + r.reason + ".");
     drawMap();
     return;
   }
-  const gr = pathState.grid;
-  const nodes = r.path.map(function (p) { return { z: p[0], x: p[1] + gr.minX, y: p[2] + gr.minY }; });
-  let steps = 0, changes = 0;
+  const nodes = r.nodes;
   const segs = [{ z: nodes[0].z, from: 0, to: 0 }];
   for (let i = 1; i < nodes.length; i++) {
-    const a = nodes[i - 1], b = nodes[i];
-    if (a.z === b.z) { steps += Math.max(Math.abs(b.x - a.x), Math.abs(b.y - a.y)); segs[segs.length - 1].to = i; }
-    else { changes++; segs.push({ z: b.z, from: i, to: i }); }
+    if (nodes[i - 1].z === nodes[i].z) segs[segs.length - 1].to = i;
+    else segs.push({ z: nodes[i].z, from: i, to: i });
   }
+  const st = pathNodeStats(nodes), steps = st.steps, changes = st.changes;
   pathState.result = { nodes: nodes, segs: segs, steps: steps, changes: changes };
   const chips = segs.map(function (sg, i) {
     return '<button class="chip" type="button" data-path-seg="' + i + '">' + esc(mapFloorLabel(sg.z)) + '</button>';
@@ -2616,6 +2688,7 @@ function pathHandleClick(sx, sy) {
 }
 
 function pathToggle() {
+  if (!pathState.active && routeState.mode === "edit") routeClose();
   pathState.active = !pathState.active;
   pathState.start = pathState.goal = pathState.result = null;
   pathState.busy = false;
@@ -2669,6 +2742,275 @@ function drawPathOverlay(w, h) {
   }
   if (pathState.start && pathState.start.z === z) dot(pathState.start.x, pathState.start.y, "#22c55e");
   if (pathState.goal && pathState.goal.z === z) dot(pathState.goal.x, pathState.goal.y, "#ef4444");
+  mapCtx.restore();
+}
+
+// --- Routes: click out waypoints, each leg follows the pathfinder's
+// walking route, share as a link. The whole route lives in the URL hash
+// (#route=...) - no server, nothing stored. Viewing a shared link is
+// public; drawing stays behind #stairs-beta.
+const ROUTE_MAX_POINTS = 60, ROUTE_NOTE_MAX = 120, ROUTE_TITLE_MAX = 120;
+const routeState = { mode: "off", title: "", loop: false, points: [], legs: [], gen: 0, prepText: "", fromLink: false };
+const routeLegCache = new Map();
+
+function routeLegKey(a, b) { return a.z + "," + a.x + "," + a.y + ">" + b.z + "," + b.x + "," + b.y; }
+function routePairs() {
+  const p = routeState.points, pairs = [];
+  for (let i = 1; i < p.length; i++) pairs.push([p[i - 1], p[i]]);
+  if (routeState.loop && p.length > 2) pairs.push([p[p.length - 1], p[0]]);
+  return pairs;
+}
+
+function routeEncode() {
+  const obj = { v: 1, p: routeState.points.map(function (p) { return p.note ? [p.z, p.x, p.y, p.note] : [p.z, p.x, p.y]; }) };
+  if (routeState.title) obj.t = routeState.title;
+  if (routeState.loop) obj.l = 1;
+  const bytes = new TextEncoder().encode(JSON.stringify(obj));
+  let bin = "";
+  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+// Everything from a link is untrusted: validated field by field, and only
+// ever rendered via textContent / canvas fillText, never as HTML.
+function routeDecode(code) {
+  try {
+    const bin = atob(code.replace(/-/g, "+").replace(/_/g, "/"));
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    const obj = JSON.parse(new TextDecoder().decode(bytes));
+    if (!obj || !Array.isArray(obj.p)) return null;
+    const points = [];
+    obj.p.slice(0, ROUTE_MAX_POINTS).forEach(function (q) {
+      if (!Array.isArray(q)) return;
+      const z = q[0], x = q[1], y = q[2];
+      if (![z, x, y].every(Number.isInteger) || z < MAP_FLOOR_MIN || z > MAP_FLOOR_MAX) return;
+      points.push({ z: z, x: x, y: y, note: typeof q[3] === "string" ? q[3].slice(0, ROUTE_NOTE_MAX) : "" });
+    });
+    if (!points.length) return null;
+    return { title: typeof obj.t === "string" ? obj.t.slice(0, ROUTE_TITLE_MAX) : "", loop: obj.l === 1, points: points };
+  } catch (e) { return null; }
+}
+function routeLink() {
+  return location.origin + location.pathname + location.search + "#route=" + routeEncode();
+}
+
+// Recomputes any leg that isn't cached yet; stale runs (the route changed
+// while waiting) are dropped via the generation counter.
+function routeRecompute() {
+  const gen = ++routeState.gen;
+  const pairs = routePairs();
+  routeState.legs = pairs.map(function (pr) { return routeLegCache.get(routeLegKey(pr[0], pr[1])) || null; });
+  routeRenderStatus();
+  drawMap();
+  const missing = [];
+  pairs.forEach(function (pr, i) { if (!routeState.legs[i]) missing.push(i); });
+  if (!missing.length) return;
+  (async function () {
+    for (let k = 0; k < missing.length; k++) {
+      const i = missing[k], a = pairs[i][0], b = pairs[i][1];
+      const r = await pathRequest(a, b);
+      const leg = r.ok ? { ok: true, nodes: r.nodes } : { ok: false, reason: r.reason };
+      routeLegCache.set(routeLegKey(a, b), leg);
+      if (gen !== routeState.gen) return;
+      routeState.legs[i] = leg;
+      routeRenderStatus();
+      drawMap();
+    }
+  })();
+}
+
+function routeRenderStatus() {
+  const el = document.getElementById("route-status");
+  if (!el) return;
+  const n = routeState.points.length;
+  if (routeState.prepText) { el.textContent = routeState.prepText; return; }
+  if (!n) { el.textContent = routeState.mode === "edit" ? "Click the map to add the first point. Change floors with ▲/▼ between clicks if the route goes up or down." : ""; return; }
+  let steps = 0, changes = 0, pending = 0, failed = 0;
+  routeState.legs.forEach(function (leg) {
+    if (!leg) { pending++; return; }
+    if (!leg.ok) { failed++; return; }
+    const st = pathNodeStats(leg.nodes); steps += st.steps; changes += st.changes;
+  });
+  let txt = n + " point" + (n === 1 ? "" : "s");
+  if (routeState.legs.length) txt += " · ~" + fmt(steps) + " steps" + (changes ? " · " + changes + " floor change" + (changes === 1 ? "" : "s") : "");
+  if (routeState.loop && n > 2) txt += " · loops back to start";
+  if (pending) txt += " · calculating " + pending + " leg" + (pending === 1 ? "" : "s") + "…";
+  if (failed) txt += " · " + failed + " leg" + (failed === 1 ? "" : "s") + " couldn't be walked (drawn dashed)";
+  el.textContent = txt;
+}
+
+function routeRenderList() {
+  const list = document.getElementById("route-points");
+  list.textContent = "";
+  const editing = routeState.mode === "edit";
+  routeState.points.forEach(function (p, i) {
+    const li = document.createElement("li");
+    const num = document.createElement("span"); num.className = "route-num"; num.textContent = String(i + 1);
+    const where = document.createElement("span"); where.className = "route-where"; where.textContent = "z" + p.z + " x" + p.x + " y" + p.y;
+    li.appendChild(num); li.appendChild(where);
+    if (editing) {
+      const inp = document.createElement("input");
+      inp.type = "text"; inp.className = "route-note"; inp.maxLength = ROUTE_NOTE_MAX; inp.placeholder = "Note (optional)"; inp.value = p.note;
+      inp.addEventListener("input", function () { p.note = inp.value; routeUpdateLink(); drawMap(); });
+      li.appendChild(inp);
+    } else {
+      const note = document.createElement("span"); note.className = "route-note"; note.textContent = p.note || "";
+      li.appendChild(note);
+    }
+    const go = document.createElement("button"); go.className = "map-btn"; go.type = "button"; go.textContent = "Show";
+    go.addEventListener("click", function () { setMapFloor(p.z); mapFitToPoint(p.x, p.y); drawMap(); });
+    li.appendChild(go);
+    if (editing) {
+      const del = document.createElement("button"); del.className = "map-btn"; del.type = "button"; del.textContent = "✕"; del.title = "Remove point";
+      del.addEventListener("click", function () { routeState.points.splice(i, 1); routeChanged(); });
+      li.appendChild(del);
+    }
+    list.appendChild(li);
+  });
+}
+
+function routeUpdateLink() {
+  const box = document.getElementById("route-link");
+  box.value = routeState.points.length ? routeLink() : "";
+}
+function routeChanged() {
+  routeRenderList();
+  routeUpdateLink();
+  routeRecompute();
+}
+
+function routeShowPanel() {
+  const panel = document.getElementById("route-panel");
+  panel.style.display = routeState.mode === "off" ? "none" : "";
+  panel.classList.toggle("edit", routeState.mode === "edit");
+  panel.classList.toggle("view", routeState.mode === "view");
+  document.getElementById("route-title").value = routeState.title;
+  const tv = document.getElementById("route-title-view");
+  tv.textContent = routeState.title || "Shared route";
+  document.getElementById("route-loop").checked = routeState.loop;
+  document.getElementById("route-edit").style.display = (routeState.mode === "view" && location.hash.toLowerCase().includes("stairs-beta")) ? "" : "none";
+  document.getElementById("map-route-btn").classList.toggle("active", routeState.mode === "edit");
+  routeRenderList();
+  routeUpdateLink();
+  routeRenderStatus();
+}
+
+function routeFitFloor(z) {
+  const pts = routeState.points.filter(function (p) { return p.z === z; });
+  if (!pts.length || !mapCanvas) return;
+  let xMin = Infinity, xMax = -Infinity, yMin = Infinity, yMax = -Infinity;
+  pts.forEach(function (p) { xMin = Math.min(xMin, p.x); xMax = Math.max(xMax, p.x); yMin = Math.min(yMin, p.y); yMax = Math.max(yMax, p.y); });
+  const w = mapCanvas.width, h = mapCanvas.height;
+  const pad = Math.max(30, 0.12 * Math.max(xMax - xMin, yMax - yMin)); // room for note labels at the edges
+  const scale = Math.min(4, w / (xMax - xMin + pad * 2), h / (yMax - yMin + pad * 2));
+  mapView.scale = scale;
+  mapView.offX = w / 2 - ((xMin + xMax) / 2) * scale;
+  mapView.offY = h / 2 - ((yMin + yMax) / 2) * scale;
+}
+
+function routeStartEdit() {
+  if (pathState.active) pathToggle();
+  if (routeState.mode === "view") { routeState.fromLink = false; }
+  routeState.mode = "edit";
+  routeShowPanel();
+  routeRecompute();
+  pathPrepare();
+}
+function routeClose() {
+  routeState.mode = "off";
+  routeState.gen++;
+  routeState.legs = [];
+  if (routeState.fromLink && /route=/.test(location.hash)) {
+    history.replaceState(null, "", location.pathname + location.search + (location.hash.toLowerCase().includes("stairs-beta") ? "#stairs-beta" : ""));
+  }
+  routeState.fromLink = false;
+  routeShowPanel();
+  drawMap();
+}
+function routeToggleEdit() {
+  if (routeState.mode === "edit") routeClose(); else routeStartEdit();
+}
+
+function routeAddPoint(sx, sy) {
+  if (routeState.points.length >= ROUTE_MAX_POINTS) return;
+  const [wx, wy] = screenToWorld(sx, sy);
+  routeState.points.push({ z: state.mapFloor, x: Math.floor(wx), y: Math.floor(wy), note: "" });
+  routeChanged();
+}
+
+// Opens a route from the URL hash (a shared link), if there is one.
+function routeLoadFromHash() {
+  const m = /(?:^#|&)route=([A-Za-z0-9_-]+)/.exec(location.hash);
+  if (!m) return false;
+  const r = routeDecode(m[1]);
+  if (!r) return false;
+  if (pathState.active) pathToggle();
+  routeState.title = r.title; routeState.loop = r.loop; routeState.points = r.points;
+  routeState.mode = "view"; routeState.fromLink = true;
+  state.tab = "map";
+  refreshTabChrome();
+  resizeMapCanvas();
+  buildMapLegend();
+  setMapFloor(r.points[0].z);
+  routeFitFloor(r.points[0].z);
+  routeShowPanel();
+  routeRecompute();
+  document.getElementById("map-wrap").scrollIntoView({ block: "start" });
+  return true;
+}
+
+function drawRouteOverlay() {
+  const z = state.mapFloor, pairs = routePairs();
+  mapCtx.save();
+  mapCtx.lineJoin = "round"; mapCtx.lineCap = "round";
+  for (let i = 0; i < pairs.length; i++) {
+    const a = pairs[i][0], b = pairs[i][1], leg = routeState.legs[i];
+    if (leg && leg.ok) {
+      for (let pass = 0; pass < 2; pass++) {
+        mapCtx.beginPath();
+        for (let k = 1; k < leg.nodes.length; k++) {
+          const u = leg.nodes[k - 1], v = leg.nodes[k];
+          if (u.z !== z || v.z !== z) continue;
+          const [ux, uy] = worldToScreen(u.x + 0.5, u.y + 0.5), [vx, vy] = worldToScreen(v.x + 0.5, v.y + 0.5);
+          mapCtx.moveTo(ux, uy); mapCtx.lineTo(vx, vy);
+        }
+        mapCtx.lineWidth = pass === 0 ? 6 : 3;
+        mapCtx.strokeStyle = pass === 0 ? "rgba(0,0,0,0.6)" : "#ff8c00";
+        mapCtx.stroke();
+      }
+      mapCtx.font = "700 11px 'Segoe UI', sans-serif"; mapCtx.textAlign = "center"; mapCtx.textBaseline = "middle";
+      for (let k = 1; k < leg.nodes.length; k++) {
+        const u = leg.nodes[k - 1], v = leg.nodes[k];
+        if (u.z === v.z || u.z !== z) continue;
+        const [sx, sy] = worldToScreen(u.x + 0.5, u.y + 0.5);
+        mapCtx.beginPath(); mapCtx.arc(sx, sy, 7, 0, Math.PI * 2);
+        mapCtx.fillStyle = "#ffd600"; mapCtx.fill(); mapCtx.lineWidth = 2; mapCtx.strokeStyle = "#000"; mapCtx.stroke();
+        mapCtx.fillStyle = "#000"; mapCtx.fillText(v.z < u.z ? "↑" : "↓", sx, sy + 0.5);
+      }
+    } else if (a.z === z && b.z === z) {
+      const [ax, ay] = worldToScreen(a.x + 0.5, a.y + 0.5), [bx, by] = worldToScreen(b.x + 0.5, b.y + 0.5);
+      mapCtx.setLineDash([7, 6]);
+      mapCtx.lineWidth = 3;
+      mapCtx.strokeStyle = leg ? "#ef4444" : "rgba(255,140,0,0.55)";
+      mapCtx.beginPath(); mapCtx.moveTo(ax, ay); mapCtx.lineTo(bx, by); mapCtx.stroke();
+      mapCtx.setLineDash([]);
+    }
+  }
+  routeState.points.forEach(function (p, i) {
+    if (p.z !== z) return;
+    const [sx, sy] = worldToScreen(p.x + 0.5, p.y + 0.5);
+    mapCtx.beginPath(); mapCtx.arc(sx, sy, 10, 0, Math.PI * 2);
+    mapCtx.fillStyle = "#ff8c00"; mapCtx.fill(); mapCtx.lineWidth = 2; mapCtx.strokeStyle = "#000"; mapCtx.stroke();
+    mapCtx.font = "700 11px 'Segoe UI', sans-serif"; mapCtx.textAlign = "center"; mapCtx.textBaseline = "middle";
+    mapCtx.fillStyle = "#111"; mapCtx.fillText(String(i + 1), sx, sy + 0.5);
+    if (p.note) {
+      const label = p.note.length > 40 ? p.note.slice(0, 39) + "…" : p.note;
+      mapCtx.font = "600 12px 'Segoe UI', sans-serif"; mapCtx.textAlign = "left";
+      const tw = mapCtx.measureText(label).width;
+      mapCtx.fillStyle = "rgba(0,0,0,0.75)"; mapCtx.fillRect(sx + 13, sy - 10, tw + 10, 19);
+      mapCtx.fillStyle = "#fff"; mapCtx.fillText(label, sx + 18, sy);
+    }
+  });
   mapCtx.restore();
 }
 
@@ -2772,9 +3114,10 @@ function initMap() {
     }
   }, { passive: false });
   mapCanvas.addEventListener("touchend", function (e) {
-    if (pathState.active && !touchState.pinching && !touchState.moved && e.changedTouches.length === 1) {
+    if ((routeState.mode === "edit" || pathState.active) && !touchState.pinching && !touchState.moved && e.changedTouches.length === 1) {
       mapTooltip.style.display = "none";
-      pathHandleClick(touchState.tapX, touchState.tapY);
+      if (routeState.mode === "edit") routeAddPoint(touchState.tapX, touchState.tapY);
+      else pathHandleClick(touchState.tapX, touchState.tapY);
     } else if (!touchState.pinching && !touchState.moved && e.changedTouches.length === 1) {
       // A tap that didn't drag: show the same info a mouse hover would.
       const hit = mapPointAt(touchState.tapX, touchState.tapY);
@@ -2823,6 +3166,7 @@ function initMap() {
     const rect = mapCanvas.getBoundingClientRect();
     const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
     if (sx < 0 || sy < 0 || sx > rect.width || sy > rect.height) return;
+    if (routeState.mode === "edit") { routeAddPoint(sx, sy); return; }
     if (pathState.active) { pathHandleClick(sx, sy); return; }
     const connHit = mapConnectionAt(sx, sy);
     if (connHit) jumpFloorConnection(connHit);
@@ -2885,8 +3229,25 @@ function initMap() {
     document.getElementById("map-connections-toggle-wrap").style.display = "";
     document.getElementById("map-label-unknowns-btn").style.display = "";
     document.getElementById("map-path-btn").style.display = "";
+    document.getElementById("map-route-btn").style.display = "";
   }
   document.getElementById("map-path-btn").addEventListener("click", pathToggle);
+  document.getElementById("map-route-btn").addEventListener("click", routeToggleEdit);
+  document.getElementById("route-title").addEventListener("input", function (e) { routeState.title = e.target.value.slice(0, ROUTE_TITLE_MAX); routeUpdateLink(); });
+  document.getElementById("route-loop").addEventListener("change", function (e) { routeState.loop = e.target.checked; routeChanged(); });
+  document.getElementById("route-undo").addEventListener("click", function () { routeState.points.pop(); routeChanged(); });
+  document.getElementById("route-clear").addEventListener("click", function () { routeState.points = []; routeChanged(); });
+  document.getElementById("route-close").addEventListener("click", routeClose);
+  document.getElementById("route-edit").addEventListener("click", routeStartEdit);
+  document.getElementById("route-copy").addEventListener("click", function () {
+    const box = document.getElementById("route-link"), btn = this;
+    if (!box.value) return;
+    const done = function () { btn.textContent = "Copied!"; setTimeout(function () { btn.textContent = "Copy share link"; }, 1500); };
+    const fallback = function () { box.focus(); box.select(); try { document.execCommand("copy"); done(); } catch (err) { /* leave it selected to copy by hand */ } };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(box.value).then(done, fallback);
+    else fallback();
+  });
+  window.addEventListener("hashchange", function () { if (/route=/.test(location.hash)) routeLoadFromHash(); });
   document.getElementById("map-path-floors").addEventListener("click", function (e) {
     const chip = e.target.closest("[data-path-seg]");
     if (chip) pathShowSegment(Number(chip.getAttribute("data-path-seg")));
@@ -2946,5 +3307,6 @@ loadMapTerrain();
 buildMapLegend();
 drawMap();
 render();
+routeLoadFromHash();
 })();
 </script>
