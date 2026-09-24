@@ -1053,7 +1053,14 @@ function renderRuneCalcOutput() {
   const totalSouls = casts * spell.souls;
 
   const passiveRate = (manaPerTick + ring.bonusPerTick) / tickSeconds; // mana/sec while sustained this way
-  const COOLDOWN_SECONDS = 2; // negligible next to mana-wait time unless fluids remove that wait entirely
+  // Casting (any rune/arrow spell) has its own 2s cooldown, same category as
+  // the fluid's 1s cooldown - you can never finish faster than casts x 2s
+  // regardless of how much mana is available, fluids or not. With the
+  // current recipe/regen numbers this floor is only ever the binding one
+  // for the no-fluids path (natural regen is always far slower than 2s per
+  // cast), but it's applied unconditionally rather than assumed.
+  const COOLDOWN_SECONDS = 2;
+  const castFloorSeconds = casts * COOLDOWN_SECONDS;
 
   let timeSeconds, fluidsUsed = 0, fluidCost = 0, ringsUsed = 0, ringCost = 0;
   if (useFluids) {
@@ -1065,14 +1072,14 @@ function renderRuneCalcOutput() {
     // ceiling on fluid count (can't buy a fractional fluid) can only push
     // the time up slightly further, so it's re-maxed against that.
     const fluidRate = RUNE_FLUID.avgMana / RUNE_FLUID.cooldownSeconds;
-    timeSeconds = Math.max(casts * COOLDOWN_SECONDS, totalMana / (passiveRate + fluidRate));
+    timeSeconds = Math.max(castFloorSeconds, totalMana / (passiveRate + fluidRate));
     const manaFromPassive = passiveRate * timeSeconds;
     const manaToBuy = Math.max(0, totalMana - manaFromPassive);
     fluidsUsed = Math.ceil(manaToBuy / RUNE_FLUID.avgMana);
     timeSeconds = Math.max(timeSeconds, fluidsUsed * RUNE_FLUID.cooldownSeconds);
     fluidCost = fluidsUsed * RUNE_FLUID.price;
   } else {
-    timeSeconds = passiveRate > 0 ? totalMana / passiveRate : Infinity;
+    timeSeconds = passiveRate > 0 ? Math.max(castFloorSeconds, totalMana / passiveRate) : Infinity;
   }
 
   if (ring.key !== "none" && isFinite(timeSeconds) && timeSeconds > 0) {
