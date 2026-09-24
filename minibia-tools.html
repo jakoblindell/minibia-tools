@@ -282,30 +282,26 @@
 
   footer { margin-top: 44px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 12.5px; }
 
-  /* Hunt Analyzer - unlisted, opened via #hunt-analyzer or Alt+H */
-  #hunt-overlay {
-    display: none; position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 50;
-    align-items: flex-start; justify-content: center; padding: 5vh 16px; overflow-y: auto;
-  }
-  #hunt-overlay.active { display: flex; }
-  .hunt-panel {
-    background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow);
-    padding: 20px 22px; width: 100%; max-width: 900px; display: flex; flex-direction: column; gap: 14px;
-  }
-  .hunt-panel-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
-  .hunt-panel-head h2 { font-size: 18px; margin: 0; }
-  .hunt-close { font: inherit; font-size: 13px; font-weight: 600; background: var(--surface-2); color: var(--text-primary); border: 1px solid var(--border); border-radius: 6px; padding: 5px 11px; cursor: pointer; }
-  .hunt-close:hover { border-color: var(--accent); }
+  /* Hunt Analyzer tab */
+  #hunt-wrap { display: none; }
+  #hunt-wrap.active { display: block; }
   .hunt-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
   @media (max-width: 620px) { .hunt-inputs { grid-template-columns: 1fr; } }
   .hunt-inputs textarea { font: inherit; font-size: 12.5px; font-family: 'SF Mono', Consolas, monospace; width: 100%; min-height: 220px; resize: vertical; background: var(--surface-2); color: var(--text-primary); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; }
-  .hunt-actions { display: flex; align-items: center; gap: 10px; }
+  .hunt-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
   .hunt-verdict { border-radius: 8px; padding: 12px 16px; font-size: 13.5px; border: 1px solid var(--border); }
   .hunt-verdict.good { color: var(--good); border-color: color-mix(in srgb, var(--good) 40%, var(--border)); background: color-mix(in srgb, var(--good) 10%, transparent); }
   .hunt-verdict.bad { color: var(--bad); border-color: color-mix(in srgb, var(--bad) 40%, var(--border)); background: color-mix(in srgb, var(--bad) 10%, transparent); }
   .hunt-verdict b { font-family: 'SF Mono', Consolas, monospace; }
   .hunt-unmatched { color: var(--text-muted); font-size: 12px; }
-  @media (max-width: 620px) { .hunt-panel .two-col { grid-template-columns: 1fr; } }
+  .hunt-history-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 12.5px; }
+  .hunt-history-row:last-child { border-bottom: none; }
+  .hunt-history-main { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .hunt-history-date { color: var(--text-muted); }
+  .hunt-history-diff { font-weight: 700; }
+  .hunt-history-diff.good { color: var(--good); }
+  .hunt-history-diff.bad { color: var(--bad); }
+  .hunt-history-actions { display: flex; gap: 6px; flex-shrink: 0; }
 
   @media (max-width: 900px) { .stats { grid-template-columns: repeat(4, 1fr); } }
   @media (max-width: 560px) {
@@ -405,6 +401,13 @@
       </div>
 
       <div class="rc-section">
+        <label class="rc-inline-field" style="cursor:pointer;">
+          <input type="checkbox" id="rc-for-sale" checked> Making these to sell (show sell price &amp; profit)
+        </label>
+        <div class="rc-hint">Off if you're making these just to use while hunting - shows cost only.</div>
+      </div>
+
+      <div class="rc-section" id="rc-price-section">
         <div class="row-label" id="rc-price-label">Sell price for 100 charges</div>
         <div class="rc-inline-field">
           <span>Low</span><input type="number" id="rc-price-low" class="wide" min="0">
@@ -421,28 +424,30 @@
     </div>
   </div>
 
+  <div id="hunt-wrap">
+    <div class="rc-card">
+      <div>Paste a hunting session's Kills and Loot text below (as copied from the client's hunt analyzer window), then Analyze.</div>
+      <div class="hunt-inputs">
+        <div><div class="row-label">Kills</div><textarea id="hunt-kills-input" placeholder="Kills:&#10;Ghoul&#10;414&#10;Crypt Shambler&#10;279&#10;..."></textarea></div>
+        <div><div class="row-label">Loot</div><textarea id="hunt-loot-input" placeholder="gold coin&#10;28,862 (28.9k)&#10;bag&#10;1,004&#10;..."></textarea></div>
+      </div>
+      <div class="hunt-actions">
+        <button class="map-btn" id="hunt-run" type="button">Analyze</button>
+        <button class="map-btn" id="hunt-clear" type="button">Clear</button>
+        <button class="map-btn" id="hunt-save" type="button">Save this hunt</button>
+      </div>
+      <div id="hunt-output"></div>
+
+      <div class="rc-section">
+        <div class="row-label">Saved hunts (stored in this browser only, not shared or synced)</div>
+        <div id="hunt-history-list"></div>
+        <button class="map-btn" id="hunt-history-clear" type="button" style="align-self:flex-start;">Clear all saved hunts</button>
+      </div>
+    </div>
+  </div>
+
   <footer>Static snapshot from <code>library.json.txt</code> and <code>spawns.json.txt</code>. Loot/drop probabilities, sell prices and spawn points are the design database's values, not verified against the live server.</footer>
 
-</div>
-
-<!-- Hunt Analyzer: unlisted, not linked from the tab bar. Open with #hunt-analyzer or Alt+H. -->
-<div id="hunt-overlay">
-  <div class="hunt-panel">
-    <div class="hunt-panel-head">
-      <h2>Hunt Analyzer <span class="beta-tag">hidden</span></h2>
-      <button class="hunt-close" id="hunt-close" type="button">Close</button>
-    </div>
-    <div>Paste a hunting session's Kills and Loot text below (as copied from the client's hunt analyzer window), then Analyze.</div>
-    <div class="hunt-inputs">
-      <div><div class="row-label">Kills</div><textarea id="hunt-kills-input" placeholder="Kills:&#10;Ghoul&#10;414&#10;Crypt Shambler&#10;279&#10;..."></textarea></div>
-      <div><div class="row-label">Loot</div><textarea id="hunt-loot-input" placeholder="gold coin&#10;28,862 (28.9k)&#10;bag&#10;1,004&#10;..."></textarea></div>
-    </div>
-    <div class="hunt-actions">
-      <button class="map-btn" id="hunt-run" type="button">Analyze</button>
-      <button class="map-btn" id="hunt-clear" type="button">Clear</button>
-    </div>
-    <div id="hunt-output"></div>
-  </div>
 </div>
 
 <script>
@@ -728,19 +733,12 @@ function goToNpcOnMap(name) {
   });
 })();
 
-// --- Hunt Analyzer: unlisted feature, opened via #hunt-analyzer or Alt+H ---
+// --- Hunt Analyzer tab ---
 (function () {
-  const overlay = document.getElementById("hunt-overlay");
-  if (!overlay) return;
   const killsInput = document.getElementById("hunt-kills-input");
   const lootInput = document.getElementById("hunt-loot-input");
   const output = document.getElementById("hunt-output");
-
-  function openHuntAnalyzer() { overlay.classList.add("active"); killsInput.focus(); }
-  function closeHuntAnalyzer() {
-    overlay.classList.remove("active");
-    if (location.hash.toLowerCase() === "#hunt-analyzer") history.replaceState(null, "", location.pathname + location.search);
-  }
+  const historyList = document.getElementById("hunt-history-list");
 
   document.getElementById("hunt-run").addEventListener("click", function () {
     output.innerHTML = renderHuntAnalysis({
@@ -754,17 +752,71 @@ function goToNpcOnMap(name) {
     output.innerHTML = "";
     killsInput.focus();
   });
-  document.getElementById("hunt-close").addEventListener("click", closeHuntAnalyzer);
-  overlay.addEventListener("click", function (e) { if (e.target === overlay) closeHuntAnalyzer(); });
-  document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape" && overlay.classList.contains("active")) { closeHuntAnalyzer(); return; }
-    if (e.altKey && (e.key === "h" || e.key === "H")) { e.preventDefault(); openHuntAnalyzer(); }
+  document.getElementById("hunt-save").addEventListener("click", function () {
+    const parsed = { kills: parseKillsText(killsInput.value), loot: parseLootText(lootInput.value) };
+    if (!parsed.kills.length && !parsed.loot.length) return;
+    const a = analyzeHunt(parsed);
+    huntHistoryAdd({
+      id: Date.now(), savedAt: new Date().toISOString(),
+      killsText: killsInput.value, lootText: lootInput.value,
+      totalKills: a.totalKills, actualTotal: a.actualTotal, expectedTotal: a.expectedTotal, diffPct: a.diffPct
+    });
+    renderHuntHistory();
+    refreshHuntTabCount();
+    renderStatTabs();
   });
-  window.addEventListener("hashchange", function () {
-    if (location.hash.toLowerCase() === "#hunt-analyzer") openHuntAnalyzer();
+  document.getElementById("hunt-history-clear").addEventListener("click", function () {
+    huntHistoryClear();
+    renderHuntHistory();
+    refreshHuntTabCount();
+    renderStatTabs();
   });
-  if (location.hash.toLowerCase() === "#hunt-analyzer") openHuntAnalyzer();
+  historyList.addEventListener("click", function (e) {
+    const loadBtn = e.target.closest("[data-hunt-load]");
+    if (loadBtn) {
+      const entry = huntHistoryLoad().find(function (h) { return h.id === Number(loadBtn.getAttribute("data-hunt-load")); });
+      if (entry) {
+        killsInput.value = entry.killsText;
+        lootInput.value = entry.lootText;
+        output.innerHTML = renderHuntAnalysis({ kills: parseKillsText(entry.killsText), loot: parseLootText(entry.lootText) });
+        killsInput.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+      return;
+    }
+    const delBtn = e.target.closest("[data-hunt-del]");
+    if (delBtn) {
+      huntHistoryRemove(Number(delBtn.getAttribute("data-hunt-del")));
+      renderHuntHistory();
+      refreshHuntTabCount();
+      renderStatTabs();
+    }
+  });
 })();
+
+function renderHuntHistory() {
+  const wrap = document.getElementById("hunt-history-list");
+  if (!wrap) return;
+  const list = huntHistoryLoad();
+  if (!list.length) { wrap.innerHTML = '<div class="empty-state">No saved hunts yet - Analyze a hunt above, then "Save this hunt".</div>'; return; }
+  wrap.innerHTML = list.map(function (h) {
+    const diffCls = h.diffPct == null ? "" : (h.diffPct >= 0 ? " good" : " bad");
+    const diffText = h.diffPct == null ? "no expected value to compare" : ((h.diffPct >= 0 ? "+" : "") + h.diffPct.toFixed(1) + "% vs expected");
+    const dateStr = new Date(h.savedAt).toLocaleString();
+    return '<div class="hunt-history-row">' +
+        '<div class="hunt-history-main">' +
+          '<span class="hunt-history-date">' + esc(dateStr) + '</span>' +
+          '<span class="stat-chip">' + fmt(h.totalKills) + ' kills</span>' +
+          '<span class="stat-chip">actual ≈' + fmt(Math.round(h.actualTotal)) + 'gp</span>' +
+          '<span class="stat-chip">expected ≈' + fmt(Math.round(h.expectedTotal)) + 'gp</span>' +
+          '<span class="hunt-history-diff' + diffCls + '">' + diffText + '</span>' +
+        '</div>' +
+        '<div class="hunt-history-actions">' +
+          '<button class="map-btn" data-hunt-load="' + h.id + '" type="button">Load</button>' +
+          '<button class="map-btn" data-hunt-del="' + h.id + '" type="button">Delete</button>' +
+        '</div>' +
+      '</div>';
+  }).join("");
+}
 
 // Kills and loot each come from their own textarea, so there's no need to
 // guess where one list ends and the other begins - just strip a leading
@@ -1077,30 +1129,67 @@ function renderRuneCalcOutput() {
   }
 
   const totalCost = fluidCost + ringCost;
-  const sellLow = (priceLow / refStackSize) * targetCharges;
-  const sellHigh = (priceHigh / refStackSize) * targetCharges;
-
-  const profitLow = sellLow - totalCost;
-  const profitHigh = sellHigh - totalCost;
-  const hours = timeSeconds / 3600;
-  const perHourLow = hours > 0 ? profitLow / hours : (profitLow >= 0 ? Infinity : -Infinity);
-  const perHourHigh = hours > 0 ? profitHigh / hours : (profitHigh >= 0 ? Infinity : -Infinity);
-  const perHourStr = (!isFinite(perHourLow) || !isFinite(perHourHigh))
-    ? (perHourLow >= 0 ? "∞" : "-∞")
-    : rcRangeSigned(perHourLow, perHourHigh);
 
   const out = document.getElementById("rc-output");
-  out.innerHTML =
+  let html =
     rcTile("Casts needed", fmt(casts)) +
     rcTile("Total mana", fmt(totalMana)) +
     rcTile("Total souls", fmt(totalSouls)) +
     rcTile("Time needed", rcFmtTime(timeSeconds)) +
     rcTile("Mana fluids used", useFluids ? (fmt(fluidsUsed) + " (" + fmt(fluidCost) + "gp)") : "not used") +
     rcTile(ring.key !== "none" ? (ring.label + "s used") : "Ring used", ring.key !== "none" ? (fmt(ringsUsed) + " (" + fmt(ringCost) + "gp)") : "none") +
-    rcTile("Total cost", fmt(Math.round(totalCost)) + "gp") +
-    rcTile("Sell value", rcRangePlain(sellLow, sellHigh)) +
-    rcTile("Profit / loss", rcRangeSigned(profitLow, profitHigh), rcRangeCls(profitLow, profitHigh)) +
-    rcTile("Profit / hour", perHourStr, rcRangeCls(perHourLow, perHourHigh));
+    rcTile("Total cost", fmt(Math.round(totalCost)) + "gp");
+
+  const forSale = document.getElementById("rc-for-sale").checked;
+  if (forSale) {
+    const sellLow = (priceLow / refStackSize) * targetCharges;
+    const sellHigh = (priceHigh / refStackSize) * targetCharges;
+    const profitLow = sellLow - totalCost;
+    const profitHigh = sellHigh - totalCost;
+    const hours = timeSeconds / 3600;
+    const perHourLow = hours > 0 ? profitLow / hours : (profitLow >= 0 ? Infinity : -Infinity);
+    const perHourHigh = hours > 0 ? profitHigh / hours : (profitHigh >= 0 ? Infinity : -Infinity);
+    const perHourStr = (!isFinite(perHourLow) || !isFinite(perHourHigh))
+      ? (perHourLow >= 0 ? "∞" : "-∞")
+      : rcRangeSigned(perHourLow, perHourHigh);
+    html +=
+      rcTile("Sell value", rcRangePlain(sellLow, sellHigh)) +
+      rcTile("Profit / loss", rcRangeSigned(profitLow, profitHigh), rcRangeCls(profitLow, profitHigh)) +
+      rcTile("Profit / hour", perHourStr, rcRangeCls(perHourLow, perHourHigh));
+  }
+  out.innerHTML = html;
+}
+
+// Saved hunts live only in this browser's localStorage - no server, no
+// account, nothing shared between devices. Every access is wrapped so a
+// blocked/full/private-mode storage degrades to "saving is unavailable"
+// rather than breaking the page.
+const HUNT_HISTORY_KEY = "minibia-hunt-history";
+const HUNT_HISTORY_MAX = 50;
+function huntHistoryLoad() {
+  try {
+    const arr = JSON.parse(localStorage.getItem(HUNT_HISTORY_KEY) || "[]");
+    return Array.isArray(arr) ? arr : [];
+  } catch (e) { return []; }
+}
+function huntHistorySave(list) {
+  try { localStorage.setItem(HUNT_HISTORY_KEY, JSON.stringify(list)); return true; } catch (e) { return false; }
+}
+function huntHistoryAdd(entry) {
+  const list = huntHistoryLoad();
+  list.unshift(entry);
+  if (list.length > HUNT_HISTORY_MAX) list.length = HUNT_HISTORY_MAX;
+  return huntHistorySave(list);
+}
+function huntHistoryRemove(id) {
+  return huntHistorySave(huntHistoryLoad().filter(function (h) { return h.id !== id; }));
+}
+function huntHistoryClear() {
+  try { localStorage.removeItem(HUNT_HISTORY_KEY); return true; } catch (e) { return false; }
+}
+function refreshHuntTabCount() {
+  const t = TABS.find(function (x) { return x.key === "hunt"; });
+  if (t) t.count = huntHistoryLoad().length;
 }
 
 const TABS = [
@@ -1111,7 +1200,8 @@ const TABS = [
   { key: "runes", label: "Runes", count: DATA.summary.runes },
   { key: "achievements", label: "Achievements", count: DATA.summary.achievements },
   { key: "map", label: "Spawn Map", count: DATA.spawnMap.monsters.length },
-  { key: "runecalc", label: "Rune Making", count: RUNE_RECIPES.length }
+  { key: "runecalc", label: "Rune Making", count: RUNE_RECIPES.length },
+  { key: "hunt", label: "Hunt Analyzer", count: huntHistoryLoad().length }
 ];
 
 const SORTS = {
@@ -1193,6 +1283,8 @@ function renderStatTabs() {
         drawMap();
       } else if (t.key === "runecalc") {
         renderRuneCalcOutput();
+      } else if (t.key === "hunt") {
+        renderHuntHistory();
       } else {
         render();
       }
@@ -1205,14 +1297,16 @@ function renderControlsVisibility() {
   const controlsRow = document.getElementById("controls-row");
   const mapWrap = document.getElementById("map-wrap");
   const runeWrap = document.getElementById("rune-wrap");
+  const huntWrap = document.getElementById("hunt-wrap");
   const resultsEl = document.getElementById("results");
   const pag = document.getElementById("pagination");
   const countEl = document.getElementById("result-count");
 
   mapWrap.classList.toggle("active", state.tab === "map");
   runeWrap.classList.toggle("active", state.tab === "runecalc");
+  huntWrap.classList.toggle("active", state.tab === "hunt");
 
-  if (state.tab === "runecalc") {
+  if (state.tab === "runecalc" || state.tab === "hunt") {
     controlsRow.style.display = "none";
     resultsEl.style.display = "none";
     pag.style.display = "none";
@@ -2046,7 +2140,7 @@ document.getElementById("search").addEventListener("input", function (e) {
   state.query = e.target.value;
   state.page = 1;
   if (state.tab === "map") drawMap();
-  else if (state.tab !== "runecalc") render();
+  else if (state.tab !== "runecalc" && state.tab !== "hunt") render();
 });
 document.getElementById("sort").addEventListener("change", function (e) { state.sort = e.target.value; state.page = 1; render(); });
 
@@ -2062,7 +2156,11 @@ rcSetSpell(state.rcSpell);
 rcSetQtyMode(state.rcQtyMode);
 renderRuneCalcChips();
 document.getElementById("rune-wrap").addEventListener("input", renderRuneCalcOutput);
+document.getElementById("rc-for-sale").addEventListener("change", function (e) {
+  document.getElementById("rc-price-section").style.display = e.target.checked ? "" : "none";
+});
 renderRuneCalcOutput();
+renderHuntHistory();
 
 renderStatTabs();
 renderSortOptions();
