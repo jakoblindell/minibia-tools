@@ -27,11 +27,20 @@ two off from where it starts) on the floor above and below:
      also draws in yellow. Dropped, not queued for labeling.
   4. Unknown - both adjacent floors have walkable ground nearby but no
      marker on either, so the terrain can't tell which way it goes. About
-     1% of markers land here (another ~6% are dead ends). They're written
+     0.7% of markers land here (another ~6% are dead ends). They're written
      to a separate "floorConnectionsUnknown" list instead of guessed, for a
      hidden map tool that lets a human step through them one at a time and
      label each up/down/unknown, then export a JSON of those answers to
      fold back into this script as a manual override (load_manual_labels).
+
+Hidden stair tops: some stairs/holes going down are drawn light grey
+(153,153,153) on the floor they start from, not yellow - only the arrival
+tile below is yellow. So a light grey tile directly above a yellow marker
+(same x/y, one floor up) with no yellow near it on its own floor is taken
+as a confirmed way down, written into floorConnections like any marker, and
+counts as the paired marker when classifying the yellow below it (which then
+confirms "up"). Light grey is also ordinary stone floor, so only the tile
+exactly above a yellow qualifies, never light grey in general.
 
 Validated against this snapshot: of ~34,700 yellow markers, 93% resolve to
 a confirmed or guessed direction with this method (radius 2, see RADIUS).
@@ -79,6 +88,7 @@ def idx_to_rgb(idx):
 
 
 BLOCKING_RGB = {idx_to_rgb(i) for i in BLOCKING_IDX}
+STAIR_TOP_RGB = idx_to_rgb(129)  # light grey - see "Hidden stair tops" above
 DOOR_WALL_RGB = {idx_to_rgb(86), idx_to_rgb(186)}  # grey stone wall, red wall
 
 
@@ -153,6 +163,27 @@ def yellow_points(arr, m):
     ys, xs = np.where(is_yellow & opaque)
     ox, oy = m["worldOriginX"], m["worldOriginY"]
     return set(zip((xs + ox).tolist(), (ys + oy).tolist()))
+
+
+def hidden_stair_tops(floors, yellow_sets):
+    """Light grey tiles sitting exactly on top of a yellow marker on the floor
+    below, with no yellow of their own nearby - {z: set((x, y))}."""
+    tops = {}
+    for z, (arr, m) in floors.items():
+        below = yellow_sets.get(z + 1)
+        if not below:
+            continue
+        ox, oy = m["worldOriginX"], m["worldOriginY"]
+        grey = (arr[:, :, 3] > 0) & (arr[:, :, 0] == STAIR_TOP_RGB[0]) & \
+               (arr[:, :, 1] == STAIR_TOP_RGB[1]) & (arr[:, :, 2] == STAIR_TOP_RGB[2])
+        ys, xs = np.where(grey)
+        pts = set()
+        for wx, wy in zip((xs + ox).tolist(), (ys + oy).tolist()):
+            if (wx, wy) in below and not has_yellow_nearby(yellow_sets, z, wx, wy, RADIUS):
+                pts.add((wx, wy))
+        if pts:
+            tops[z] = pts
+    return tops
 
 
 def has_yellow_nearby(yellow_sets, z, wx, wy, radius):
@@ -244,18 +275,23 @@ def main():
         raise SystemExit("no data/derived/minimap-z*.png found - run gen-minimap.py first")
 
     yellow_sets = {z: yellow_points(arr, m) for z, (arr, m) in floors.items()}
+    stair_tops = hidden_stair_tops(floors, yellow_sets)
+    # Stair tops count as markers when classifying the yellows around them.
+    marker_sets = {z: yellow_sets.get(z, set()) | stair_tops.get(z, set())
+                   for z in set(yellow_sets) | set(stair_tops)}
     manual_labels = load_manual_labels()
 
     connections = {}
     unknowns = {}
     n_total = n_confirmed = n_guessed = n_manual = n_dead = n_unknown = 0
-    for z, pts in yellow_sets.items():
+    for z in sorted(set(yellow_sets) | set(stair_tops)):
+        pts = yellow_sets.get(z, set())
         rows = []
         unk_rows = []
         for (wx, wy) in pts:
             n_total += 1
             is_manual = (z, wx, wy) in manual_labels
-            flags = classify(floors, yellow_sets, z, wx, wy, manual_labels)
+            flags = classify(floors, marker_sets, z, wx, wy, manual_labels)
             if flags == DEAD_END:
                 n_dead += 1
                 continue
@@ -270,6 +306,7 @@ def main():
             else:
                 n_confirmed += 1
             rows.append([wx, wy, flags])
+        rows.extend([wx, wy, DOWN] for (wx, wy) in sorted(stair_tops.get(z, ())))
         if rows:
             connections[str(z)] = rows
         if unk_rows:
@@ -291,11 +328,13 @@ def main():
     doors = {z: v for z, v in doors.items() if v}
     with open(os.path.join(DERIVED, "door-candidates.json"), "w", encoding="utf-8") as f:
         json.dump(doors, f, separators=(",", ":"))
+    n_tops = sum(len(v) for v in stair_tops.values())
     n_doors = sum(len(v) // 3 for v in doors.values())
 
     print("floor connections: %d yellow markers found, %d confirmed, %d guessed, %d manually labeled, "
           "%d dead ends (dropped), %d still unresolved"
           % (n_total, n_confirmed, n_guessed, n_manual, n_dead, n_unknown))
+    print("hidden stair tops: %d light grey tiles above a yellow marker, added as confirmed 'down'" % n_tops)
     print("door candidates: %d (written to door-candidates.json)" % n_doors)
 
 
