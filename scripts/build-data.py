@@ -51,8 +51,10 @@ def build_compendium(lib, spawns, minimap_meta):
     items = lib["items"]
 
     # item name -> best price any NPC pays for it (from library sellTo). Plus the
-    # one hardcoded case the source uses: gold coin is worth 1 each.
-    sell_price = {"gold coin": 1}
+    # hardcoded cases the source doesn't list a sellTo for: the currency coins
+    # themselves, valued by their fixed gold-coin exchange rate (1 platinum =
+    # 100 gold, 1 crystal = 100 platinum = 10,000 gold).
+    sell_price = {"gold coin": 1, "platinum coin": 100, "crystal coin": 10000}
     for it in items:
         st = it.get("sellTo") or []
         if st:
