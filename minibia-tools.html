@@ -281,15 +281,41 @@
   .route-title-input, .route-link { font: inherit; font-size: 13px; width: 100%; background: var(--surface-2); color: var(--text-primary); border: 1px solid var(--border); border-radius: 6px; padding: 6px 9px; }
   .route-link { font-family: 'SF Mono', Consolas, monospace; font-size: 11.5px; color: var(--text-secondary); }
   .route-status { font-size: 12.5px; color: var(--text-secondary); }
-  .route-points { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; max-height: 260px; overflow-y: auto; }
+  .route-points { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; max-height: 420px; overflow-y: auto; }
   .route-points li { display: flex; align-items: center; gap: 8px; font-size: 12.5px; min-width: 0; }
   .route-points .route-num { flex: none; width: 22px; height: 22px; border-radius: 50%; background: #ff8c00; color: #111; font-weight: 700; font-size: 11.5px; display: inline-flex; align-items: center; justify-content: center; }
   .route-points .route-where { flex: none; color: var(--text-muted); font-family: 'SF Mono', Consolas, monospace; font-size: 11.5px; }
   .route-points .route-note { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
   .route-points input.route-note { font: inherit; font-size: 12.5px; background: var(--surface-2); color: var(--text-primary); border: 1px solid var(--border); border-radius: 6px; padding: 3px 7px; }
   .route-points .map-btn { padding: 3px 8px; font-size: 12px; flex: none; }
+  .route-points li { flex-direction: column; align-items: stretch; }
+  .route-points li.disabled .route-row { opacity: .5; }
+  .route-row { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .route-points select.route-type { flex: none; max-width: 130px; font: inherit; font-size: 12px; background: var(--surface-2); color: var(--text-primary); border: 1px solid var(--border); border-radius: 6px; padding: 2px 4px; }
+  .route-type-view { flex: none; font-size: 11.5px; font-weight: 600; color: var(--accent); }
+  .route-points .map-btn.active { border-color: var(--accent); color: var(--accent); background: var(--surface-2); }
+  .route-bot-settings { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 6px 10px; margin: 4px 0 6px 30px; padding: 8px 10px; border-left: 2px solid var(--border); }
+  .rb-field { display: flex; flex-direction: column; gap: 2px; font-size: 11.5px; color: var(--text-secondary); min-width: 0; }
+  .rb-field input[type=text], .rb-field input[type=number], .rb-field select, .rb-field textarea, .rb-json textarea, .route-bot-import textarea {
+    font: inherit; font-size: 12px; width: 100%; background: var(--surface-2); color: var(--text-primary); border: 1px solid var(--border); border-radius: 6px; padding: 3px 6px;
+  }
+  .rb-field input[type=checkbox] { align-self: flex-start; }
+  .rb-json { grid-column: 1 / -1; font-size: 11.5px; color: var(--text-secondary); }
+  .rb-json textarea, .route-bot-import textarea { font-family: 'SF Mono', Consolas, monospace; font-size: 11.5px; margin-top: 4px; }
+  .rb-err { color: var(--bad, #c0392b); font-size: 11.5px; }
+  .route-bot { border-top: 1px solid var(--border); padding-top: 8px; display: flex; flex-direction: column; gap: 6px; }
+  .route-bot-title { font-size: 12px; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; color: var(--text-muted); }
+  .route-bot-spacing { font-size: 12.5px; color: var(--text-secondary); display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .route-bot-spacing select { font: inherit; font-size: 12.5px; background: var(--surface-2); color: var(--text-primary); border: 1px solid var(--border); border-radius: 6px; padding: 3px 6px; }
+  .route-bot-msg { font-size: 12px; color: var(--text-secondary); white-space: pre-line; }
+  .route-bot-msg.has-errors { color: var(--bad, #c0392b); }
   .route-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-  @media (max-width: 560px) { .route-points .route-where { display: none; } }
+  @media (max-width: 560px) {
+    .route-points .route-where { display: none; }
+    .route-row { flex-wrap: wrap; }
+    .route-row .route-note { order: 10; flex: 1 1 100%; margin-left: 30px; }
+    .route-bot-settings { margin-left: 8px; }
+  }
   .map-floor { display: inline-flex; align-items: center; gap: 6px; }
   .map-floor-btn { padding: 4px 9px; line-height: 1; }
   .map-floor-label { color: var(--text-secondary); font-size: 12.5px; min-width: 132px; text-align: center; }
@@ -429,6 +455,31 @@
           <button class="map-btn" id="route-close" type="button">Close route</button>
         </div>
         <input type="text" class="route-link edit-only" id="route-link" readonly aria-label="Share link">
+        <div class="route-bot">
+          <div class="route-bot-title">Cave bot route</div>
+          <div class="route-actions">
+            <label class="route-bot-spacing edit-only">Walk waypoint every
+              <select id="route-bot-spacing">
+                <option value="0">none (floor changes only)</option>
+                <option value="5">5 tiles</option>
+                <option value="8">8 tiles</option>
+                <option value="10" selected>10 tiles</option>
+                <option value="15">15 tiles</option>
+                <option value="25">25 tiles</option>
+              </select>
+            </label>
+            <button class="map-btn edit-only" id="route-bot-fill" type="button" title="Add walk waypoints along the path and a waypoint at every stairs/hole/ladder it takes">Fill in bot waypoints</button>
+            <button class="map-btn edit-only" id="route-bot-unfill" type="button" style="display:none;">Undo fill-in</button>
+            <button class="map-btn" id="route-bot-copy" type="button">Copy bot JSON</button>
+            <button class="map-btn" id="route-bot-download" type="button">Download .json</button>
+            <button class="map-btn edit-only" id="route-bot-import-toggle" type="button">Import bot JSON</button>
+          </div>
+          <div class="route-bot-import edit-only" id="route-bot-import" hidden>
+            <textarea id="route-bot-import-text" rows="5" spellcheck="false" placeholder='Paste the route from the bot (Cave → Route → Copy), e.g. { "version": 1, "route": [ ... ] }'></textarea>
+            <div class="route-actions"><button class="map-btn" id="route-bot-import-go" type="button">Import (replaces this route)</button></div>
+          </div>
+          <div class="route-bot-msg" id="route-bot-msg"></div>
+        </div>
       </div>
       <div class="map-hint">Scroll to zoom, drag to pan, hover a dot for details, click (or tap) the map to copy that tile's coordinates. Terrain is decoded from the client's own <code>minimap.bin</code> at full 1&nbsp;px&nbsp;=&nbsp;1&nbsp;tile resolution — colors and coverage match what the game itself would show, not a live render. Use ▲/▼ to change floor (16 floors, z=7 is ground). Only the main explored region is drawn; a few far-flung spawn clusters sit outside it. <strong>Spawn data has no floor axis</strong>, so the same spawn dots are shown on every floor — the floor control only swaps the terrain behind them.</div>
     </div>
@@ -3006,8 +3057,93 @@ function drawPathOverlay(w, h) {
 // walking route, share as a link. The whole route lives in the URL hash
 // (#route=...) - no server, nothing stored. Viewing a shared link is
 // public; drawing stays behind #stairs-beta.
-const ROUTE_MAX_POINTS = 60, ROUTE_NOTE_MAX = 120, ROUTE_TITLE_MAX = 120;
-const routeState = { mode: "off", title: "", loop: false, points: [], legs: [], gen: 0, prepText: "", fromLink: false };
+const ROUTE_MAX_POINTS = 500, ROUTE_NOTE_MAX = 120, ROUTE_TITLE_MAX = 120;
+const routeState = { mode: "off", title: "", loop: false, points: [], legs: [], gen: 0, prepText: "", fromLink: false, open: new Set(), undoFill: null };
+
+// --- Bot waypoints: every route point is also a waypoint for the user's
+// cave bot (its Cave -> Route "Import JSON" format). A point carries the
+// bot fields t (type), id, label, en (enabled) and params; plain clicked
+// points are "walk". See botExport() / botImport().
+const BOT_DIRS = ["here", "n", "ne", "e", "se", "s", "sw", "w", "nw"];
+const BOT_DIR_STEP = { here: [0, 0], n: [0, -1], ne: [1, -1], e: [1, 0], se: [1, 1], s: [0, 1], sw: [-1, 1], w: [-1, 0], nw: [-1, -1] };
+const BOT_TYPES = {
+  "walk": { label: "Walk", params: {} },
+  "stand": { label: "Stand + step", params: { standDirection: "here" } },
+  "wait": { label: "Wait", params: { waitMs: 1000 } },
+  "use": { label: "Use tile", params: { targetOffset: "here" } },
+  "rope": { label: "Rope", params: { targetOffset: "here", itemName: "rope" } },
+  "shovel": { label: "Shovel", params: { targetOffset: "here", itemName: "shovel" } },
+  "magic-rope": { label: "Magic rope", params: {} },
+  "stairs-up": { label: "Stairs up", params: { transitionTarget: "auto" } },
+  "floor-down": { label: "Hole/stairs down", params: { transitionTarget: "auto" } },
+  "ladder-up": { label: "Ladder up", params: { transitionTarget: "auto" } },
+  "drop-item": { label: "Drop item", params: { dropItemName: "", dropMode: "all", dropAmount: 0, dropKeep: 0, dropTargetOffset: "here", dropRequireFull: false } },
+  "depot": { label: "Depot", params: { depot: { mode: "npc", radius: 14, waitMs: 60000, exploreSteps: 8, ackMs: 4000, bags: { all: "Loot", stackables: "Stackables", unstackables: "Unstackables" }, rules: [] } } },
+  "npc": { label: "NPC", params: { npcName: "", npcPreset: "deposit-all" } },
+  "label": { label: "Label", params: {} },
+  "goto": { label: "Go to label", params: { targetLabel: "" } },
+  "supply-check": { label: "Supply check", params: { lowTargetId: "", okTargetId: "next" } }
+};
+// Params that hold a direction; carried over when the type changes, so a
+// generated "stairs-up" can become a ladder or rope without re-picking it.
+const BOT_DIR_KEYS = ["transitionTarget", "targetOffset", "standDirection", "dropTargetOffset"];
+const NPC_PRESETS = ["deposit-all", "withdraw", "buy-item", "sell-items", "refill-supplies", "custom"];
+// Friendly inputs for the common params; anything else is edited as JSON.
+const BOT_FIELDS = {
+  standDirection: { kind: "dir", label: "Step" },
+  targetOffset: { kind: "dir", label: "Target tile" },
+  transitionTarget: { kind: "dirauto", label: "Step direction" },
+  dropTargetOffset: { kind: "dir", label: "Drop on" },
+  waitMs: { kind: "num", label: "Wait (ms)" },
+  itemName: { kind: "text", label: "Item" },
+  targetLabel: { kind: "text", label: "Go to label" },
+  lowTargetId: { kind: "text", label: "If low, go to id" },
+  okTargetId: { kind: "text", label: "If ok, go to id" },
+  npcName: { kind: "text", label: "NPC (blank = nearest)" },
+  npcPreset: { kind: "select", label: "Preset", opts: NPC_PRESETS },
+  amount: { kind: "num", label: "Amount" },
+  tradeItemName: { kind: "text", label: "Item to buy" },
+  buyMode: { kind: "select", label: "Buy mode", opts: ["fixed", "fill-to"] },
+  fillTo: { kind: "num", label: "Fill to" },
+  customLines: { kind: "textarea", label: "Lines (one per reply)" },
+  dropItemName: { kind: "text", label: "Item" },
+  dropMode: { kind: "select", label: "Mode", opts: ["all", "amount", "keep"] },
+  dropAmount: { kind: "num", label: "Amount" },
+  dropKeep: { kind: "num", label: "Keep" },
+  dropRequireFull: { kind: "check", label: "Only when full" }
+};
+// Which npc params apply to each preset (the rest are left out of the form).
+const NPC_PRESET_FIELDS = {
+  "deposit-all": [], "withdraw": ["amount"], "buy-item": ["tradeItemName", "buyMode", "amount", "fillTo"],
+  "sell-items": [], "refill-supplies": [], "custom": ["customLines"]
+};
+const BOT_PARAMS_MAX = 6000; // chars of JSON per point, from links/imports
+
+function botClone(o) { return JSON.parse(JSON.stringify(o)); }
+function routeMakePoint(z, x, y, note, bot) {
+  bot = bot || {};
+  const t = BOT_TYPES[bot.t] ? bot.t : "walk";
+  return {
+    z: z, x: x, y: y, note: note || "", t: t,
+    id: typeof bot.id === "string" ? bot.id.slice(0, 60) : "",
+    label: typeof bot.label === "string" ? bot.label.slice(0, 60) : "",
+    en: bot.en !== false,
+    params: bot.params && typeof bot.params === "object" && !Array.isArray(bot.params) ? bot.params : botClone(BOT_TYPES[t].params)
+  };
+}
+function routePointHasBot(p) {
+  return p.t !== "walk" || p.id || p.label || !p.en || Object.keys(p.params).length > 0;
+}
+// Plain JSON object from untrusted input (link / paste): re-serialised so
+// nothing but data survives, capped in size.
+function botSafeParams(v) {
+  if (!v || typeof v !== "object" || Array.isArray(v)) return null;
+  try {
+    const txt = JSON.stringify(v);
+    if (txt.length > BOT_PARAMS_MAX) return null;
+    return JSON.parse(txt);
+  } catch (e) { return null; }
+}
 const routeLegCache = new Map();
 
 function routeLegKey(a, b) { return a.z + "," + a.x + "," + a.y + ">" + b.z + "," + b.x + "," + b.y; }
@@ -3019,7 +3155,20 @@ function routePairs() {
 }
 
 function routeEncode() {
-  const obj = { v: 1, p: routeState.points.map(function (p) { return p.note ? [p.z, p.x, p.y, p.note] : [p.z, p.x, p.y]; }) };
+  const obj = { v: 1, p: routeState.points.map(function (p) {
+    const q = [p.z, p.x, p.y];
+    const bot = routePointHasBot(p);
+    if (p.note || bot) q.push(p.note || "");
+    if (bot) {
+      const b = { t: p.t };
+      if (p.id) b.i = p.id;
+      if (p.label) b.l = p.label;
+      if (!p.en) b.e = 0;
+      if (Object.keys(p.params).length) b.p = p.params;
+      q.push(b);
+    }
+    return q;
+  }) };
   if (routeState.title) obj.t = routeState.title;
   if (routeState.loop) obj.l = 1;
   const bytes = new TextEncoder().encode(JSON.stringify(obj));
@@ -3041,7 +3190,9 @@ function routeDecode(code) {
       if (!Array.isArray(q)) return;
       const z = q[0], x = q[1], y = q[2];
       if (![z, x, y].every(Number.isInteger) || z < MAP_FLOOR_MIN || z > MAP_FLOOR_MAX) return;
-      points.push({ z: z, x: x, y: y, note: typeof q[3] === "string" ? q[3].slice(0, ROUTE_NOTE_MAX) : "" });
+      const b = q[4] && typeof q[4] === "object" && !Array.isArray(q[4]) ? q[4] : null;
+      points.push(routeMakePoint(z, x, y, typeof q[3] === "string" ? q[3].slice(0, ROUTE_NOTE_MAX) : "",
+        b ? { t: b.t, id: b.i, label: b.l, en: b.e !== 0, params: botSafeParams(b.p) } : null));
     });
     if (!points.length) return null;
     return { title: typeof obj.t === "string" ? obj.t.slice(0, ROUTE_TITLE_MAX) : "", loop: obj.l === 1, points: points };
@@ -3103,28 +3254,303 @@ function routeRenderList() {
   const editing = routeState.mode === "edit";
   routeState.points.forEach(function (p, i) {
     const li = document.createElement("li");
+    if (!p.en) li.className = "disabled";
+    const row = document.createElement("div"); row.className = "route-row";
     const num = document.createElement("span"); num.className = "route-num"; num.textContent = String(i + 1);
     const where = document.createElement("span"); where.className = "route-where"; where.textContent = "z" + p.z + " x" + p.x + " y" + p.y;
-    li.appendChild(num); li.appendChild(where);
+    row.appendChild(num); row.appendChild(where);
     if (editing) {
+      const sel = document.createElement("select"); sel.className = "route-type"; sel.title = "Bot waypoint type";
+      Object.keys(BOT_TYPES).forEach(function (t) {
+        const o = document.createElement("option"); o.value = t; o.textContent = BOT_TYPES[t].label; sel.appendChild(o);
+      });
+      sel.value = p.t;
+      sel.addEventListener("change", function () { botSetType(p, sel.value); routeState.open.add(i); routeChanged(); });
+      row.appendChild(sel);
       const inp = document.createElement("input");
       inp.type = "text"; inp.className = "route-note"; inp.maxLength = ROUTE_NOTE_MAX; inp.placeholder = "Note (optional)"; inp.value = p.note;
       inp.addEventListener("input", function () { p.note = inp.value; routeUpdateLink(); drawMap(); });
-      li.appendChild(inp);
+      row.appendChild(inp);
     } else {
+      const ty = document.createElement("span"); ty.className = "route-type-view";
+      ty.textContent = p.t === "walk" ? "" : BOT_TYPES[p.t].label + (p.label ? " “" + p.label + "”" : "");
+      row.appendChild(ty);
       const note = document.createElement("span"); note.className = "route-note"; note.textContent = p.note || "";
-      li.appendChild(note);
+      row.appendChild(note);
     }
     const go = document.createElement("button"); go.className = "map-btn"; go.type = "button"; go.textContent = "Show";
     go.addEventListener("click", function () { setMapFloor(p.z); mapFitToPoint(p.x, p.y); drawMap(); });
-    li.appendChild(go);
+    row.appendChild(go);
     if (editing) {
+      const gear = document.createElement("button"); gear.className = "map-btn" + (routeState.open.has(i) ? " active" : ""); gear.type = "button";
+      gear.textContent = "⚙"; gear.title = "Bot settings for this waypoint";
+      gear.addEventListener("click", function () { if (routeState.open.has(i)) routeState.open.delete(i); else routeState.open.add(i); routeRenderList(); });
+      row.appendChild(gear);
       const del = document.createElement("button"); del.className = "map-btn"; del.type = "button"; del.textContent = "✕"; del.title = "Remove point";
-      del.addEventListener("click", function () { routeState.points.splice(i, 1); routeChanged(); });
-      li.appendChild(del);
+      del.addEventListener("click", function () { routeState.points.splice(i, 1); routeState.open.clear(); routeChanged(); });
+      row.appendChild(del);
     }
+    li.appendChild(row);
+    if (editing && routeState.open.has(i)) li.appendChild(botSettingsEl(p, i));
     list.appendChild(li);
   });
+}
+
+// Changing type: start from the new type's defaults, keep any direction the
+// old type had (so stairs-up -> ladder-up / rope keeps the step direction).
+function botSetType(p, t) {
+  let dir = null;
+  BOT_DIR_KEYS.forEach(function (k) { if (dir === null && typeof p.params[k] === "string") dir = p.params[k]; });
+  p.t = t;
+  p.params = botClone(BOT_TYPES[t].params);
+  if (dir !== null) BOT_DIR_KEYS.forEach(function (k) {
+    if (!(k in p.params)) return;
+    if (k === "transitionTarget") p.params[k] = dir === "here" ? "auto" : dir;
+    else p.params[k] = dir === "auto" ? "here" : dir;
+  });
+  if (t === "label" && !p.label) p.label = "label-" + (routeState.points.indexOf(p) + 1);
+}
+
+function botSettingsEl(p, i) {
+  const box = document.createElement("div"); box.className = "route-bot-settings";
+  const field = function (labelText, input) {
+    const l = document.createElement("label"); l.className = "rb-field";
+    const span = document.createElement("span"); span.textContent = labelText;
+    l.appendChild(span); l.appendChild(input); box.appendChild(l);
+    return input;
+  };
+  const changed = function () { routeUpdateLink(); drawMap(); botRenderMessages(); };
+  const text = function (val, ph) { const e = document.createElement("input"); e.type = "text"; e.value = val == null ? "" : String(val); if (ph) e.placeholder = ph; return e; };
+
+  const idIn = field("Id", text(p.id, "wp-" + (i + 1)));
+  idIn.maxLength = 60;
+  idIn.addEventListener("input", function () { p.id = idIn.value.trim(); changed(); });
+  const labIn = field("Label" + (p.t === "label" ? " (required)" : ""), text(p.label, p.t === "label" ? "e.g. hunt-start" : "optional anchor"));
+  labIn.maxLength = 60;
+  labIn.addEventListener("input", function () { p.label = labIn.value.trim(); changed(); });
+  const en = document.createElement("input"); en.type = "checkbox"; en.checked = p.en;
+  field("Enabled", en).addEventListener("change", function () { p.en = en.checked; routeRenderList(); changed(); });
+
+  let keys = Object.keys(p.params).filter(function (k) { return BOT_FIELDS[k]; });
+  if (p.t === "npc") {
+    const preset = NPC_PRESETS.indexOf(p.params.npcPreset) >= 0 ? p.params.npcPreset : "deposit-all";
+    keys = ["npcName", "npcPreset"].concat(NPC_PRESET_FIELDS[preset]);
+  }
+  keys.forEach(function (k) {
+    const f = BOT_FIELDS[k];
+    let el;
+    if (f.kind === "dir" || f.kind === "dirauto" || f.kind === "select") {
+      el = document.createElement("select");
+      (f.kind === "select" ? f.opts : (f.kind === "dirauto" ? ["auto"] : []).concat(BOT_DIRS)).forEach(function (o) {
+        const opt = document.createElement("option"); opt.value = o; opt.textContent = o; el.appendChild(opt);
+      });
+      el.value = p.params[k] != null ? String(p.params[k]) : el.options[0].value;
+    } else if (f.kind === "num") {
+      el = document.createElement("input"); el.type = "number"; el.value = p.params[k] != null ? p.params[k] : "";
+    } else if (f.kind === "check") {
+      el = document.createElement("input"); el.type = "checkbox"; el.checked = !!p.params[k];
+    } else if (f.kind === "textarea") {
+      el = document.createElement("textarea"); el.rows = 3; el.value = p.params[k] || "";
+    } else {
+      el = text(p.params[k]);
+    }
+    field(f.label, el).addEventListener(f.kind === "check" || el.tagName === "SELECT" ? "change" : "input", function () {
+      if (f.kind === "num") p.params[k] = el.value === "" ? 0 : Number(el.value);
+      else if (f.kind === "check") p.params[k] = el.checked;
+      else p.params[k] = el.value;
+      if (k === "npcPreset") { routeRenderList(); }
+      changed();
+    });
+  });
+
+  // Everything else (depot rules, sell/refill rows...) as raw params JSON.
+  const adv = document.createElement("details"); adv.className = "rb-json";
+  const sum = document.createElement("summary"); sum.textContent = "All params (JSON)"; adv.appendChild(sum);
+  const ta = document.createElement("textarea"); ta.rows = 5; ta.spellcheck = false; ta.value = JSON.stringify(p.params, null, 2);
+  const err = document.createElement("div"); err.className = "rb-err";
+  ta.addEventListener("change", function () {
+    try {
+      const v = JSON.parse(ta.value || "{}");
+      if (!v || typeof v !== "object" || Array.isArray(v)) throw new Error("params must be an object");
+      p.params = v; err.textContent = ""; routeRenderList(); changed();
+    } catch (e) { err.textContent = "Not valid JSON: " + e.message; }
+  });
+  adv.appendChild(ta); adv.appendChild(err);
+  box.appendChild(adv);
+  return box;
+}
+
+// --- Bot export / import / fill-in ---
+
+// Tiles along a computed leg, in order: {z, x, y, portal} where portal marks
+// the first tile after a floor change. Path segments between jump points are
+// straight or diagonal; anything else steps diagonally, then straight.
+function botLegTiles(nodes) {
+  const out = [];
+  if (!nodes.length) return out;
+  out.push({ z: nodes[0].z, x: nodes[0].x, y: nodes[0].y, portal: false });
+  for (let k = 1; k < nodes.length; k++) {
+    const u = nodes[k - 1], v = nodes[k];
+    if (u.z !== v.z) { out.push({ z: v.z, x: v.x, y: v.y, portal: true }); continue; }
+    let x = u.x, y = u.y;
+    while (x !== v.x || y !== v.y) {
+      x += Math.sign(v.x - x); y += Math.sign(v.y - y);
+      out.push({ z: v.z, x: x, y: y, portal: false });
+    }
+  }
+  return out;
+}
+function botDirTo(a, b) {
+  const dx = Math.sign(b.x - a.x), dy = Math.sign(b.y - a.y);
+  for (const d in BOT_DIR_STEP) if (BOT_DIR_STEP[d][0] === dx && BOT_DIR_STEP[d][1] === dy) return d;
+  return "here";
+}
+
+// Expands the route into bot waypoints along the computed legs: your own
+// points stay as they are; in between it adds a "walk" every `spacing` tiles
+// (0 = none) and a floor-change waypoint at every stairs/hole/ladder the
+// path takes - placed on the tile you stand on before the step, with the
+// step direction filled in. Going down is "floor-down"; going up defaults
+// to "stairs-up" (the minimap can't tell stairs, ladders and rope spots
+// apart - change the type on those rows if it's a ladder or rope).
+function botFillIn(spacing) {
+  const pairs = routePairs();
+  if (!pairs.length) return "Add at least two points first.";
+  if (routeState.legs.length !== pairs.length || routeState.legs.some(function (l) { return !l; })) return "Still calculating the route - try again in a moment.";
+  if (routeState.legs.some(function (l) { return !l.ok; })) return "Some legs couldn't be walked (dashed). Fix those points first - fill-in needs a walkable path.";
+  const out = [];
+  let added = 0, floors = 0;
+  pairs.forEach(function (pr, i) {
+    out.push(pr[0]);
+    const tiles = botLegTiles(routeState.legs[i].nodes);
+    let walked = 0;
+    for (let k = 1; k < tiles.length; k++) {
+      const t = tiles[k];
+      if (t.portal) {
+        const marker = tiles[k - 1], before = k >= 2 && !tiles[k - 1].portal && tiles[k - 2].z === marker.z ? tiles[k - 2] : null;
+        const at = before || marker;
+        const wp = routeMakePoint(at.z, at.x, at.y, "", { t: t.z > marker.z ? "floor-down" : "stairs-up" });
+        wp.params.transitionTarget = before ? botDirTo(before, marker) : "auto";
+        // A walk sample on the stand tile itself would be redundant.
+        const last = out[out.length - 1];
+        if (last && last.t === "walk" && last.fill && last.z === at.z && last.x === at.x && last.y === at.y) out.pop();
+        out.push(wp); wp.fill = true; added++; floors++;
+        walked = 0;
+        continue;
+      }
+      walked++;
+      if (spacing > 0 && walked >= spacing && k < tiles.length - 1) {
+        const end = tiles[tiles.length - 1];
+        if (end.z === t.z && Math.max(Math.abs(end.x - t.x), Math.abs(end.y - t.y)) <= 2) continue;
+        const nextPortal = tiles[k + 1] && tiles[k + 1].portal;
+        if (nextPortal) continue;
+        const wp = routeMakePoint(t.z, t.x, t.y, ""); wp.fill = true;
+        out.push(wp); added++;
+        walked = 0;
+      }
+    }
+  });
+  if (!routeState.loop) out.push(routeState.points[routeState.points.length - 1]);
+  if (out.length > ROUTE_MAX_POINTS) return "That would make " + out.length + " waypoints (max " + ROUTE_MAX_POINTS + ") - use a larger spacing.";
+  routeState.undoFill = routeState.points.slice();
+  routeState.points = out;
+  routeState.open.clear();
+  return "Added " + added + " waypoint" + (added === 1 ? "" : "s") + (floors ? " (" + floors + " floor change" + (floors === 1 ? "" : "s") + " - check stairs vs ladder/rope)" : "") + ".";
+}
+
+function botWaypoint(p, i) {
+  return {
+    id: p.id || ("wp-" + (i + 1)),
+    enabled: p.en,
+    type: p.t,
+    label: p.label || "",
+    position: { x: p.x, y: p.y, z: p.z },
+    params: botClone(p.params)
+  };
+}
+// The checks the bot's importer refuses a route for, so they show up here
+// before you paste it there.
+function botValidate(route) {
+  const errs = [];
+  const labels = {}, ids = {};
+  route.forEach(function (w) { ids[w.id] = (ids[w.id] || 0) + 1; if (w.label) labels[w.label] = (labels[w.label] || 0) + 1; });
+  const dirOk = function (v, auto) { return BOT_DIRS.indexOf(v) >= 0 || (auto && v === "auto"); };
+  route.forEach(function (w, i) {
+    const n = "#" + (i + 1) + " (" + BOT_TYPES[w.type].label + ")", pr = w.params;
+    if (w.type === "label" && !w.label) errs.push(n + ": a label waypoint needs a label");
+    if (w.label && labels[w.label] > 1) errs.push(n + ": label “" + w.label + "” is used more than once");
+    if (ids[w.id] > 1) errs.push(n + ": id “" + w.id + "” is used more than once");
+    if (w.type === "goto" && !labels[pr.targetLabel]) errs.push(n + ": no label “" + (pr.targetLabel || "") + "” to go to");
+    if (w.type === "supply-check") ["lowTargetId", "okTargetId"].forEach(function (k) {
+      if (pr[k] !== "next" && !ids[pr[k]]) errs.push(n + ": " + k + " “" + (pr[k] || "") + "” isn't “next” or a waypoint id");
+    });
+    if (w.type === "npc") {
+      if (pr.npcPreset && NPC_PRESETS.indexOf(pr.npcPreset) < 0) errs.push(n + ": unknown npcPreset “" + pr.npcPreset + "”");
+      if (pr.npcPreset === "buy-item" && !pr.tradeItemName) errs.push(n + ": buy-item needs an item to buy");
+      if (pr.npcPreset === "sell-items" && (!Array.isArray(pr.sellRows) || !pr.sellRows.length || pr.sellRows.some(function (r) { return !r || !r.itemName; })))
+        errs.push(n + ": sell-items needs sellRows, each with an itemName (edit in All params)");
+      if (pr.buyMode && ["fixed", "fill-to"].indexOf(pr.buyMode) < 0) errs.push(n + ": unknown buyMode “" + pr.buyMode + "”");
+    }
+    if (w.type === "drop-item") {
+      if (!pr.dropItemName) errs.push(n + ": drop-item needs an item");
+      if (pr.dropMode && ["all", "amount", "keep"].indexOf(pr.dropMode) < 0) errs.push(n + ": unknown dropMode “" + pr.dropMode + "”");
+    }
+    if ("standDirection" in pr && !dirOk(pr.standDirection)) errs.push(n + ": bad direction “" + pr.standDirection + "”");
+    if ("targetOffset" in pr && !dirOk(pr.targetOffset)) errs.push(n + ": bad direction “" + pr.targetOffset + "”");
+    if ("dropTargetOffset" in pr && !dirOk(pr.dropTargetOffset)) errs.push(n + ": bad direction “" + pr.dropTargetOffset + "”");
+    if ("transitionTarget" in pr && !dirOk(pr.transitionTarget, true)) errs.push(n + ": bad direction “" + pr.transitionTarget + "”");
+  });
+  return errs;
+}
+// Route only - no "settings", which would overwrite the character's Cave
+// settings on import.
+function botExport() {
+  const route = routeState.points.map(botWaypoint);
+  return { json: JSON.stringify({ version: 1, route: route }, null, 2), errors: botValidate(route) };
+}
+
+// Accepts a bare waypoint array or an object with a "route" array (the
+// bot's own Copy output, settings ignored). Mirrors the bot's defaults:
+// missing position -> 0,0,7, unknown type -> walk.
+function botImport(text) {
+  let data;
+  try { data = JSON.parse(text); } catch (e) { return { error: "Not valid JSON: " + e.message }; }
+  const arr = Array.isArray(data) ? data : (data && Array.isArray(data.route) ? data.route : null);
+  if (!arr) return { error: "Expected a list of waypoints, or an object with a \"route\" list." };
+  if (!arr.length) return { error: "The route is empty." };
+  if (arr.length > ROUTE_MAX_POINTS) return { error: "That route has " + arr.length + " waypoints; the map tool handles up to " + ROUTE_MAX_POINTS + "." };
+  const warn = [];
+  const points = arr.map(function (w, i) {
+    w = w && typeof w === "object" ? w : {};
+    const pos = w.position && typeof w.position === "object" ? w.position : {};
+    const num = function (v, d) { return Number.isInteger(v) ? v : d; };
+    const x = num(pos.x, 0), y = num(pos.y, 0);
+    let z = num(pos.z, 7);
+    if (!Number.isInteger(pos.x) || !Number.isInteger(pos.y)) warn.push("#" + (i + 1) + " has no position (the bot uses 0,0,7)");
+    if (z < MAP_FLOOR_MIN || z > MAP_FLOOR_MAX) { warn.push("#" + (i + 1) + " floor " + z + " is off the map"); z = 7; }
+    if (w.type != null && !BOT_TYPES[w.type]) warn.push("#" + (i + 1) + " unknown type “" + String(w.type).slice(0, 30) + "” becomes walk");
+    const params = botSafeParams(w.params);
+    if (w.params != null && !params) warn.push("#" + (i + 1) + " params weren't a usable object (reset to defaults)");
+    return routeMakePoint(z, x, y, "", {
+      t: w.type, id: typeof w.id === "string" ? w.id : "", label: typeof w.label === "string" ? w.label : "",
+      en: w.enabled !== false, params: params
+    });
+  });
+  return { points: points, warnings: warn, hadSettings: !!(data && !Array.isArray(data) && data.settings) };
+}
+
+function botRenderMessages(extra) {
+  const el = document.getElementById("route-bot-msg");
+  if (!el) return;
+  if (extra !== undefined) routeState.botNote = extra;
+  const lines = [];
+  if (routeState.botNote) lines.push(routeState.botNote);
+  if (routeState.points.length) {
+    const errs = botValidate(routeState.points.map(botWaypoint));
+    if (errs.length) lines.push("The bot would reject this route: " + errs.slice(0, 6).join("; ") + (errs.length > 6 ? " (+" + (errs.length - 6) + " more)" : ""));
+  }
+  el.textContent = lines.join("\n");
+  el.classList.toggle("has-errors", lines.length > (routeState.botNote ? 1 : 0));
 }
 
 function routeUpdateLink() {
@@ -3133,6 +3559,7 @@ function routeUpdateLink() {
 }
 function routeChanged() {
   routeRenderList();
+  botRenderMessages();
   routeUpdateLink();
   routeRecompute();
 }
@@ -3148,9 +3575,11 @@ function routeShowPanel() {
   document.getElementById("route-loop").checked = routeState.loop;
   document.getElementById("route-edit").style.display = (routeState.mode === "view" && location.hash.toLowerCase().includes("stairs-beta")) ? "" : "none";
   document.getElementById("map-route-btn").classList.toggle("active", routeState.mode === "edit");
+  document.getElementById("route-bot-unfill").style.display = routeState.undoFill && routeState.mode === "edit" ? "" : "none";
   routeRenderList();
   routeUpdateLink();
   routeRenderStatus();
+  botRenderMessages("");
 }
 
 function routeFitFloor(z) {
@@ -3192,7 +3621,7 @@ function routeToggleEdit() {
 function routeAddPoint(sx, sy) {
   if (routeState.points.length >= ROUTE_MAX_POINTS) return;
   const [wx, wy] = screenToWorld(sx, sy);
-  routeState.points.push({ z: state.mapFloor, x: Math.floor(wx), y: Math.floor(wy), note: "" });
+  routeState.points.push(routeMakePoint(state.mapFloor, Math.floor(wx), Math.floor(wy), ""));
   routeChanged();
 }
 
@@ -3262,8 +3691,10 @@ function drawRouteOverlay() {
     mapCtx.fillStyle = "#ff8c00"; mapCtx.fill(); mapCtx.lineWidth = 2; mapCtx.strokeStyle = "#000"; mapCtx.stroke();
     mapCtx.font = "700 11px 'Segoe UI', sans-serif"; mapCtx.textAlign = "center"; mapCtx.textBaseline = "middle";
     mapCtx.fillStyle = "#111"; mapCtx.fillText(String(i + 1), sx, sy + 0.5);
-    if (p.note) {
-      const label = p.note.length > 40 ? p.note.slice(0, 39) + "…" : p.note;
+    const tag = p.t !== "walk" ? "[" + BOT_TYPES[p.t].label + (p.label ? " " + p.label : "") + "]" : "";
+    if (p.note || tag) {
+      const full = (tag && p.note ? tag + " " + p.note : tag || p.note);
+      const label = full.length > 40 ? full.slice(0, 39) + "…" : full;
       mapCtx.font = "600 12px 'Segoe UI', sans-serif"; mapCtx.textAlign = "left";
       const tw = mapCtx.measureText(label).width;
       mapCtx.fillStyle = "rgba(0,0,0,0.75)"; mapCtx.fillRect(sx + 13, sy - 10, tw + 10, 19);
@@ -3499,6 +3930,65 @@ function initMap() {
   document.getElementById("route-undo").addEventListener("click", function () { routeState.points.pop(); routeChanged(); });
   document.getElementById("route-clear").addEventListener("click", function () { routeState.points = []; routeChanged(); });
   document.getElementById("route-close").addEventListener("click", routeClose);
+  const botCopyText = function (text, btn, label) {
+    const done = function () { btn.textContent = "Copied!"; setTimeout(function () { btn.textContent = label; }, 1500); };
+    const fallback = function () {
+      const ta = document.createElement("textarea"); ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand("copy"); done(); } catch (err) { /* nothing more to try */ }
+      document.body.removeChild(ta);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, fallback); else fallback();
+  };
+  document.getElementById("route-bot-fill").addEventListener("click", function () {
+    const msg = botFillIn(Number(document.getElementById("route-bot-spacing").value));
+    document.getElementById("route-bot-unfill").style.display = routeState.undoFill ? "" : "none";
+    routeChanged();
+    botRenderMessages(msg);
+  });
+  document.getElementById("route-bot-unfill").addEventListener("click", function () {
+    if (!routeState.undoFill) return;
+    routeState.points = routeState.undoFill; routeState.undoFill = null; routeState.open.clear();
+    this.style.display = "none";
+    routeChanged();
+    botRenderMessages("Fill-in undone.");
+  });
+  document.getElementById("route-bot-copy").addEventListener("click", function () {
+    if (!routeState.points.length) return;
+    const ex = botExport();
+    botCopyText(ex.json, this, "Copy bot JSON");
+    botRenderMessages("Copied " + routeState.points.length + " waypoints. In the bot: Cave → Route → Import JSON, paste.");
+  });
+  document.getElementById("route-bot-download").addEventListener("click", function () {
+    if (!routeState.points.length) return;
+    const ex = botExport();
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([ex.json], { type: "application/json" }));
+    a.download = (slugify(routeState.title || "") || "route") + ".json";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  });
+  document.getElementById("route-bot-import-toggle").addEventListener("click", function () {
+    const box = document.getElementById("route-bot-import");
+    box.hidden = !box.hidden;
+    if (!box.hidden) document.getElementById("route-bot-import-text").focus();
+  });
+  document.getElementById("route-bot-import-go").addEventListener("click", function () {
+    const ta = document.getElementById("route-bot-import-text");
+    const r = botImport(ta.value);
+    if (r.error) { botRenderMessages(r.error); return; }
+    routeState.points = r.points; routeState.loop = true; routeState.undoFill = null; routeState.open.clear();
+    document.getElementById("route-loop").checked = true;
+    document.getElementById("route-bot-unfill").style.display = "none";
+    document.getElementById("route-bot-import").hidden = true;
+    ta.value = "";
+    setMapFloor(r.points[0].z);
+    routeFitFloor(r.points[0].z);
+    routeChanged();
+    botRenderMessages("Imported " + r.points.length + " waypoints (shown looping, like the bot)." +
+      (r.hadSettings ? " The \"settings\" part was ignored." : "") +
+      (r.warnings.length ? " Check: " + r.warnings.slice(0, 5).join("; ") + (r.warnings.length > 5 ? " (+" + (r.warnings.length - 5) + " more)" : "") : ""));
+  });
   document.getElementById("route-edit").addEventListener("click", routeStartEdit);
   document.getElementById("route-copy").addEventListener("click", function () {
     const box = document.getElementById("route-link"), btn = this;
