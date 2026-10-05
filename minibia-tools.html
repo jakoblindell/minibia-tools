@@ -292,6 +292,14 @@
   .route-points li.disabled .route-row { opacity: .5; }
   .route-row { display: flex; align-items: center; gap: 8px; min-width: 0; }
   .route-points select.route-type { flex: none; max-width: 130px; font: inherit; font-size: 12px; background: var(--surface-2); color: var(--text-primary); border: 1px solid var(--border); border-radius: 6px; padding: 2px 4px; }
+  .route-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 11.5px; color: var(--text-secondary); }
+  .route-legend:empty { display: none; }
+  .route-legend-item { display: inline-flex; align-items: center; gap: 5px; }
+  .route-legend-dot { width: 10px; height: 10px; border-radius: 50%; box-shadow: 0 0 0 1px rgba(0,0,0,.5); }
+  .route-check { flex: none; font-size: 12px; font-weight: 700; width: 18px; text-align: center; cursor: help; }
+  .route-check.ok { color: var(--good, #16a34a); }
+  .route-check.unsure { color: #ca8a04; }
+  .route-check.bad { color: var(--bad, #dc2626); }
   .route-type-view { flex: none; font-size: 11.5px; font-weight: 600; color: var(--accent); }
   .route-points .map-btn.active { border-color: var(--accent); color: var(--accent); background: var(--surface-2); }
   .route-bot-settings { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 6px 10px; margin: 4px 0 6px 30px; padding: 8px 10px; border-left: 2px solid var(--border); }
@@ -445,6 +453,7 @@
         <input type="text" class="route-title-input edit-only" id="route-title" maxlength="120" placeholder="Route title, e.g. Dragon hunt north of the city">
         <h3 class="route-title view-only" id="route-title-view"></h3>
         <div class="route-status" id="route-status"></div>
+        <div class="route-legend" id="route-legend"></div>
         <ol class="route-points" id="route-points"></ol>
         <div class="route-actions">
           <label class="map-floor-filter-toggle edit-only"><input type="checkbox" id="route-loop"> Loop back to start</label>
@@ -3058,7 +3067,7 @@ function drawPathOverlay(w, h) {
 // (#route=...) - no server, nothing stored. Viewing a shared link is
 // public; drawing stays behind #stairs-beta.
 const ROUTE_MAX_POINTS = 500, ROUTE_NOTE_MAX = 120, ROUTE_TITLE_MAX = 120;
-const routeState = { mode: "off", title: "", loop: false, points: [], legs: [], gen: 0, prepText: "", fromLink: false, open: new Set(), undoFill: null };
+const routeState = { mode: "off", title: "", loop: false, points: [], legs: [], gen: 0, prepText: "", fromLink: false, open: new Set(), undoFill: null, dragIndex: null, dragMoved: false };
 
 // --- Bot waypoints: every route point is also a waypoint for the user's
 // cave bot (its Cave -> Route "Import JSON" format). A point carries the
@@ -3130,6 +3139,86 @@ const BOT_FULL_DEFAULTS = {
   dropKeep: 0, dropTargetOffset: "here", dropRequireFull: false
 };
 function botIsFullSet(params) { return Object.keys(BOT_FULL_DEFAULTS).every(function (k) { return k in params; }); }
+
+// Map/list colour per waypoint type; text on the marker picks black or
+// white for contrast.
+const BOT_TYPE_COLORS = {
+  "walk": "#ff8c00", "stand": "#a3e635", "wait": "#94a3b8", "use": "#f472b6", "rope": "#22d3ee", "shovel": "#a16207",
+  "magic-rope": "#99f6e4", "stairs-up": "#22c55e", "ladder-up": "#15803d", "floor-down": "#2563eb", "drop-item": "#fb7185",
+  "depot": "#eab308", "npc": "#a855f7", "label": "#f8fafc", "goto": "#cbd5e1", "supply-check": "#14b8a6"
+};
+function botTypeColor(t) { return BOT_TYPE_COLORS[t] || BOT_TYPE_COLORS.walk; }
+function botTypeInk(t) {
+  const h = botTypeColor(t), r = parseInt(h.slice(1, 3), 16), g = parseInt(h.slice(3, 5), 16), b = parseInt(h.slice(5, 7), 16);
+  return (0.299 * r + 0.587 * g + 0.114 * b) > 140 ? "#111" : "#fff";
+}
+
+// Floor-change waypoints are checked against the detected stairs/holes/
+// ladders/rope spots (floorConnections): a hole/stairs down needs a "down"
+// marker on or next to its tile, stairs/ladder up and rope an "up" marker,
+// magic rope an "up" marker on the exact tile; with a direction set, the
+// marker must be on the tile that way. The next waypoint should also be one
+// floor down/up. ok = matches, unsure = only an unresolved marker there,
+// bad = nothing there (possibly misplaced). Calibrated on a working route
+// exported from the bot.
+const BOT_CHECKS = {
+  "floor-down": { want: 2, dz: 1, reach: 1, dirKey: "transitionTarget", what: "hole/stairs down" },
+  "stairs-up": { want: 1, dz: -1, reach: 1, dirKey: "transitionTarget", what: "stairs up" },
+  "ladder-up": { want: 1, dz: -1, reach: 1, dirKey: "transitionTarget", what: "ladder" },
+  "rope": { want: 1, dz: -1, reach: 1, dirKey: "targetOffset", what: "rope spot" },
+  "magic-rope": { want: 1, dz: -1, reach: 0, dirKey: null, what: "rope spot" }
+};
+let botMarkerIndex = null;
+function botMarkers() {
+  if (botMarkerIndex) return botMarkerIndex;
+  botMarkerIndex = { known: {}, unknown: {} };
+  Object.keys(DATA.floorConnections || {}).forEach(function (z) {
+    const m = botMarkerIndex.known[z] = new Map();
+    DATA.floorConnections[z].forEach(function (c) { m.set(c[0] + "," + c[1], c[2]); });
+  });
+  Object.keys(DATA.floorConnectionsUnknown || {}).forEach(function (z) {
+    const m = botMarkerIndex.unknown[z] = new Set();
+    DATA.floorConnectionsUnknown[z].forEach(function (c) { m.add(c[0] + "," + c[1]); });
+  });
+  return botMarkerIndex;
+}
+function botNextPoint(i) {
+  const pts = routeState.points;
+  for (let k = 1; k < pts.length; k++) {
+    const j = i + k;
+    if (j >= pts.length && !routeState.loop) return null;
+    const q = pts[j % pts.length];
+    if (q.en) return q;
+  }
+  return null;
+}
+function botCheckPoint(p, i) {
+  const rule = BOT_CHECKS[p.t];
+  if (!rule || !p.en) return null;
+  const idx = botMarkers(), known = idx.known[p.z], unknown = idx.unknown[p.z];
+  const dir = rule.dirKey ? p.params[rule.dirKey] : null;
+  const step = dir && BOT_DIR_STEP[dir] && dir !== "here" ? BOT_DIR_STEP[dir] : null;
+  const cells = [];
+  if (step) cells.push([p.x + step[0], p.y + step[1]]);
+  else for (let dy = -rule.reach; dy <= rule.reach; dy++) for (let dx = -rule.reach; dx <= rule.reach; dx++) cells.push([p.x + dx, p.y + dy]);
+  let found = false, wrongWay = false, unsure = false;
+  cells.forEach(function (c) {
+    const k = c[0] + "," + c[1], f = known ? known.get(k) : undefined;
+    if (f !== undefined) { if (f & rule.want) found = true; else wrongWay = true; }
+    else if (unknown && unknown.has(k)) unsure = true;
+  });
+  const where = step ? "on the tile " + dir + " of it" : (rule.reach ? "on or next to it" : "on its tile");
+  let res;
+  if (found) res = { state: "ok", msg: "Matches a " + rule.what + " " + where + "." };
+  else if (unsure) res = { state: "unsure", msg: "Only an unresolved stairs/hole marker " + where + " - can't confirm it's a " + rule.what + "." };
+  else if (wrongWay) res = { state: "bad", msg: "The marker " + where + " goes " + (rule.want === 2 ? "up" : "down") + ", not " + (rule.want === 2 ? "down" : "up") + " - possibly the wrong type or spot." };
+  else res = { state: "bad", msg: "No " + rule.what + " " + where + " on the map - possibly misplaced." };
+  const nx = botNextPoint(i);
+  if (nx && nx.z !== p.z + rule.dz && res.state !== "bad") {
+    res = { state: "bad", msg: res.msg + " But the next waypoint is on z" + nx.z + ", not z" + (p.z + rule.dz) + "." };
+  }
+  return res;
+}
 
 function botClone(o) { return JSON.parse(JSON.stringify(o)); }
 function routeMakePoint(z, x, y, note, bot) {
@@ -3277,8 +3366,17 @@ function routeRenderList() {
     if (!p.en) li.className = "disabled";
     const row = document.createElement("div"); row.className = "route-row";
     const num = document.createElement("span"); num.className = "route-num"; num.textContent = String(i + 1);
+    num.style.background = botTypeColor(p.t); num.style.color = botTypeInk(p.t);
+    num.title = BOT_TYPES[p.t].label;
     const where = document.createElement("span"); where.className = "route-where"; where.textContent = "z" + p.z + " x" + p.x + " y" + p.y;
     row.appendChild(num); row.appendChild(where);
+    const chk = botCheckPoint(p, i);
+    if (chk) {
+      const badge = document.createElement("span"); badge.className = "route-check " + chk.state;
+      badge.textContent = chk.state === "ok" ? "✓" : (chk.state === "unsure" ? "?" : "⚠");
+      badge.title = chk.msg;
+      row.appendChild(badge);
+    }
     if (editing) {
       const sel = document.createElement("select"); sel.className = "route-type"; sel.title = "Bot waypoint type";
       Object.keys(BOT_TYPES).forEach(function (t) {
@@ -3563,6 +3661,22 @@ function botImport(text) {
   return { points: points, warnings: warn, hadSettings: !!settings, loop: settings && typeof settings.loop === "boolean" ? settings.loop : true };
 }
 
+// Colour key for the waypoint types used in this route.
+function botRenderLegend() {
+  const el = document.getElementById("route-legend");
+  if (!el) return;
+  el.textContent = "";
+  const used = [];
+  routeState.points.forEach(function (p) { if (used.indexOf(p.t) < 0) used.push(p.t); });
+  if (used.length < 2 && !(used.length === 1 && used[0] !== "walk")) return;
+  used.forEach(function (t) {
+    const item = document.createElement("span"); item.className = "route-legend-item";
+    const dot = document.createElement("span"); dot.className = "route-legend-dot"; dot.style.background = botTypeColor(t);
+    item.appendChild(dot); item.appendChild(document.createTextNode(BOT_TYPES[t].label));
+    el.appendChild(item);
+  });
+}
+
 function botRenderMessages(extra) {
   const el = document.getElementById("route-bot-msg");
   if (!el) return;
@@ -3570,11 +3684,18 @@ function botRenderMessages(extra) {
   const lines = [];
   if (routeState.botNote) lines.push(routeState.botNote);
   if (routeState.points.length) {
+    const sus = [];
+    routeState.points.forEach(function (p, i) {
+      const c = botCheckPoint(p, i);
+      if (c && c.state === "bad") sus.push("#" + (i + 1) + " " + BOT_TYPES[p.t].label + ": " + c.msg);
+    });
+    if (sus.length) lines.push("⚠ " + sus.length + " floor-change waypoint" + (sus.length === 1 ? "" : "s") + " may be misplaced (red ring on the map): " + sus.slice(0, 4).join(" ") + (sus.length > 4 ? " (+" + (sus.length - 4) + " more)" : ""));
     const errs = botValidate(routeState.points.map(botWaypoint));
     if (errs.length) lines.push("The bot would reject this route: " + errs.slice(0, 6).join("; ") + (errs.length > 6 ? " (+" + (errs.length - 6) + " more)" : ""));
   }
   el.textContent = lines.join("\n");
   el.classList.toggle("has-errors", lines.length > (routeState.botNote ? 1 : 0));
+  botRenderLegend();
 }
 
 function routeUpdateLink() {
@@ -3640,6 +3761,44 @@ function routeClose() {
 }
 function routeToggleEdit() {
   if (routeState.mode === "edit") routeClose(); else routeStartEdit();
+}
+
+// Dragging waypoints (edit mode): the point nearest the cursor on this
+// floor; moving it only redraws (legs not cached yet show as dashed
+// straight lines) and the pathfinder runs once on release.
+function routePointAt(sx, sy) {
+  if (routeState.mode !== "edit") return -1;
+  let best = -1, bestD = 13 * 13 + 1;
+  for (let i = routeState.points.length - 1; i >= 0; i--) {   // later points are drawn on top: they win ties
+    const p = routeState.points[i];
+    if (p.z !== state.mapFloor) continue;
+    const [px, py] = worldToScreen(p.x + 0.5, p.y + 0.5);
+    const d = (px - sx) * (px - sx) + (py - sy) * (py - sy);
+    if (d < bestD) { bestD = d; best = i; }
+  }
+  return best;
+}
+function routeDragStart(i) { routeState.dragIndex = i; routeState.dragMoved = false; drawMap(); }
+function routeDragTo(sx, sy) {
+  const p = routeState.points[routeState.dragIndex];
+  if (!p) return;
+  const [wx, wy] = screenToWorld(sx, sy);
+  const nx = Math.floor(wx), ny = Math.floor(wy);
+  if (nx === p.x && ny === p.y) return;
+  p.x = nx; p.y = ny; routeState.dragMoved = true;
+  routeState.legs = routePairs().map(function (pr) { return routeLegCache.get(routeLegKey(pr[0], pr[1])) || null; });
+  drawMap();
+}
+function routeDragEnd() {
+  const i = routeState.dragIndex, moved = routeState.dragMoved;
+  routeState.dragIndex = null; routeState.dragMoved = false;
+  if (moved) { routeChanged(); return; }
+  // A click on a point without moving it: open its settings in the list.
+  routeState.open.add(i);
+  routeRenderList();
+  drawMap();
+  const li = document.querySelectorAll("#route-points > li")[i];
+  if (li) li.scrollIntoView({ block: "nearest" });
 }
 
 function routeAddPoint(sx, sy) {
@@ -3711,11 +3870,20 @@ function drawRouteOverlay() {
   routeState.points.forEach(function (p, i) {
     if (p.z !== z) return;
     const [sx, sy] = worldToScreen(p.x + 0.5, p.y + 0.5);
+    const chk = botCheckPoint(p, i);
+    if (chk && chk.state !== "ok") {
+      mapCtx.beginPath(); mapCtx.arc(sx, sy, 15, 0, Math.PI * 2);
+      mapCtx.lineWidth = 3; mapCtx.strokeStyle = chk.state === "bad" ? "#ef4444" : "#facc15";
+      mapCtx.setLineDash(chk.state === "bad" ? [] : [4, 3]); mapCtx.stroke(); mapCtx.setLineDash([]);
+    }
+    mapCtx.globalAlpha = p.en ? 1 : 0.45;
     mapCtx.beginPath(); mapCtx.arc(sx, sy, 10, 0, Math.PI * 2);
-    mapCtx.fillStyle = "#ff8c00"; mapCtx.fill(); mapCtx.lineWidth = 2; mapCtx.strokeStyle = "#000"; mapCtx.stroke();
+    mapCtx.fillStyle = botTypeColor(p.t); mapCtx.fill();
+    mapCtx.lineWidth = routeState.dragIndex === i ? 3 : 2; mapCtx.strokeStyle = routeState.dragIndex === i ? "#fff" : "#000"; mapCtx.stroke();
     mapCtx.font = "700 11px 'Segoe UI', sans-serif"; mapCtx.textAlign = "center"; mapCtx.textBaseline = "middle";
-    mapCtx.fillStyle = "#111"; mapCtx.fillText(String(i + 1), sx, sy + 0.5);
-    const tag = p.t !== "walk" ? "[" + BOT_TYPES[p.t].label + (p.label ? " " + p.label : "") + "]" : "";
+    mapCtx.fillStyle = botTypeInk(p.t); mapCtx.fillText(String(i + 1), sx, sy + 0.5);
+    mapCtx.globalAlpha = 1;
+    const tag = p.t !== "walk" ? "[" + BOT_TYPES[p.t].label + (p.label ? " " + p.label : "") + (chk && chk.state === "bad" ? " ⚠" : "") + "]" : "";
     if (p.note || tag) {
       const full = (tag && p.note ? tag + " " + p.note : tag || p.note);
       const label = full.length > 40 ? full.slice(0, 39) + "…" : full;
@@ -3802,6 +3970,8 @@ function initMap() {
       mapTooltip.style.display = "none";
     } else if (e.touches.length === 1) {
       touchState.pinching = false;
+      const hit = routePointAt(e.touches[0].clientX - rect.left, e.touches[0].clientY - rect.top);
+      if (hit >= 0) { routeDragStart(hit); mapView.dragging = false; mapTooltip.style.display = "none"; return; }
       mapView.dragging = true;
       mapView.lastX = e.touches[0].clientX; mapView.lastY = e.touches[0].clientY;
       touchState.tapX = e.touches[0].clientX - rect.left; touchState.tapY = e.touches[0].clientY - rect.top;
@@ -3811,6 +3981,10 @@ function initMap() {
   mapCanvas.addEventListener("touchmove", function (e) {
     e.preventDefault();
     const rect = mapCanvas.getBoundingClientRect();
+    if (routeState.dragIndex != null) {
+      if (e.touches.length === 1) routeDragTo(e.touches[0].clientX - rect.left, e.touches[0].clientY - rect.top);
+      return;
+    }
     if (touchState.pinching && e.touches.length === 2) {
       const [mx, my] = touchMid(e.touches[0], e.touches[1], rect);
       const [wx, wy] = screenToWorld(mx, my);
@@ -3828,6 +4002,10 @@ function initMap() {
     }
   }, { passive: false });
   mapCanvas.addEventListener("touchend", function (e) {
+    if (routeState.dragIndex != null) {
+      if (e.touches.length === 0) { routeDragEnd(); mapView.dragging = false; touchState.pinching = false; }
+      return;
+    }
     if ((routeState.mode === "edit" || pathState.active) && !touchState.pinching && !touchState.moved && e.changedTouches.length === 1) {
       mapTooltip.style.display = "none";
       if (routeState.mode === "edit") routeAddPoint(touchState.tapX, touchState.tapY);
@@ -3866,6 +4044,10 @@ function initMap() {
   });
 
   mapCanvas.addEventListener("mousedown", function (e) {
+    if (routeState.mode === "edit") {
+      const r0 = mapCanvas.getBoundingClientRect(), hit = routePointAt(e.clientX - r0.left, e.clientY - r0.top);
+      if (hit >= 0) { e.preventDefault(); routeDragStart(hit); mapCanvas.style.cursor = "grabbing"; mapTooltip.style.display = "none"; return; }
+    }
     mapView.dragging = true;
     mapView.lastX = e.clientX; mapView.lastY = e.clientY;
     mapView.downX = e.clientX; mapView.downY = e.clientY; mapView.moved = false;
@@ -3873,6 +4055,7 @@ function initMap() {
     mapCanvas.style.cursor = ""; // let .dragging's cursor:grabbing win over any pointer/default set on hover
   });
   window.addEventListener("mouseup", function (e) {
+    if (routeState.dragIndex != null) { routeDragEnd(); mapCanvas.style.cursor = "move"; return; }
     const startedOnCanvas = mapView.dragging;
     mapView.dragging = false;
     mapCanvas.classList.remove("dragging");
@@ -3890,6 +4073,7 @@ function initMap() {
   window.addEventListener("mousemove", function (e) {
     if (state.tab !== "map") return;
     const rect = mapCanvas.getBoundingClientRect();
+    if (routeState.dragIndex != null) { routeDragTo(e.clientX - rect.left, e.clientY - rect.top); return; }
     if (mapView.dragging) {
       if (Math.abs(e.clientX - mapView.downX) > 3 || Math.abs(e.clientY - mapView.downY) > 3) mapView.moved = true;
       mapView.offX += (e.clientX - mapView.lastX);
@@ -3924,7 +4108,7 @@ function initMap() {
       mapCanvas.style.cursor = "pointer";
     } else {
       mapTooltip.style.display = "none";
-      mapCanvas.style.cursor = "grab";
+      mapCanvas.style.cursor = routePointAt(sx, sy) >= 0 ? "move" : "grab";
     }
   });
 
