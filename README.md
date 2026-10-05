@@ -25,6 +25,8 @@
 
 The same script also writes `data/derived/door-candidates.json`, the possible doors the Find path tool uses: every tile of 1-thick grey or red wall whose two opposite walkable sides fall in different 4-connected areas of that floor. Walls you could just walk around never qualify, so a route never cuts through one needlessly.
 
+The Monsters tab has a collapsible **Hunting filters** panel, computed in the browser from data already in `compendium.json`. Loot weight per kill and gold per oz come from each drop's chance × average quantity × the item's weight, and an optional "skip loot worth under N gp/oz" threshold (coins always kept) recalculates gold and weight the way a low-capacity character loots. Spawn clustering comes from the `spawnMap` points: total spawns, the best spot (most of that monster within 12 tiles of one point, plus who else spawns there), and hunting grounds (spawns chained no more than 25 tiles apart, on a shared plausible floor). There are also filters on HP, experience, speed, max damage, melee-only, no paralyze/slow, and the element you attack with (immune monsters hidden, optionally weak-to-it only), and matching sorts (gold per oz, lightest loot, gold/XP per 100 HP dealt, best spot, best spot value, biggest hunting ground). Filter settings are remembered in the browser's `localStorage`.
+
 On the Spawn Map, clicking (or tapping) anywhere that isn't a floor-connection marker copies that tile's coordinates, e.g. `x32480 y31644 z10`; the readout next to the map buttons shows the tile under the cursor.
 
 #### Hidden map tools
