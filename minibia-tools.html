@@ -104,26 +104,8 @@
     border: 1px solid var(--border); border-radius: 8px; padding: 7px 10px;
   }
   .cat-filters, .tier-filters { display: flex; gap: 6px; flex-wrap: wrap; }
-  .mon-filters { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; margin: -6px 0 16px; }
-  .mon-filters > summary { cursor: pointer; padding: 9px 14px; font-size: 13px; font-weight: 600; color: var(--text-secondary); list-style: none; display: flex; align-items: center; gap: 8px; }
-  .mon-filters > summary::-webkit-details-marker { display: none; }
-  .mon-filters > summary::before { content: "\25B6"; font-size: 9px; transition: transform .12s ease; }
-  .mon-filters[open] > summary::before { transform: rotate(90deg); }
-  .mon-filters .mf-active { color: var(--accent); }
-  .mf-body { padding: 4px 14px 14px; display: flex; flex-direction: column; gap: 14px; }
-  .mf-group-title { font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
-  .mf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px 12px; }
-  .mf-field { display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: var(--text-secondary); min-width: 0; }
-  .mf-field input[type=number], .mf-field select {
-    font: inherit; font-size: 13px; width: 100%; background: var(--surface-2); color: var(--text-primary);
-    border: 1px solid var(--border); border-radius: 6px; padding: 5px 8px;
-  }
-  .mf-check { flex-direction: row; align-items: center; gap: 6px; align-self: end; padding-bottom: 6px; }
-  .mf-note { font-size: 11.5px; color: var(--text-muted); }
-  .mf-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
   .hunt-row .chip-row .stat-chip b { font-weight: 700; }
   .spot-pin { cursor: pointer; text-decoration: underline dotted; }
-  .loot-row.skipped { opacity: .45; }
   .loot-weight { color: var(--text-muted); font-size: 11.5px; white-space: nowrap; }
   .chip {
     font: inherit; font-size: 12.5px; font-weight: 600; border: 1px solid var(--border); background: var(--surface-1);
@@ -394,50 +376,6 @@
     <div class="tier-filters" id="tier-filters"></div>
   </div>
 
-  <details class="mon-filters" id="mon-filters" style="display:none;">
-    <summary>Hunting filters <span class="mf-active" id="mf-active"></span></summary>
-    <div class="mf-body">
-      <div>
-        <div class="mf-group-title">Loot</div>
-        <div class="mf-grid">
-          <label class="mf-field">Min gold / kill<input type="number" min="0" step="1" data-mf="minGold"></label>
-          <label class="mf-field">Max loot weight / kill (oz)<input type="number" min="0" step="0.1" data-mf="maxWeight"></label>
-          <label class="mf-field">Min gold per oz of loot<input type="number" min="0" step="1" data-mf="minGoldPerOz"></label>
-          <label class="mf-field">Skip loot worth under (gp/oz)<input type="number" min="0" step="1" data-mf="pickupMin"></label>
-          <label class="mf-field">Your capacity (oz)<input type="number" min="0" step="10" data-mf="cap"></label>
-        </div>
-        <div class="mf-note">Weights are expected loot per kill. "Skip loot" leaves out drops worth less than that per oz when counting gold and weight (coins are always kept) &mdash; how a low-capacity character actually loots.</div>
-      </div>
-      <div>
-        <div class="mf-group-title">Monster</div>
-        <div class="mf-grid">
-          <label class="mf-field">Min health<input type="number" min="0" step="10" data-mf="minHp"></label>
-          <label class="mf-field">Max health<input type="number" min="0" step="10" data-mf="maxHp"></label>
-          <label class="mf-field">Min experience<input type="number" min="0" step="10" data-mf="minExp"></label>
-          <label class="mf-field">Max speed<input type="number" min="0" step="5" data-mf="maxSpeed"></label>
-          <label class="mf-field">Max damage (all attacks at once)<input type="number" min="0" step="10" data-mf="maxCombo"></label>
-          <label class="mf-field">Attacking with<select data-mf="element">
-            <option value="">Any element</option><option value="physical">Physical</option><option value="fire">Fire</option><option value="ice">Ice</option>
-            <option value="energy">Energy</option><option value="earth">Earth</option><option value="death">Death</option><option value="holy">Holy</option>
-          </select></label>
-          <label class="mf-field mf-check"><input type="checkbox" data-mf="weakOnly"> Weak to it only</label>
-          <label class="mf-field mf-check"><input type="checkbox" data-mf="meleeOnly"> Melee only</label>
-          <label class="mf-field mf-check"><input type="checkbox" data-mf="noSlow"> No paralyze/slow</label>
-        </div>
-      </div>
-      <div>
-        <div class="mf-group-title">Spawns</div>
-        <div class="mf-grid">
-          <label class="mf-field">Min spawns in world<input type="number" min="0" step="1" data-mf="minSpawns"></label>
-          <label class="mf-field">Min in best spot (12 tiles)<input type="number" min="0" step="1" data-mf="minBestSpot"></label>
-          <label class="mf-field">Min biggest hunting ground<input type="number" min="0" step="1" data-mf="minGround"></label>
-        </div>
-        <div class="mf-note">From spawn points: best spot = most of this monster within 12 tiles of one point (about a screen); a hunting ground = spawns no more than 25 tiles apart, chained. Spawn floors are inferred from terrain, so stacked dungeons can blur together.</div>
-      </div>
-      <div class="mf-actions"><button class="map-btn" type="button" id="mf-reset">Reset filters</button></div>
-    </div>
-  </details>
-
   <div class="result-count" id="result-count"></div>
   <div id="results"></div>
   <div class="pagination" id="pagination"></div>
@@ -703,31 +641,12 @@ function npcMapLinkHtml(name) {
 
 // --- Hunting stats: loot weight and spawn clustering per monster ---
 // Item weights in the data are hundredths of an oz (gold coin = 10 = 0.10 oz).
-const COIN_NAMES = { "gold coin": 1, "platinum coin": 1, "crystal coin": 1 };
 const SPOT_RADIUS = 12;    // "best spot": this monster within 12 tiles (about a screen)
 const GROUND_LINK = 25;    // spawn points this close (chained) form one hunting ground
-const MONSTER_FILTER_KEY = "minibia.monsterFilters";
-const MF_DEFAULTS = {
-  minGold: "", maxWeight: "", minGoldPerOz: "", pickupMin: "", cap: "",
-  minHp: "", maxHp: "", minExp: "", maxSpeed: "", maxCombo: "", element: "", weakOnly: false, meleeOnly: false, noSlow: false,
-  minSpawns: "", minBestSpot: "", minGround: ""
-};
-function mfLoad() {
-  const out = Object.assign({}, MF_DEFAULTS);
-  try {
-    const saved = JSON.parse(localStorage.getItem(MONSTER_FILTER_KEY) || "{}");
-    Object.keys(MF_DEFAULTS).forEach(function (k) {
-      if (saved[k] !== undefined && typeof saved[k] === typeof MF_DEFAULTS[k]) out[k] = saved[k];
-    });
-  } catch (e) { /* no storage - defaults */ }
-  return out;
-}
-function mfSave(mf) { try { localStorage.setItem(MONSTER_FILTER_KEY, JSON.stringify(mf)); } catch (e) { /* ignore */ } }
-function mfNum(v) { if (v === "" || v == null) return null; const n = Number(v); return Number.isFinite(n) ? n : null; }
 
-// Expected loot per kill: weight (oz) and value, optionally skipping drops
-// worth less than `pickupMin` gp per oz (coins always kept).
-function monsterLootTotals(m, pickupMin) {
+// Expected loot per kill: weight (oz) and value. Weight only counts drops
+// with a price - nobody carries off the empty bag or unsellable junk.
+function monsterLootTotals(m) {
   let gold = 0, weight = 0, unknownWeight = 0;
   m.loot.forEach(function (l) {
     const it = findItemByName(l.name);
@@ -735,18 +654,17 @@ function monsterLootTotals(m, pickupMin) {
     const unitOz = it && it.weight != null ? it.weight / 100 : null;
     l.unitOz = unitOz;
     l.gpPerOz = unitOz ? l.unitPrice / unitOz : null;
-    l.skipped = !!(pickupMin && !COIN_NAMES[l.name.toLowerCase()] && unitOz && l.gpPerOz < pickupMin);
-    if (l.skipped) return;
     gold += l.value || 0;
+    if (!(l.unitPrice > 0)) return;
     if (unitOz == null) unknownWeight++;
     else weight += avgQty * unitOz;
   });
   return { gold: gold, weight: weight, unknownWeight: unknownWeight };
 }
 
-function applyLootPickup(pickupMin) {
+function computeLootStats() {
   (DATA.monsters || []).forEach(function (m) {
-    const t = monsterLootTotals(m, pickupMin);
+    const t = monsterLootTotals(m);
     m.pickGold = Math.round(t.gold * 100) / 100;
     // No valuable loot -> no meaningful loot weight (keeps loot-less critters
     // out of "lightest loot" and the weight filters).
@@ -811,40 +729,6 @@ function maskFloor(f) {
   return best;
 }
 
-function monsterHasElementImmunity(m, el) {
-  if (m.immunities.indexOf(el) >= 0) return true;
-  return m.elements.some(function (e) { return e.key === el && e.pct >= 100; });
-}
-function monsterElementPct(m, el) {
-  const e = m.elements.find(function (x) { return x.key === el; });
-  return e ? e.pct : 0;
-}
-function monsterMaxCombo(m) {
-  return m.attacks.filter(function (a) { return a.max > 0 && a.name !== "manadrain"; })
-    .reduce(function (s, a) { return s + a.max; }, 0);
-}
-const SLOW_ATTACKS = { speed: 1, "quara constrictor freeze": 1 };
-function monsterPassesFilters(m, mf) {
-  const ge = function (v, lim) { lim = mfNum(lim); return lim === null || (v != null && v >= lim); };
-  const le = function (v, lim) { lim = mfNum(lim); return lim === null || (v != null && v <= lim); };
-  if (!ge(m.pickGold, mf.minGold)) return false;
-  if (!le(m.lootWeight, mf.maxWeight)) return false;
-  if (mfNum(mf.minGoldPerOz) !== null && !(m.goldPerOz == null && m.pickGold > 0 && m.lootWeight === 0) && !ge(m.goldPerOz, mf.minGoldPerOz)) return false;
-  if (!ge(m.health, mf.minHp) || !le(m.health, mf.maxHp)) return false;
-  if (!ge(m.experience, mf.minExp) || !le(m.speed, mf.maxSpeed)) return false;
-  if (!le(monsterMaxCombo(m), mf.maxCombo)) return false;
-  if (mf.element) {
-    if (monsterHasElementImmunity(m, mf.element)) return false;
-    if (mf.weakOnly && !(monsterElementPct(m, mf.element) < 0)) return false;
-  }
-  if (mf.meleeOnly && m.attacks.some(function (a) { return a.name !== "melee" && a.name !== "physical"; })) return false;
-  if (mf.noSlow && m.attacks.some(function (a) { return SLOW_ATTACKS[a.name]; })) return false;
-  if (!ge(m.spawnTotal, mf.minSpawns) || !ge(m.bestSpot, mf.minBestSpot) || !ge(m.groundMax, mf.minGround)) return false;
-  return true;
-}
-function mfActiveCount(mf) {
-  return Object.keys(MF_DEFAULTS).filter(function (k) { return mf[k] !== MF_DEFAULTS[k] && mf[k] !== null; }).length;
-}
 
 function goToSpotOnMap(name) {
   const m = findMonsterByName(name);
@@ -1541,9 +1425,8 @@ let state = {
   rcVoc: "sorcerer", rcRing: "none", rcSpell: "heavyMagicMissile", rcQtyMode: "100"
 };
 
-state.mf = mfLoad();
 (DATA.monsters || []).forEach(function (m) { m.expPerHp = m.health > 0 ? m.experience / m.health * 100 : null; });
-applyLootPickup(mfNum(state.mf.pickupMin));
+computeLootStats();
 
 function esc(s) { return String(s == null ? "" : s); }
 function fmt(n) { return Number(n).toLocaleString("en-US"); }
@@ -1621,7 +1504,6 @@ function renderControlsVisibility() {
   const countEl = document.getElementById("result-count");
 
   mapWrap.classList.toggle("active", state.tab === "map");
-  document.getElementById("mon-filters").style.display = state.tab === "monsters" ? "" : "none";
   runeWrap.classList.toggle("active", state.tab === "runecalc");
   huntWrap.classList.toggle("active", state.tab === "hunt");
 
@@ -1737,18 +1619,14 @@ function huntingRowHtml(m) {
   if (m.lootWeight != null) {
     chips.push('<span class="stat-chip">loot <b>' + fmtOz(m.lootWeight) + '</b> oz/kill</span>');
     if (m.goldPerOz != null) chips.push('<span class="stat-chip"><b>' + fmt(Math.round(m.goldPerOz)) + '</b> gp per oz</span>');
-    const cap = mfNum(state.mf.cap);
-    if (cap && m.lootWeight > 0) {
-      const kills = Math.floor(cap / m.lootWeight);
-      chips.push('<span class="stat-chip">' + fmt(cap) + ' oz cap fills in ≈<b>' + fmt(kills) + '</b> kills (≈' + fmt(Math.round(kills * m.pickGold)) + 'gp)</span>');
-    }
     if (m.lootWeightUnknown) chips.push('<span class="stat-chip">' + m.lootWeightUnknown + ' drop' + (m.lootWeightUnknown > 1 ? 's' : '') + ' with unknown weight</span>');
   }
-  if (m.experience > 0 && m.health > 0) chips.push('<span class="stat-chip"><b>' + (Math.round(m.expPerHp * 10) / 10) + '</b> xp per 100 hp</span>');
+  if (m.goldPerHp) chips.push('<span class="stat-chip" title="Expected loot value per 100 HP of damage dealt - rewards fast kills"><b>' + (Math.round(m.goldPerHp * 10) / 10) + '</b> gp per 100 hp</span>');
+  if (m.experience > 0 && m.health > 0) chips.push('<span class="stat-chip" title="Experience per 100 HP of damage dealt"><b>' + (Math.round(m.expPerHp * 10) / 10) + '</b> xp per 100 hp</span>');
   if (m.spawnTotal) {
-    chips.push('<span class="stat-chip"><b>' + fmt(m.spawnTotal) + '</b> spawns in ' + m.groundCount + ' area' + (m.groundCount > 1 ? 's' : '') + ', biggest <b>' + fmt(m.groundMax) + '</b></span>');
+    chips.push('<span class="stat-chip" title="An area = spawn points chained no more than 25 tiles apart"><b>' + fmt(m.spawnTotal) + '</b> spawns in ' + m.groundCount + ' area' + (m.groundCount > 1 ? 's' : '') + ', biggest <b>' + fmt(m.groundMax) + '</b></span>');
     const at = m.bestSpotAt, z = maskFloor(at.f);
-    chips.push('<span class="stat-chip spot-pin" data-goto-spot="' + escAttr(m.name) + '" title="Show this spot on the map">best spot <b>' + fmt(m.bestSpot) + '</b> within 12 tiles · x' + at.x + ' y' + at.y + (z !== null ? ' z' + z : '') + ' 📍</span>');
+    chips.push('<span class="stat-chip spot-pin" data-goto-spot="' + escAttr(m.name) + '" title="Most of this monster within 12 tiles of one point (about a screen). Click to show it on the map. Floors are inferred from terrain.">best spot <b>' + fmt(m.bestSpot) + '</b> within 12 tiles · x' + at.x + ' y' + at.y + (z !== null ? ' z' + z : '') + ' 📍</span>');
     if (m.spotOthers.length) chips.push('<span class="stat-chip">also there: ' + m.spotOthers.map(function (o) { return o.name + ' ×' + o.n; }).join(', ') + '</span>');
   } else {
     chips.push('<span class="stat-chip">no spawn data</span>');
@@ -1777,7 +1655,7 @@ function renderMonsterCard(m) {
     const weightLabel = l.unitOz != null ? (fmtOz(l.unitOz) + " oz" + (l.gpPerOz != null && l.unitPrice > 0 ? " · " + fmt(Math.round(l.gpPerOz)) + " gp/oz" : "")) : "";
     const linkOpen = itemLinkOpen(l.name);
     const nameHtml = '<span class="xlink-text">' + l.name + (l.max > 1 ? ' (' + l.min + '-' + l.max + ')' : '') + '</span>';
-    return '<div class="loot-row' + (l.skipped ? ' skipped" title="Skipped: worth less than your pick-up threshold per oz' : '') + '">' +
+    return '<div class="loot-row">' +
       '<span class="loot-name">' + linkOpen + nameHtml + '</span>' + (weightLabel ? ' <span class="loot-weight">' + weightLabel + '</span>' : '') + '</span>' +
       '<span class="loot-pct num">' + pct(l.probability) + '</span>' +
       '<span class="loot-bar-wrap"><span class="loot-bar" style="width:' + (l.probability / maxLootP * 100) + '%"></span></span>' +
@@ -2062,7 +1940,6 @@ function render() {
   if (state.tab === "monsters" && state.tier !== "all") {
     list = list.filter(function (m) { return String(m.tier) === state.tier; });
   }
-  if (state.tab === "monsters") list = list.filter(function (m) { return monsterPassesFilters(m, state.mf); });
   if (q) list = list.filter(function (o) { return matchesQuery(o, state.tab, q); });
 
   sortList(list, state.sort);
@@ -3659,43 +3536,6 @@ document.getElementById("search").addEventListener("input", function (e) {
 });
 document.getElementById("sort").addEventListener("change", function (e) { state.sort = e.target.value; state.page = 1; render(); });
 
-// Monster hunting filters: inputs carry data-mf="<key>" matching state.mf.
-(function () {
-  const panel = document.getElementById("mon-filters");
-  const inputs = panel.querySelectorAll("[data-mf]");
-  const syncInputs = function () {
-    inputs.forEach(function (el) {
-      const k = el.getAttribute("data-mf");
-      if (el.type === "checkbox") el.checked = !!state.mf[k];
-      else el.value = state.mf[k];
-    });
-    const n = mfActiveCount(state.mf);
-    document.getElementById("mf-active").textContent = n ? "(" + n + " active)" : "";
-  };
-  const onChange = function (e) {
-    const el = e.target, k = el.getAttribute("data-mf");
-    if (!k) return;
-    const val = el.type === "checkbox" ? el.checked : el.value;
-    if (state.mf[k] === val) return;   // e.g. the "change" that follows "input" on blur
-    const before = state.mf.pickupMin;
-    state.mf[k] = val;
-    if (k === "pickupMin" && state.mf.pickupMin !== before) applyLootPickup(mfNum(state.mf.pickupMin));
-    mfSave(state.mf);
-    const n = mfActiveCount(state.mf);
-    document.getElementById("mf-active").textContent = n ? "(" + n + " active)" : "";
-    if (state.tab === "monsters") render();
-  };
-  panel.addEventListener("input", onChange);
-  panel.addEventListener("change", onChange);
-  document.getElementById("mf-reset").addEventListener("click", function () {
-    state.mf = Object.assign({}, MF_DEFAULTS);
-    applyLootPickup(null);
-    mfSave(state.mf);
-    syncInputs();
-    render();
-  });
-  syncInputs();
-})();
 
 // Rune Making calculator: chip rows are rebuilt by renderRuneCalcChips()
 // (see rcSetVoc/rcSetRing/rcSetSpell/rcSetQtyMode above), but the price/qty
