@@ -3118,6 +3118,18 @@ const NPC_PRESET_FIELDS = {
   "sell-items": [], "refill-supplies": [], "custom": ["customLines"]
 };
 const BOT_PARAMS_MAX = 6000; // chars of JSON per point, from links/imports
+// The full param set the bot writes on every waypoint in its own exports.
+// Share links leave out values equal to these (flagging the point "f") and
+// put them back on open, so a pasted bot route survives a link unchanged
+// without carrying ~30 defaults per point.
+const BOT_FULL_DEFAULTS = {
+  targetOffset: "here", standDirection: "here", waitMs: 1000, itemName: "", npcPreset: "deposit-all", npcName: "", amount: 200,
+  customLines: "", targetLabel: "", lowTargetLabel: "", okTargetLabel: "", lowTargetId: "next", okTargetId: "next",
+  tradeGreeting: "hi", tradeKeyword: "trade", tradeItemName: "", buyMode: "fixed", fillTo: 100, refillRows: null, sellRows: [],
+  sellSkipUnavailable: true, supplyRuleId: "", transitionTarget: "auto", dropItemName: "", dropMode: "all", dropAmount: 1,
+  dropKeep: 0, dropTargetOffset: "here", dropRequireFull: false
+};
+function botIsFullSet(params) { return Object.keys(BOT_FULL_DEFAULTS).every(function (k) { return k in params; }); }
 
 function botClone(o) { return JSON.parse(JSON.stringify(o)); }
 function routeMakePoint(z, x, y, note, bot) {
@@ -3164,7 +3176,14 @@ function routeEncode() {
       if (p.id) b.i = p.id;
       if (p.label) b.l = p.label;
       if (!p.en) b.e = 0;
-      if (Object.keys(p.params).length) b.p = p.params;
+      if (botIsFullSet(p.params)) {
+        b.f = 1;
+        const slim = {};
+        Object.keys(p.params).forEach(function (k) {
+          if (!(k in BOT_FULL_DEFAULTS) || JSON.stringify(p.params[k]) !== JSON.stringify(BOT_FULL_DEFAULTS[k])) slim[k] = p.params[k];
+        });
+        if (Object.keys(slim).length) b.p = slim;
+      } else if (Object.keys(p.params).length) b.p = p.params;
       q.push(b);
     }
     return q;
@@ -3192,7 +3211,8 @@ function routeDecode(code) {
       if (![z, x, y].every(Number.isInteger) || z < MAP_FLOOR_MIN || z > MAP_FLOOR_MAX) return;
       const b = q[4] && typeof q[4] === "object" && !Array.isArray(q[4]) ? q[4] : null;
       points.push(routeMakePoint(z, x, y, typeof q[3] === "string" ? q[3].slice(0, ROUTE_NOTE_MAX) : "",
-        b ? { t: b.t, id: b.i, label: b.l, en: b.e !== 0, params: botSafeParams(b.p) } : null));
+        b ? { t: b.t, id: b.i, label: b.l, en: b.e !== 0,
+              params: b.f === 1 ? Object.assign(botClone(BOT_FULL_DEFAULTS), botSafeParams(b.p) || {}) : botSafeParams(b.p) } : null));
     });
     if (!points.length) return null;
     return { title: typeof obj.t === "string" ? obj.t.slice(0, ROUTE_TITLE_MAX) : "", loop: obj.l === 1, points: points };
@@ -3331,7 +3351,9 @@ function botSettingsEl(p, i) {
   const en = document.createElement("input"); en.type = "checkbox"; en.checked = p.en;
   field("Enabled", en).addEventListener("change", function () { p.en = en.checked; routeRenderList(); changed(); });
 
-  let keys = Object.keys(p.params).filter(function (k) { return BOT_FIELDS[k]; });
+  // Only the fields that matter for this type (the bot itself writes every
+  // param on every waypoint; the rest stay untouched in "All params").
+  let keys = Object.keys(BOT_TYPES[p.t].params).filter(function (k) { return BOT_FIELDS[k]; });
   if (p.t === "npc") {
     const preset = NPC_PRESETS.indexOf(p.params.npcPreset) >= 0 ? p.params.npcPreset : "deposit-all";
     keys = ["npcName", "npcPreset"].concat(NPC_PRESET_FIELDS[preset]);
@@ -3344,9 +3366,10 @@ function botSettingsEl(p, i) {
       (f.kind === "select" ? f.opts : (f.kind === "dirauto" ? ["auto"] : []).concat(BOT_DIRS)).forEach(function (o) {
         const opt = document.createElement("option"); opt.value = o; opt.textContent = o; el.appendChild(opt);
       });
-      el.value = p.params[k] != null ? String(p.params[k]) : el.options[0].value;
+      const dv = k in p.params ? p.params[k] : BOT_TYPES[p.t].params[k];
+      el.value = dv != null ? String(dv) : el.options[0].value;
     } else if (f.kind === "num") {
-      el = document.createElement("input"); el.type = "number"; el.value = p.params[k] != null ? p.params[k] : "";
+      el = document.createElement("input"); el.type = "number"; el.value = p.params[k] != null ? p.params[k] : (BOT_TYPES[p.t].params[k] != null ? BOT_TYPES[p.t].params[k] : "");
     } else if (f.kind === "check") {
       el = document.createElement("input"); el.type = "checkbox"; el.checked = !!p.params[k];
     } else if (f.kind === "textarea") {
@@ -3536,7 +3559,8 @@ function botImport(text) {
       en: w.enabled !== false, params: params
     });
   });
-  return { points: points, warnings: warn, hadSettings: !!(data && !Array.isArray(data) && data.settings) };
+  const settings = data && !Array.isArray(data) && data.settings && typeof data.settings === "object" ? data.settings : null;
+  return { points: points, warnings: warn, hadSettings: !!settings, loop: settings && typeof settings.loop === "boolean" ? settings.loop : true };
 }
 
 function botRenderMessages(extra) {
@@ -3977,16 +4001,16 @@ function initMap() {
     const ta = document.getElementById("route-bot-import-text");
     const r = botImport(ta.value);
     if (r.error) { botRenderMessages(r.error); return; }
-    routeState.points = r.points; routeState.loop = true; routeState.undoFill = null; routeState.open.clear();
-    document.getElementById("route-loop").checked = true;
+    routeState.points = r.points; routeState.loop = r.loop; routeState.undoFill = null; routeState.open.clear();
+    document.getElementById("route-loop").checked = r.loop;
     document.getElementById("route-bot-unfill").style.display = "none";
     document.getElementById("route-bot-import").hidden = true;
     ta.value = "";
     setMapFloor(r.points[0].z);
     routeFitFloor(r.points[0].z);
     routeChanged();
-    botRenderMessages("Imported " + r.points.length + " waypoints (shown looping, like the bot)." +
-      (r.hadSettings ? " The \"settings\" part was ignored." : "") +
+    botRenderMessages("Imported " + r.points.length + " waypoints" + (r.loop ? " (shown looping, like the bot)." : ".") +
+      (r.hadSettings ? " Only the route is used - the bot's \"settings\" stay out of exports, so they won't overwrite your Cave settings." : "") +
       (r.warnings.length ? " Check: " + r.warnings.slice(0, 5).join("; ") + (r.warnings.length > 5 ? " (+" + (r.warnings.length - 5) + " more)" : "") : ""));
   });
   document.getElementById("route-edit").addEventListener("click", routeStartEdit);
