@@ -259,10 +259,64 @@
   .rc-output-tile .value.good { color: var(--good); }
   .rc-output-tile .value.bad { color: var(--bad); }
   .rc-output-tile .label { color: var(--text-secondary); font-size: 10.5px; letter-spacing: .02em; margin-top: 2px; text-transform: uppercase; }
-  .map-shell { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 10px; box-shadow: var(--shadow); }
+  /* Map workspace: map + toolbar on the left, a side panel for the current
+     mode (spawns / find path / route builder) on the right, stacked on
+     narrow screens. */
+  .mapx { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 12px; align-items: start; }
+  .mapx-main, .mapx-side { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow); }
+  .mapx-main { padding: 10px; min-width: 0; }
+  .mapx-side { padding: 14px; max-height: 720px; overflow-y: auto; min-width: 0; }
+  .mapx-panel { display: flex; flex-direction: column; gap: 10px; }
+  .mapx-panel[hidden] { display: none; }
+  .mapx-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+  .mapx-toolbar-right { display: flex; gap: 6px; }
+  .mapx-h { font-size: 11.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--text-muted); }
+  .mapx-h-row { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+  .mapx-p { margin: 0; font-size: 12.5px; color: var(--text-secondary); line-height: 1.45; }
+  .mapx-tips { margin: 0; padding-left: 18px; font-size: 12.5px; color: var(--text-secondary); display: flex; flex-direction: column; gap: 3px; }
+  .mapx-tools { border-top: 1px solid var(--border); padding-top: 10px; }
+  .mapx-tools > summary { cursor: pointer; font-size: 12.5px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; }
+  .mapx-side .route-panel { margin: 0; padding: 0; border: 0; background: none; }
+  .mapx-side .route-points { max-height: 380px; }
+  .seg { display: inline-flex; gap: 2px; padding: 3px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--border); max-width: 100%; overflow-x: auto; }
+  .seg button { font: inherit; font-size: 13px; font-weight: 600; border: 0; background: transparent; color: var(--text-secondary); padding: 6px 14px; border-radius: 999px; cursor: pointer; white-space: nowrap; }
+  .seg button:hover { color: var(--text-primary); }
+  .seg button.active { background: var(--accent); color: var(--accent-ink); }
+  .map-ovl { position: absolute; z-index: 4; background: color-mix(in srgb, var(--surface-1) 90%, transparent); border: 1px solid var(--border); border-radius: 8px; box-shadow: var(--shadow); }
+  .map-ovl-floor { top: 10px; left: 10px; display: flex; align-items: center; gap: 2px; padding: 3px; }
+  .map-ovl-floor .map-floor-label { min-width: 150px; font-size: 12.5px; font-weight: 600; color: var(--text-primary); }
+  .map-ovl-coords { bottom: 10px; left: 10px; padding: 3px 8px; font-size: 11.5px; font-family: 'SF Mono', Consolas, monospace; color: var(--text-secondary); pointer-events: none; }
+  .map-ovl-coords:empty { display: none; }
+  .map-layers-pop { top: 10px; right: 10px; width: 270px; max-width: calc(100% - 20px); padding: 10px 12px; display: flex; flex-direction: column; gap: 10px; }
+  .map-layers-pop[hidden] { display: none; }
+  .layer-opt { display: grid; grid-template-columns: auto 1fr; gap: 1px 8px; align-items: center; font-size: 13px; font-weight: 600; color: var(--text-primary); cursor: pointer; }
+  .layer-opt small { grid-column: 2; font-size: 11.5px; font-weight: 400; color: var(--text-muted); line-height: 1.35; }
+  #map-layers-btn.active { border-color: var(--accent); color: var(--accent); background: var(--surface-2); }
+  /* Route rows in the narrow side panel: number, check, type, buttons on
+     the first line; coordinates and note on the second. */
+  .mapx-side .route-row { flex-wrap: wrap; row-gap: 4px; }
+  .mapx-side .route-row select.route-type { flex: 1 1 auto; max-width: none; min-width: 0; }
+  .mapx-side .route-row .route-where { order: 9; margin-left: 30px; }
+  .mapx-side .route-row .route-note { order: 10; flex: 1 1 120px; }
+  .mapx-side .route-row .route-type-view { flex: 1 1 auto; }
+  .mapx-side .route-bot-settings { margin-left: 8px; }
+  /* On wide screens the map workspace breaks out of the page column. */
+  @media (min-width: 1180px) {
+    .mapx { width: min(1520px, calc(100vw - 80px)); margin-left: calc((100% - min(1520px, calc(100vw - 80px))) / 2); }
+    .mapx { grid-template-columns: minmax(0, 1fr) 360px; }
+    .mapx #map-canvas { height: 700px; }
+    .mapx-side { max-height: 772px; }
+  }
+  @media (max-width: 960px) {
+    .mapx { grid-template-columns: 1fr; }
+    .mapx-side { max-height: none; }
+  }
+  @media (max-width: 560px) {
+    .map-ovl-floor .map-floor-label { min-width: 0; font-size: 11.5px; }
+    .seg button { padding: 6px 10px; font-size: 12.5px; }
+  }
   #map-canvas { width: 100%; height: 640px; display: block; border-radius: 6px; background: var(--surface-2); cursor: grab; touch-action: none; }
   #map-canvas.dragging { cursor: grabbing; }
-  .map-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 10px; flex-wrap: wrap; }
   .map-legend { display: flex; gap: 6px; flex-wrap: wrap; }
   .map-meta { color: var(--text-muted); font-size: 12.5px; }
   .map-btn {
@@ -272,7 +326,7 @@
   .map-btn:hover { border-color: var(--accent); }
   .map-btn:disabled { opacity: .38; cursor: default; border-color: var(--border); }
   .map-btn.active { border-color: var(--accent); color: var(--accent-ink); background: var(--accent); }
-  .map-path-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 12.5px; color: var(--text-secondary); margin-top: 8px; }
+  .map-path-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 12.5px; color: var(--text-secondary); }
   .map-path-floors { display: inline-flex; align-items: center; gap: 4px; flex-wrap: wrap; }
   .map-path-floors .chip { padding: 3px 9px; font-size: 12px; }
   .route-panel { margin-top: 10px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-1); display: flex; flex-direction: column; gap: 8px; }
@@ -423,107 +477,130 @@
   <div class="pagination" id="pagination"></div>
 
   <div id="map-wrap">
-    <div class="map-shell">
-      <div class="map-canvas-wrap">
-        <canvas id="map-canvas"></canvas>
-        <div class="map-tooltip" id="map-tooltip"><div class="t-name"></div><div class="t-meta"></div></div>
-        <div class="map-copy-toast" id="map-copy-toast"></div>
-      </div>
-      <div class="map-toolbar">
-        <div class="map-legend" id="map-legend"></div>
-        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-          <div class="map-floor">
-            <button class="map-btn map-floor-btn" id="map-floor-up" title="Up one floor">▲</button>
+    <div class="mapx">
+      <div class="mapx-main">
+        <div class="mapx-toolbar">
+          <div class="seg" id="map-modes" role="tablist" aria-label="Map mode">
+            <button type="button" role="tab" data-mode="explore" class="active">Spawns</button>
+            <button type="button" role="tab" data-mode="path">Find path</button>
+            <button type="button" role="tab" data-mode="route">Route builder</button>
+          </div>
+          <div class="mapx-toolbar-right">
+            <button class="map-btn" id="map-layers-btn" type="button" aria-expanded="false">Layers</button>
+            <button class="map-btn" id="map-reset" type="button">Reset view</button>
+          </div>
+        </div>
+        <div class="map-canvas-wrap">
+          <canvas id="map-canvas"></canvas>
+          <div class="map-tooltip" id="map-tooltip"><div class="t-name"></div><div class="t-meta"></div></div>
+          <div class="map-copy-toast" id="map-copy-toast"></div>
+          <div class="map-ovl map-ovl-floor">
+            <button class="map-btn map-floor-btn" id="map-floor-up" type="button" title="Up one floor">▲</button>
             <span class="map-floor-label" id="map-floor-label">Ground floor (z=7)</span>
-            <button class="map-btn map-floor-btn" id="map-floor-down" title="Down one floor">▼</button>
+            <button class="map-btn map-floor-btn" id="map-floor-down" type="button" title="Down one floor">▼</button>
           </div>
-          <span class="map-meta" id="map-meta">–</span>
-          <label class="map-floor-filter-toggle" title="Experimental: hide spawn dots sitting over unexplored terrain, walls, water, lava or dense forest on the current floor \u2014 cross-checked against the client's own item walkability flags, not just guessed by color. A monster with no plausible floor anywhere still shows everywhere, so nothing silently vanishes.">
-            <input type="checkbox" id="map-floor-filter">
-            Hide implausible floors <span class="beta-tag">beta</span>
-          </label>
-          <label class="map-floor-filter-toggle" title="Spawn clusters that match real-Tibia spawns of the same monster (within 8 tiles) only show on that floor, with a white ring. Built by scripts/gen-known-floors.py.">
-            <input type="checkbox" id="map-known-floors" checked>
-            Real-Tibia floors <span class="beta-tag">beta</span>
-          </label>
-          <label class="map-floor-filter-toggle" id="map-connections-toggle-wrap" style="display:none;" title="Experimental: marks tiles the minimap draws as stairs/ladders/holes/ropeholes, and guesses which floor(s) each connects to from the terrain alone \u2014 solid marker = another such tile found on that floor, faint = inferred from walkable-vs-void asymmetry only. Click a marker to jump to the floor it connects to.">
-            <input type="checkbox" id="map-connections-toggle">
-            Show floor connections <span class="beta-tag">beta</span>
-          </label>
-          <button class="map-btn" id="map-label-unknowns-btn" style="display:none;" title="Step through markers the algorithm couldn't resolve and label each up/down/unknown by eye; export your answers as JSON to fold back into the data.">Label unknowns</button>
-          <button class="map-btn" id="map-route-btn" style="display:none;" title="Click out waypoints to draw a hunting route; share it as a link.">Draw route</button>
-          <button class="map-btn" id="map-kf-btn" style="display:none;" title="Test: match a real-Tibia spawn export against our spawn clusters to find which floor each is on.">Known floors (test)</button>
-          <button class="map-btn" id="map-path-btn" style="display:none;" title="Experimental: click a start and an end point on the map to find a walking route, using detected stairs/ladders/holes to change floors.">Find path</button>
-          <span class="map-meta" id="map-cursor-coords"></span>
-          <button class="map-btn" id="map-reset">Reset view</button>
-        </div>
-      </div>
-      <div class="map-path-bar" id="map-path-bar" style="display:none;">
-        <span id="map-path-status"></span>
-        <span class="map-path-floors" id="map-path-floors"></span>
-      </div>
-      <div class="route-panel kf-panel" id="kf-panel" style="display:none;">
-        <div class="route-bot-title">Known floors from real-Tibia spawns (test)</div>
-        <div class="route-status">Load a real-Tibia spawn export (one monster or the whole file - anything with <code>"monster": {"name"}</code> and <code>"spots": [{"spawns": [{"x","y","z"}]}]</code>). Each of our spawn clusters with real spawns of the same monster within the radius takes their floor, if our terrain allows it there. Known-floor dots then show only on their floor, with a white ring. The built-in floors come from a full export (see the Real-Tibia floors toggle); a file loaded here only previews for this visit.</div>
-        <div class="route-actions">
-          <label class="route-bot-spacing">Export file <input type="file" id="kf-file" accept=".json,application/json"></label>
-          <label class="route-bot-spacing">Match radius
-            <select id="kf-radius"><option value="5">5 tiles</option><option value="8" selected>8 tiles</option><option value="12">12 tiles</option></select>
-          </label>
-        </div>
-        <textarea id="kf-text" class="kf-text" rows="3" spellcheck="false" placeholder="...or paste the export here"></textarea>
-        <div class="route-actions">
-          <button class="map-btn" id="kf-run" type="button">Match pasted text</button>
-          <button class="map-btn" id="kf-download" type="button">Download result</button>
-          <button class="map-btn" id="kf-clear" type="button">Clear known floors</button>
-          <button class="map-btn" id="kf-close" type="button">Close</button>
-        </div>
-        <div class="route-bot-msg" id="kf-status"></div>
-        <div class="kf-results" id="kf-results"></div>
-      </div>
-      <div class="route-panel" id="route-panel" style="display:none;">
-        <input type="text" class="route-title-input edit-only" id="route-title" maxlength="120" placeholder="Route title, e.g. Dragon hunt north of the city">
-        <h3 class="route-title view-only" id="route-title-view"></h3>
-        <div class="route-status" id="route-status"></div>
-        <div class="route-legend" id="route-legend"></div>
-        <ol class="route-points" id="route-points"></ol>
-        <div class="route-actions">
-          <label class="map-floor-filter-toggle edit-only"><input type="checkbox" id="route-loop"> Loop back to start</label>
-          <button class="map-btn edit-only" id="route-undo" type="button">Undo last point</button>
-          <button class="map-btn edit-only" id="route-clear" type="button">Clear</button>
-          <button class="map-btn edit-only" id="route-copy" type="button">Copy share link</button>
-          <button class="map-btn view-only" id="route-edit" type="button" style="display:none;">Edit a copy</button>
-          <button class="map-btn" id="route-close" type="button">Close route</button>
-        </div>
-        <input type="text" class="route-link edit-only" id="route-link" readonly aria-label="Share link">
-        <div class="route-bot">
-          <div class="route-bot-title">Cave bot route</div>
-          <div class="route-actions">
-            <label class="route-bot-spacing edit-only">Walk waypoint every
-              <select id="route-bot-spacing">
-                <option value="0">none (floor changes only)</option>
-                <option value="5">5 tiles</option>
-                <option value="8">8 tiles</option>
-                <option value="10" selected>10 tiles</option>
-                <option value="15">15 tiles</option>
-                <option value="25">25 tiles</option>
-              </select>
-            </label>
-            <button class="map-btn edit-only" id="route-bot-fill" type="button" title="Add walk waypoints along the path and a waypoint at every stairs/hole/ladder it takes">Fill in bot waypoints</button>
-            <button class="map-btn edit-only" id="route-bot-unfill" type="button" style="display:none;">Undo fill-in</button>
-            <button class="map-btn" id="route-bot-copy" type="button">Copy bot JSON</button>
-            <button class="map-btn" id="route-bot-download" type="button">Download .json</button>
-            <button class="map-btn edit-only" id="route-bot-import-toggle" type="button">Import bot JSON</button>
+          <span class="map-ovl map-ovl-coords" id="map-cursor-coords"></span>
+          <div class="map-ovl map-layers-pop" id="map-layers" hidden>
+            <div class="mapx-h">Layers</div>
+            <label class="layer-opt"><input type="checkbox" id="map-known-floors" checked><span>Real-Tibia floors</span>
+              <small>Spawns matched to real-Tibia spawns of the same monster show only on their floor (white ring).</small></label>
+            <label class="layer-opt"><input type="checkbox" id="map-floor-filter"><span>Hide implausible floors</span>
+              <small>Hide other spawn dots over terrain this floor can't have them on (void, walls, water, lava).</small></label>
+            <label class="layer-opt"><input type="checkbox" id="map-connections-toggle"><span>Stairs &amp; holes</span>
+              <small>Detected stairs, ladders, holes and rope spots with their direction. Click one to change floor.</small></label>
           </div>
-          <div class="route-bot-import edit-only" id="route-bot-import" hidden>
-            <textarea id="route-bot-import-text" rows="5" spellcheck="false" placeholder='Paste the route from the bot (Cave → Route → Copy), e.g. { "version": 1, "route": [ ... ] }'></textarea>
-            <div class="route-actions"><button class="map-btn" id="route-bot-import-go" type="button">Import (replaces this route)</button></div>
-          </div>
-          <div class="route-bot-msg" id="route-bot-msg"></div>
         </div>
       </div>
-      <div class="map-hint">Scroll to zoom, drag to pan, hover a dot for details, click (or tap) the map to copy that tile's coordinates. Terrain is decoded from the client's own <code>minimap.bin</code> at full 1&nbsp;px&nbsp;=&nbsp;1&nbsp;tile resolution — colors and coverage match what the game itself would show, not a live render. Use ▲/▼ to change floor (16 floors, z=7 is ground). Only the main explored region is drawn; a few far-flung spawn clusters sit outside it. <strong>Spawn data has no floor axis</strong>, so the same spawn dots are shown on every floor — the floor control only swaps the terrain behind them.</div>
+      <aside class="mapx-side">
+        <section class="mapx-panel" data-panel="explore">
+          <div class="mapx-h-row"><div class="mapx-h">Spawns</div><span class="map-meta" id="map-meta">–</span></div>
+          <div class="map-legend" id="map-legend"></div>
+          <ul class="mapx-tips">
+            <li>Filter by monster with the search box above; hover a dot for details.</li>
+            <li>Scroll to zoom, drag to pan, ▲/▼ to change floor (z=7 is ground).</li>
+            <li>Click the map to copy that tile's coordinates.</li>
+          </ul>
+          <details class="mapx-tools">
+            <summary>Data tools</summary>
+            <div class="route-actions">
+              <button class="map-btn" id="map-label-unknowns-btn" type="button" title="Step through stairs/holes the algorithm couldn't resolve and label each up/down/unknown by eye; export your answers as JSON to fold back into the data.">Label unresolved stairs</button>
+              <button class="map-btn" id="map-kf-btn" type="button" title="Preview a different real-Tibia spawn export against our spawn clusters, for this visit only.">Preview a Tibia export</button>
+            </div>
+            <div class="route-panel kf-panel" id="kf-panel" style="display:none;">
+              <div class="route-bot-title">Known floors from real-Tibia spawns (test)</div>
+              <div class="route-status">Load a real-Tibia spawn export (one monster or the whole file - anything with <code>"monster": {"name"}</code> and <code>"spots": [{"spawns": [{"x","y","z"}]}]</code>). Each of our spawn clusters with real spawns of the same monster within the radius takes their floor, if our terrain allows it there. Known-floor dots then show only on their floor, with a white ring. The built-in floors come from a full export (see the Real-Tibia floors toggle); a file loaded here only previews for this visit.</div>
+              <div class="route-actions">
+                <label class="route-bot-spacing">Export file <input type="file" id="kf-file" accept=".json,application/json"></label>
+                <label class="route-bot-spacing">Match radius
+                  <select id="kf-radius"><option value="5">5 tiles</option><option value="8" selected>8 tiles</option><option value="12">12 tiles</option></select>
+                </label>
+              </div>
+              <textarea id="kf-text" class="kf-text" rows="3" spellcheck="false" placeholder="...or paste the export here"></textarea>
+              <div class="route-actions">
+                <button class="map-btn" id="kf-run" type="button">Match pasted text</button>
+                <button class="map-btn" id="kf-download" type="button">Download result</button>
+                <button class="map-btn" id="kf-clear" type="button">Clear known floors</button>
+                <button class="map-btn" id="kf-close" type="button">Close</button>
+              </div>
+              <div class="route-bot-msg" id="kf-status"></div>
+              <div class="kf-results" id="kf-results"></div>
+            </div>
+          </details>
+        </section>
+        <section class="mapx-panel" data-panel="path" hidden>
+          <div class="mapx-h">Find path</div>
+          <p class="mapx-p">Click a start point, then an end point - change floor in between if the end is on another floor. The route only walks walkable ground and changes floor at detected stairs, ladders and holes.</p>
+          <div class="map-path-bar" id="map-path-bar" style="display:none;">
+            <span id="map-path-status"></span>
+            <span class="map-path-floors" id="map-path-floors"></span>
+          </div>
+        </section>
+        <section class="mapx-panel" data-panel="route" hidden>
+          <div class="route-panel" id="route-panel" style="display:none;">
+            <input type="text" class="route-title-input edit-only" id="route-title" maxlength="120" placeholder="Route title, e.g. Dragon hunt north of the city">
+            <h3 class="route-title view-only" id="route-title-view"></h3>
+            <div class="route-status" id="route-status"></div>
+            <div class="route-legend" id="route-legend"></div>
+            <ol class="route-points" id="route-points"></ol>
+            <div class="route-actions">
+              <label class="map-floor-filter-toggle edit-only"><input type="checkbox" id="route-loop"> Loop back to start</label>
+              <button class="map-btn edit-only" id="route-undo" type="button">Undo last point</button>
+              <button class="map-btn edit-only" id="route-clear" type="button">Clear</button>
+              <button class="map-btn edit-only" id="route-copy" type="button">Copy share link</button>
+              <button class="map-btn view-only" id="route-edit" type="button" style="display:none;">Edit a copy</button>
+              <button class="map-btn" id="route-close" type="button">Close route</button>
+            </div>
+            <input type="text" class="route-link edit-only" id="route-link" readonly aria-label="Share link">
+            <div class="route-bot">
+              <div class="route-bot-title">Cave bot route</div>
+              <div class="route-actions">
+                <label class="route-bot-spacing edit-only">Walk waypoint every
+                  <select id="route-bot-spacing">
+                    <option value="0">none (floor changes only)</option>
+                    <option value="5">5 tiles</option>
+                    <option value="8">8 tiles</option>
+                    <option value="10" selected>10 tiles</option>
+                    <option value="15">15 tiles</option>
+                    <option value="25">25 tiles</option>
+                  </select>
+                </label>
+                <button class="map-btn edit-only" id="route-bot-fill" type="button" title="Add walk waypoints along the path and a waypoint at every stairs/hole/ladder it takes">Fill in bot waypoints</button>
+                <button class="map-btn edit-only" id="route-bot-unfill" type="button" style="display:none;">Undo fill-in</button>
+                <button class="map-btn" id="route-bot-copy" type="button">Copy bot JSON</button>
+                <button class="map-btn" id="route-bot-download" type="button">Download .json</button>
+                <button class="map-btn edit-only" id="route-bot-import-toggle" type="button">Import bot JSON</button>
+              </div>
+              <div class="route-bot-import edit-only" id="route-bot-import" hidden>
+                <textarea id="route-bot-import-text" rows="5" spellcheck="false" placeholder='Paste the route from the bot (Cave → Route → Copy), e.g. { "version": 1, "route": [ ... ] }'></textarea>
+                <div class="route-actions"><button class="map-btn" id="route-bot-import-go" type="button">Import (replaces this route)</button></div>
+              </div>
+              <div class="route-bot-msg" id="route-bot-msg"></div>
+            </div>
+          </div>
+        </section>
+      </aside>
     </div>
+    <div class="map-hint">Terrain is decoded from the client's own <code>minimap.bin</code> at 1&nbsp;px&nbsp;=&nbsp;1&nbsp;tile. Spawn data has no floor of its own: dots show on every floor their terrain allows, except where real-Tibia spawn data pins the floor down. A few far-flung spawn clusters sit outside the drawn region.</div>
   </div>
 
   <div id="rune-wrap">
@@ -609,8 +686,8 @@
 
 </div>
 
-<!-- Hidden data-curation tool, opened only via the "Label unknowns" button
-     under #stairs-beta. Steps through markers gen-floor-connections.py
+<!-- Data-curation tool, opened via "Label unresolved stairs" under the
+     map's Data tools. Steps through markers gen-floor-connections.py
      couldn't resolve so a human can call each one up/down/unknown by eye,
      then exports the answers as JSON to fold back into that script. -->
 <div id="stairs-label-panel" style="display:none;">
@@ -1665,7 +1742,8 @@ function renderCatFilters() {
 
 function renderTierFilters() {
   const wrap = document.getElementById("tier-filters");
-  if (state.tab !== "monsters" && state.tab !== "map") { wrap.innerHTML = ""; return; }
+  // On the map the difficulty filter lives in the side panel (#map-legend).
+  if (state.tab !== "monsters") { wrap.innerHTML = ""; return; }
   // On the map, the chips label the canvas dots, so they use the map palette and
   // only tint the dot (a light active-chip background would be unreadable). In
   // the monster list they keep the CSS --tier-* ramp and the filled active chip.
@@ -2611,8 +2689,8 @@ function jumpFloorConnection(c) {
   drawMap();
 }
 
-// --- Stairs unknown-labeling tool: hidden, entered via #stairs-beta's
-// "Label unknowns" button. Answers persist in this browser only
+// --- Stairs unknown-labeling tool: entered via the map's Data tools
+// ("Label unresolved stairs"). Answers persist in this browser only
 // (localStorage) so a long labeling session survives a reload; "Export
 // JSON" turns them into the format gen-floor-connections.py's manual
 // overrides expect.
@@ -2705,7 +2783,7 @@ function stairsLabelExit() {
   drawMap();
 }
 
-// --- Pathfinding (hidden, #stairs-beta) ---
+// --- Pathfinding (the map's "Find path" mode) ---
 // Walkability comes from the same terrain PNGs the map draws: decoded once
 // into a 1-bit-per-tile grid per floor (~700KB each vs ~22MB as RGBA),
 // using the same blocking-color table as gen-floor-plausibility.py. Floors
@@ -3198,14 +3276,39 @@ function pathHandleClick(sx, sy) {
   }
 }
 
+// The map has three modes - spawns (explore), find path, route builder -
+// shown as the segmented control above the map; the side panel shows the
+// current one. Derived from the tools' own state, so it stays right however
+// a mode was entered (e.g. opening a shared route link).
+function mapCurrentMode() {
+  return routeState.mode !== "off" ? "route" : (pathState.active ? "path" : "explore");
+}
+function mapSyncMode() {
+  const mode = mapCurrentMode();
+  document.querySelectorAll("#map-modes [data-mode]").forEach(function (b) {
+    const on = b.getAttribute("data-mode") === mode;
+    b.classList.toggle("active", on);
+    b.setAttribute("aria-selected", on ? "true" : "false");
+  });
+  document.querySelectorAll(".mapx-side [data-panel]").forEach(function (p) { p.hidden = p.getAttribute("data-panel") !== mode; });
+}
+function mapSetMode(mode) {
+  if (mode === mapCurrentMode()) return;
+  if (mode !== "path" && pathState.active) pathToggle();
+  if (mode !== "route" && routeState.mode !== "off") routeClose();
+  if (mode === "path" && !pathState.active) pathToggle();
+  if (mode === "route" && routeState.mode === "off") routeStartEdit();
+  mapSyncMode();
+}
+
 function pathToggle() {
   if (!pathState.active && routeState.mode === "edit") routeClose();
   pathState.active = !pathState.active;
   pathState.start = pathState.goal = pathState.result = null;
   pathState.busy = false;
   pathState.reqId++;
-  document.getElementById("map-path-btn").classList.toggle("active", pathState.active);
   document.getElementById("map-path-bar").style.display = pathState.active ? "" : "none";
+  mapSyncMode();
   if (pathState.active) {
     pathHint("Click the start point on the map.");
     pathPrepare();
@@ -3276,8 +3379,8 @@ function drawPathOverlay(w, h) {
 
 // --- Routes: click out waypoints, each leg follows the pathfinder's
 // walking route, share as a link. The whole route lives in the URL hash
-// (#route=...) - no server, nothing stored. Viewing a shared link is
-// public; drawing stays behind #stairs-beta.
+// (#route=...) - no server, nothing stored. The map's "Route builder" mode;
+// a shared link opens it read-only, with "Edit a copy".
 const ROUTE_MAX_POINTS = 500, ROUTE_NOTE_MAX = 120, ROUTE_TITLE_MAX = 120;
 const routeState = { mode: "off", title: "", loop: false, points: [], legs: [], gen: 0, prepText: "", fromLink: false, open: new Set(), undoFill: null, dragIndex: null, dragMoved: false };
 
@@ -3930,8 +4033,8 @@ function routeShowPanel() {
   const tv = document.getElementById("route-title-view");
   tv.textContent = routeState.title || "Shared route";
   document.getElementById("route-loop").checked = routeState.loop;
-  document.getElementById("route-edit").style.display = (routeState.mode === "view" && location.hash.toLowerCase().includes("stairs-beta")) ? "" : "none";
-  document.getElementById("map-route-btn").classList.toggle("active", routeState.mode === "edit");
+  document.getElementById("route-edit").style.display = routeState.mode === "view" ? "" : "none";
+  mapSyncMode();
   document.getElementById("route-bot-unfill").style.display = routeState.undoFill && routeState.mode === "edit" ? "" : "none";
   routeRenderList();
   routeUpdateLink();
@@ -3965,14 +4068,11 @@ function routeClose() {
   routeState.gen++;
   routeState.legs = [];
   if (routeState.fromLink && /route=/.test(location.hash)) {
-    history.replaceState(null, "", location.pathname + location.search + (location.hash.toLowerCase().includes("stairs-beta") ? "#stairs-beta" : ""));
+    history.replaceState(null, "", location.pathname + location.search);
   }
   routeState.fromLink = false;
   routeShowPanel();
   drawMap();
-}
-function routeToggleEdit() {
-  if (routeState.mode === "edit") routeClose(); else routeStartEdit();
 }
 
 // Dragging waypoints (edit mode): the point nearest the cursor on this
@@ -4334,16 +4434,6 @@ function initMap() {
     drawMap();
   });
 
-  // Unlisted: the toggle only appears with #stairs-beta in the URL, while
-  // this is still being verified against the real map (see floorConnections
-  // in scripts/gen-floor-connections.py for how it's derived).
-  if (location.hash.toLowerCase().includes("stairs-beta")) {
-    document.getElementById("map-connections-toggle-wrap").style.display = "";
-    document.getElementById("map-label-unknowns-btn").style.display = "";
-    document.getElementById("map-path-btn").style.display = "";
-    document.getElementById("map-route-btn").style.display = "";
-    document.getElementById("map-kf-btn").style.display = "";
-  }
   (function () {
     let lastResult = null;
     const panel = document.getElementById("kf-panel");
@@ -4398,8 +4488,26 @@ function initMap() {
       kfRefresh();
     }).catch(function () { /* no known floors - terrain guesses only */ });
   })();
-  document.getElementById("map-path-btn").addEventListener("click", pathToggle);
-  document.getElementById("map-route-btn").addEventListener("click", routeToggleEdit);
+  document.getElementById("map-modes").addEventListener("click", function (e) {
+    const b = e.target.closest("[data-mode]");
+    if (b) mapSetMode(b.getAttribute("data-mode"));
+  });
+  // Layers popover: open/close from its button, close on outside click.
+  const layersBtn = document.getElementById("map-layers-btn"), layersPop = document.getElementById("map-layers");
+  layersBtn.addEventListener("click", function (e) {
+    e.stopPropagation();
+    layersPop.hidden = !layersPop.hidden;
+    layersBtn.classList.toggle("active", !layersPop.hidden);
+    layersBtn.setAttribute("aria-expanded", layersPop.hidden ? "false" : "true");
+  });
+  document.addEventListener("click", function (e) {
+    if (layersPop.hidden || layersPop.contains(e.target) || e.target === layersBtn) return;
+    layersPop.hidden = true; layersBtn.classList.remove("active"); layersBtn.setAttribute("aria-expanded", "false");
+  });
+  ["mousedown", "touchstart", "wheel"].forEach(function (ev) {
+    layersPop.addEventListener(ev, function (e) { e.stopPropagation(); }, { passive: true });
+  });
+  mapSyncMode();
   document.getElementById("route-title").addEventListener("input", function (e) { routeState.title = e.target.value.slice(0, ROUTE_TITLE_MAX); routeUpdateLink(); });
   document.getElementById("route-loop").addEventListener("change", function (e) { routeState.loop = e.target.checked; routeChanged(); });
   document.getElementById("route-undo").addEventListener("click", function () { routeState.points.pop(); routeChanged(); });
