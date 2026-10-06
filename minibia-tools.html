@@ -442,6 +442,10 @@
             <input type="checkbox" id="map-floor-filter">
             Hide implausible floors <span class="beta-tag">beta</span>
           </label>
+          <label class="map-floor-filter-toggle" title="Spawn clusters that match real-Tibia spawns of the same monster (within 8 tiles) only show on that floor, with a white ring. Built by scripts/gen-known-floors.py.">
+            <input type="checkbox" id="map-known-floors" checked>
+            Real-Tibia floors <span class="beta-tag">beta</span>
+          </label>
           <label class="map-floor-filter-toggle" id="map-connections-toggle-wrap" style="display:none;" title="Experimental: marks tiles the minimap draws as stairs/ladders/holes/ropeholes, and guesses which floor(s) each connects to from the terrain alone \u2014 solid marker = another such tile found on that floor, faint = inferred from walkable-vs-void asymmetry only. Click a marker to jump to the floor it connects to.">
             <input type="checkbox" id="map-connections-toggle">
             Show floor connections <span class="beta-tag">beta</span>
@@ -460,7 +464,7 @@
       </div>
       <div class="route-panel kf-panel" id="kf-panel" style="display:none;">
         <div class="route-bot-title">Known floors from real-Tibia spawns (test)</div>
-        <div class="route-status">Load a real-Tibia spawn export (one monster or the whole file - anything with <code>"monster": {"name"}</code> and <code>"spots": [{"spawns": [{"x","y","z"}]}]</code>). Each of our spawn clusters with real spawns of the same monster within the radius takes their floor, if our terrain allows it there. Known-floor dots then show only on their floor, with a white ring. Runs in this browser only; the result is remembered here.</div>
+        <div class="route-status">Load a real-Tibia spawn export (one monster or the whole file - anything with <code>"monster": {"name"}</code> and <code>"spots": [{"spawns": [{"x","y","z"}]}]</code>). Each of our spawn clusters with real spawns of the same monster within the radius takes their floor, if our terrain allows it there. Known-floor dots then show only on their floor, with a white ring. The built-in floors come from a full export (see the Real-Tibia floors toggle); a file loaded here only previews for this visit.</div>
         <div class="route-actions">
           <label class="route-bot-spacing">Export file <input type="file" id="kf-file" accept=".json,application/json"></label>
           <label class="route-bot-spacing">Match radius
@@ -2383,7 +2387,6 @@ function spawnPointFloorText(p) {
 // (p[3]), preferring the nearest (within +2 tiles of the closest). Runs in
 // the browser on a pasted/loaded export; the result (small: [x, y, mask]
 // per matched cluster) is kept in localStorage and can be downloaded.
-const KNOWN_FLOORS_KEY = "minibia.knownFloors.v1";
 
 // Every {monster: {name}, spots: [{spawns: [{x, y, z}]}]} block anywhere in
 // the JSON (one monster, a list, or a big export keyed some other way).
@@ -2480,28 +2483,23 @@ function kfApply(known) {
   if (state.tab === "map") drawMap();
   else if (state.tab === "monsters") render();
 }
-function kfSave(known) {
-  try {
-    if (known) localStorage.setItem(KNOWN_FLOORS_KEY, JSON.stringify({ radius: known.radius, monsters: known.monsters }));
-    else localStorage.removeItem(KNOWN_FLOORS_KEY);
-  } catch (e) { /* storage unavailable - still applied for this visit */ }
-}
-function kfLoadSaved() {
-  try {
-    const v = JSON.parse(localStorage.getItem(KNOWN_FLOORS_KEY) || "null");
-    if (v && v.monsters && typeof v.monsters === "object") return v;
-  } catch (e) { /* ignore */ }
-  return null;
-}
+// Known floors in effect: the committed data/derived/known-floors.json
+// (gen-known-floors.py), unless the test tool loaded another export this
+// visit; the "Real-Tibia floors" toggle turns them on/off.
+const KNOWN_FLOORS_ON_KEY = "minibia.knownFloors.on";
+const kfState = { committed: null, test: null, on: true };
+try { kfState.on = localStorage.getItem(KNOWN_FLOORS_ON_KEY) !== "0"; localStorage.removeItem("minibia.knownFloors.v1"); } catch (e) { /* defaults */ }
+function kfRefresh() { kfApply(kfState.on ? (kfState.test || kfState.committed) : null); }
 
 function kfRenderResult(res) {
   const status = document.getElementById("kf-status"), box = document.getElementById("kf-results");
   box.textContent = "";
-  if (!res) { status.textContent = "No known floors applied."; return; }
-  if (!res.rows) {   // restored from storage: summary only
+  if (!res) { status.textContent = "No known floors loaded."; return; }
+  if (!res.rows) {   // the committed data: summary only
     const names = Object.keys(res.monsters);
     const n = names.reduce(function (s, k) { return s + res.monsters[k].length; }, 0);
-    status.textContent = "Known floors applied from an earlier run: " + n + " spawn clusters across " + names.length + " monsters (radius " + res.radius + "). Load the export again to see the full breakdown.";
+    status.textContent = "Using the built-in known floors: " + n + " spawn clusters across " + names.length + " monsters (radius " + res.radius + ")" +
+      (kfState.on ? "." : " - currently switched off (Real-Tibia floors).") + " Load another export here to preview it for this visit.";
     return;
   }
   const matchedMonsters = res.rows.filter(function (r) { return r.matched; });
@@ -4355,13 +4353,14 @@ function initMap() {
       try { entries = kfFindEntries(kfParse(text)); } catch (e) { status.textContent = "Couldn't read that as JSON: " + e.message; return; }
       if (!entries.length) { status.textContent = "No monster spawn data found (expected \"monster\": {\"name\"} with \"spots\": [{\"spawns\": [...]}])."; return; }
       lastResult = kfMatch(entries, Number(document.getElementById("kf-radius").value));
-      kfApply(lastResult);
-      kfSave(lastResult);
+      kfState.test = lastResult;
+      if (!kfState.on) { kfState.on = true; document.getElementById("map-known-floors").checked = true; }
+      kfRefresh();
       kfRenderResult(lastResult);
     };
     document.getElementById("map-kf-btn").addEventListener("click", function () {
       panel.style.display = panel.style.display === "none" ? "" : "none";
-      if (panel.style.display === "" && !lastResult) kfRenderResult(kfLoadSaved());
+      if (panel.style.display === "" && !lastResult) kfRenderResult(kfState.committed);
     });
     document.getElementById("kf-close").addEventListener("click", function () { panel.style.display = "none"; });
     document.getElementById("kf-run").addEventListener("click", function () { run(document.getElementById("kf-text").value); });
@@ -4375,10 +4374,10 @@ function initMap() {
       reader.readAsText(f);
     });
     document.getElementById("kf-clear").addEventListener("click", function () {
-      lastResult = null; kfApply(null); kfSave(null); kfRenderResult(null);
+      lastResult = null; kfState.test = null; kfRefresh(); kfRenderResult(kfState.committed);
     });
     document.getElementById("kf-download").addEventListener("click", function () {
-      const data = lastResult || kfLoadSaved();
+      const data = lastResult || kfState.committed;
       if (!data) return;
       const a = document.createElement("a");
       a.href = URL.createObjectURL(new Blob([JSON.stringify({ radius: data.radius, monsters: data.monsters })], { type: "application/json" }));
@@ -4386,9 +4385,18 @@ function initMap() {
       document.body.appendChild(a); a.click(); document.body.removeChild(a);
       setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
     });
-    // Re-apply a previous run's result on load (per browser).
-    const saved = kfLoadSaved();
-    if (saved) kfApply(saved);
+    const toggle = document.getElementById("map-known-floors");
+    toggle.checked = kfState.on;
+    toggle.addEventListener("change", function () {
+      kfState.on = toggle.checked;
+      try { localStorage.setItem(KNOWN_FLOORS_ON_KEY, kfState.on ? "1" : "0"); } catch (e) { /* ignore */ }
+      kfRefresh();
+    });
+    fetch("data/derived/known-floors.json").then(function (r) { return r.ok ? r.json() : null; }).then(function (v) {
+      if (!v || !v.monsters) return;
+      kfState.committed = v;
+      kfRefresh();
+    }).catch(function () { /* no known floors - terrain guesses only */ });
   })();
   document.getElementById("map-path-btn").addEventListener("click", pathToggle);
   document.getElementById("map-route-btn").addEventListener("click", routeToggleEdit);
