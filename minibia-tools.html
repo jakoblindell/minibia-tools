@@ -269,7 +269,6 @@
   .mapx-panel { display: flex; flex-direction: column; gap: 10px; }
   .mapx-panel[hidden] { display: none; }
   .mapx-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
-  .mapx-toolbar-right { display: flex; gap: 6px; }
   .mapx-h { font-size: 11.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--text-muted); }
   .mapx-h-row { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
   .mapx-p { margin: 0; font-size: 12.5px; color: var(--text-secondary); line-height: 1.45; }
@@ -286,7 +285,9 @@
   .map-ovl-floor .map-floor-label { min-width: 150px; font-size: 12.5px; font-weight: 600; color: var(--text-primary); }
   .map-ovl-coords { bottom: 10px; left: 10px; padding: 3px 8px; font-size: 11.5px; font-family: 'SF Mono', Consolas, monospace; color: var(--text-secondary); pointer-events: none; }
   .map-ovl-coords:empty { display: none; }
-  .map-layers-pop { top: 10px; right: 10px; width: 270px; max-width: calc(100% - 20px); padding: 10px 12px; display: flex; flex-direction: column; gap: 10px; }
+  .map-ovl-actions { top: 10px; right: 10px; display: flex; gap: 2px; padding: 3px; }
+  .map-ovl-actions .map-btn { padding: 4px 10px; font-size: 12.5px; }
+  .map-layers-pop { top: 52px; right: 10px; width: 270px; max-width: calc(100% - 20px); padding: 10px 12px; display: flex; flex-direction: column; gap: 10px; }
   .map-layers-pop[hidden] { display: none; }
   .layer-opt { display: grid; grid-template-columns: auto 1fr; gap: 1px 8px; align-items: center; font-size: 13px; font-weight: 600; color: var(--text-primary); cursor: pointer; }
   .layer-opt small { grid-column: 2; font-size: 11.5px; font-weight: 400; color: var(--text-muted); line-height: 1.35; }
@@ -304,6 +305,10 @@
   .rb-note { grid-column: 1 / -1; }
   .mapx-icon-btn .ico { display: none; }
   /* On wide screens the map workspace breaks out of the page column. */
+  @media (max-width: 400px) {
+    .mapx-toolbar { gap: 6px; }
+    .seg button { padding: 6px 8px; font-size: 12px; }
+  }
   @media (min-width: 1180px) {
     .mapx { width: min(1520px, calc(100vw - 80px)); margin-left: calc((100% - min(1520px, calc(100vw - 80px))) / 2); }
     .mapx { grid-template-columns: minmax(0, 1fr) 360px; }
@@ -320,12 +325,16 @@
     .seg { flex: 0 1 auto; min-width: 0; }
     .seg button { padding: 6px 11px; font-size: 12.5px; }
     .seg-long { display: none; }
-    .mapx-icon-btn { width: 34px; padding-left: 0; padding-right: 0; text-align: center; }
+    .map-ovl-actions .mapx-icon-btn { width: 32px; padding-left: 0; padding-right: 0; text-align: center; }
+    /* Narrow maps: the floor control needs the top edge to itself. */
+    .map-ovl-actions { top: auto; bottom: 10px; }
+    .map-layers-pop { top: auto; bottom: 52px; }
     .mapx-icon-btn .ico { display: inline; font-size: 15px; }
     .mapx-icon-btn .lbl { display: none; }
     .mapx-side { padding: 12px; }
     .mapx-side #map-legend .chip { padding: 4px 9px; font-size: 12px; }
     .mapx-side .route-bot-settings { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .mapx-side .route-row .map-btn.show-btn { display: none; }
   }
   #map-canvas { width: 100%; height: 640px; display: block; border-radius: 6px; background: var(--surface-2); cursor: grab; touch-action: none; }
   #map-canvas.dragging { cursor: grabbing; }
@@ -403,7 +412,8 @@
   .map-floor-label { color: var(--text-secondary); font-size: 12.5px; min-width: 132px; text-align: center; }
   .map-tooltip {
     position: absolute; pointer-events: none; background: var(--surface-3); border: 1px solid var(--border);
-    border-radius: 6px; padding: 6px 10px; font-size: 12.5px; box-shadow: var(--shadow); display: none; z-index: 5; white-space: nowrap;
+    border-radius: 6px; padding: 6px 10px; font-size: 12.5px; box-shadow: var(--shadow); display: none; z-index: 5;
+    width: max-content; max-width: min(340px, calc(100% - 8px));
   }
   .map-tooltip .t-name { font-weight: 700; }
   .map-tooltip .t-meta { color: var(--text-secondary); margin-top: 2px; }
@@ -497,10 +507,6 @@
             <button type="button" role="tab" data-mode="path">Find path</button>
             <button type="button" role="tab" data-mode="route">Route<span class="seg-long"> builder</span></button>
           </div>
-          <div class="mapx-toolbar-right">
-            <button class="map-btn mapx-icon-btn" id="map-layers-btn" type="button" aria-expanded="false" title="Layers"><span class="ico" aria-hidden="true">☰</span><span class="lbl">Layers</span></button>
-            <button class="map-btn mapx-icon-btn" id="map-reset" type="button" title="Reset view"><span class="ico" aria-hidden="true">⟲</span><span class="lbl">Reset view</span></button>
-          </div>
         </div>
         <div class="map-canvas-wrap">
           <canvas id="map-canvas"></canvas>
@@ -512,6 +518,10 @@
             <button class="map-btn map-floor-btn" id="map-floor-down" type="button" title="Down one floor">▼</button>
           </div>
           <span class="map-ovl map-ovl-coords" id="map-cursor-coords"></span>
+          <div class="map-ovl map-ovl-actions">
+            <button class="map-btn mapx-icon-btn" id="map-layers-btn" type="button" aria-expanded="false" title="Layers"><span class="ico" aria-hidden="true">☰</span><span class="lbl">Layers</span></button>
+            <button class="map-btn mapx-icon-btn" id="map-reset" type="button" title="Reset view"><span class="ico" aria-hidden="true">⟲</span><span class="lbl">Reset view</span></button>
+          </div>
           <div class="map-ovl map-layers-pop" id="map-layers" hidden>
             <div class="mapx-h">Layers</div>
             <label class="layer-opt"><input type="checkbox" id="map-known-floors" checked><span>Real-Tibia floors</span>
@@ -2216,6 +2226,8 @@ function setMapFloor(z) {
 
   const lbl = document.getElementById("map-floor-label");
   if (lbl) lbl.textContent = mapFloorLabel(z);
+  const coords = document.getElementById("map-cursor-coords");
+  if (coords && coords.textContent) coords.textContent = coords.textContent.replace(/ z\d+$/, " z" + z);
   const up = document.getElementById("map-floor-up"), dn = document.getElementById("map-floor-down");
   if (up) up.disabled = (z <= MAP_FLOOR_MIN);
   if (dn) dn.disabled = (z >= MAP_FLOOR_MAX);
@@ -2632,6 +2644,18 @@ function mapPointAt(sx, sy) {
 
 // Tile under a screen point, as "x32480 y31644 z10". A tile spans
 // [x, x+1) in world units, so this floors rather than rounds.
+// Puts the tooltip next to the cursor, flipped to the other side near the
+// right/bottom edge so it always stays inside the map.
+function placeMapTooltip(sx, sy) {
+  const wrap = mapTooltip.parentElement, w = mapTooltip.offsetWidth, h = mapTooltip.offsetHeight;
+  const W = wrap.clientWidth, H = wrap.clientHeight;
+  let left = sx + 14, top = sy + 10;
+  if (left + w > W - 4) left = sx - 14 - w;
+  if (top + h > H - 4) top = sy - 10 - h;
+  mapTooltip.style.left = Math.max(4, Math.min(left, W - w - 4)) + "px";
+  mapTooltip.style.top = Math.max(4, top) + "px";
+}
+
 function mapTileText(sx, sy) {
   const [wx, wy] = screenToWorld(sx, sy);
   return "x" + Math.floor(wx) + " y" + Math.floor(wy) + " z" + state.mapFloor;
@@ -3399,14 +3423,14 @@ const BOT_DIRS = ["here", "n", "ne", "e", "se", "s", "sw", "w", "nw"];
 const BOT_DIR_STEP = { here: [0, 0], n: [0, -1], ne: [1, -1], e: [1, 0], se: [1, 1], s: [0, 1], sw: [-1, 1], w: [-1, 0], nw: [-1, -1] };
 const BOT_TYPES = {
   "walk": { label: "Walk", params: {} },
-  "stand": { label: "Stand + step", params: { standDirection: "here" } },
+  "stand": { label: "Stand", params: { standDirection: "here" } },
   "wait": { label: "Wait", params: { waitMs: 1000 } },
-  "use": { label: "Use tile", params: { targetOffset: "here" } },
+  "use": { label: "Use", params: { targetOffset: "here" } },
   "rope": { label: "Rope", params: { targetOffset: "here", itemName: "rope" } },
   "shovel": { label: "Shovel", params: { targetOffset: "here", itemName: "shovel" } },
   "magic-rope": { label: "Magic rope", params: {} },
   "stairs-up": { label: "Stairs up", params: { transitionTarget: "auto" } },
-  "floor-down": { label: "Hole/stairs down", params: { transitionTarget: "auto" } },
+  "floor-down": { label: "Floor down", params: { transitionTarget: "auto" } },
   "ladder-up": { label: "Ladder up", params: { transitionTarget: "auto" } },
   "drop-item": { label: "Drop item", params: { dropItemName: "", dropMode: "all", dropAmount: 0, dropKeep: 0, dropTargetOffset: "here", dropRequireFull: false } },
   "depot": { label: "Depot", params: { depot: { mode: "npc", radius: 14, waitMs: 60000, exploreSteps: 8, ackMs: 4000, bags: { all: "Loot", stackables: "Stackables", unstackables: "Unstackables" }, rules: [] } } },
@@ -3717,7 +3741,7 @@ function routeRenderList() {
       const note = document.createElement("span"); note.className = "route-note"; note.textContent = p.note || "";
       row.appendChild(note);
     }
-    const go = document.createElement("button"); go.className = "map-btn icon"; go.type = "button"; go.textContent = "⌖"; go.title = "Show on the map";
+    const go = document.createElement("button"); go.className = "map-btn icon show-btn"; go.type = "button"; go.textContent = "⌖"; go.title = "Show on the map";
     go.addEventListener("click", showPoint);
     row.appendChild(go);
     if (editing) {
@@ -4343,17 +4367,15 @@ function initMap() {
       const connHit = !hit ? mapConnectionAt(touchState.tapX, touchState.tapY) : null;
       if (hit) {
         mapTooltip.style.display = "block";
-        mapTooltip.style.left = (touchState.tapX + 14) + "px";
-        mapTooltip.style.top = (touchState.tapY + 10) + "px";
         mapTooltip.querySelector(".t-name").textContent = hit.mo.name;
         mapTooltip.querySelector(".t-meta").textContent =
           (hit.mo.tier != null ? TIER_LABELS[hit.mo.tier] + " · " : "") + "x" + hit.p[0] + " y" + hit.p[1] + (hit.p[2] > 1 ? " · cluster of " + hit.p[2] : "") + spawnPointFloorText(hit.p);
+        placeMapTooltip(touchState.tapX, touchState.tapY);
       } else if (connHit) {
         mapTooltip.style.display = "block";
-        mapTooltip.style.left = (touchState.tapX + 14) + "px";
-        mapTooltip.style.top = (touchState.tapY + 10) + "px";
         mapTooltip.querySelector(".t-name").textContent = floorConnectionLabel(connHit);
         mapTooltip.querySelector(".t-meta").textContent = "x" + connHit[0] + " y" + connHit[1] + " — tap again to jump";
+        placeMapTooltip(touchState.tapX, touchState.tapY);
         jumpFloorConnection(connHit);
       } else {
         mapTooltip.style.display = "none";
@@ -4419,19 +4441,17 @@ function initMap() {
     const connHit = !hit ? mapConnectionAt(sx, sy) : null;
     if (hit) {
       mapTooltip.style.display = "block";
-      mapTooltip.style.left = (sx + 14) + "px";
-      mapTooltip.style.top = (sy + 10) + "px";
       mapTooltip.querySelector(".t-name").textContent = hit.mo.name;
       mapTooltip.querySelector(".t-meta").textContent =
         (hit.mo.tier != null ? TIER_LABELS[hit.mo.tier] + " · " : "") + "x" + hit.p[0] + " y" + hit.p[1] + (hit.p[2] > 1 ? " · cluster of " + hit.p[2] : "") + spawnPointFloorText(hit.p);
+      placeMapTooltip(sx, sy);
       mapCanvas.style.cursor = "default";
     } else if (connHit) {
       mapTooltip.style.display = "block";
-      mapTooltip.style.left = (sx + 14) + "px";
-      mapTooltip.style.top = (sy + 10) + "px";
       mapTooltip.querySelector(".t-name").textContent = floorConnectionLabel(connHit);
       mapTooltip.querySelector(".t-meta").textContent = "x" + connHit[0] + " y" + connHit[1] +
         (((connHit[2] & 1) !== 0) !== ((connHit[2] & 2) !== 0) ? " — click to jump" : " — use the floor buttons");
+      placeMapTooltip(sx, sy);
       mapCanvas.style.cursor = "pointer";
     } else {
       mapTooltip.style.display = "none";
