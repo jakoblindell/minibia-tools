@@ -273,11 +273,10 @@
   .mapx-h { font-size: 11.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--text-muted); }
   .mapx-h-row { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
   .mapx-p { margin: 0; font-size: 12.5px; color: var(--text-secondary); line-height: 1.45; }
-  .mapx-tips { margin: 0; padding-left: 18px; font-size: 12.5px; color: var(--text-secondary); display: flex; flex-direction: column; gap: 3px; }
   .mapx-tools { border-top: 1px solid var(--border); padding-top: 10px; }
   .mapx-tools > summary { cursor: pointer; font-size: 12.5px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; }
   .mapx-side .route-panel { margin: 0; padding: 0; border: 0; background: none; }
-  .mapx-side .route-points { max-height: 380px; }
+  .mapx-side .route-points { max-height: none; overflow: visible; }
   .seg { display: inline-flex; gap: 2px; padding: 3px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--border); max-width: 100%; overflow-x: auto; }
   .seg button { font: inherit; font-size: 13px; font-weight: 600; border: 0; background: transparent; color: var(--text-secondary); padding: 6px 14px; border-radius: 999px; cursor: pointer; white-space: nowrap; }
   .seg button:hover { color: var(--text-primary); }
@@ -292,14 +291,18 @@
   .layer-opt { display: grid; grid-template-columns: auto 1fr; gap: 1px 8px; align-items: center; font-size: 13px; font-weight: 600; color: var(--text-primary); cursor: pointer; }
   .layer-opt small { grid-column: 2; font-size: 11.5px; font-weight: 400; color: var(--text-muted); line-height: 1.35; }
   #map-layers-btn.active { border-color: var(--accent); color: var(--accent); background: var(--surface-2); }
-  /* Route rows in the narrow side panel: number, check, type, buttons on
-     the first line; coordinates and note on the second. */
-  .mapx-side .route-row { flex-wrap: wrap; row-gap: 4px; }
+  /* Route rows in the side panel: one line - number, check, type and
+     icon buttons; coordinates and note live in the waypoint's settings. */
+  .mapx-side .route-row { flex-wrap: nowrap; gap: 6px; }
   .mapx-side .route-row select.route-type { flex: 1 1 auto; max-width: none; min-width: 0; }
-  .mapx-side .route-row .route-where { order: 9; margin-left: 30px; }
-  .mapx-side .route-row .route-note { order: 10; flex: 1 1 120px; }
-  .mapx-side .route-row .route-type-view { flex: 1 1 auto; }
+  .mapx-side .route-row .route-type-view { flex: none; }
+  .mapx-side .route-row .route-note { flex: 1 1 auto; min-width: 0; }
   .mapx-side .route-bot-settings { margin-left: 8px; }
+  .route-points .route-num.clickable { cursor: pointer; }
+  .route-points .map-btn.icon { width: 28px; padding: 3px 0; text-align: center; }
+  .rb-where { grid-column: 1 / -1; font-family: 'SF Mono', Consolas, monospace; font-size: 11.5px; color: var(--text-muted); }
+  .rb-note { grid-column: 1 / -1; }
+  .mapx-icon-btn .ico { display: none; }
   /* On wide screens the map workspace breaks out of the page column. */
   @media (min-width: 1180px) {
     .mapx { width: min(1520px, calc(100vw - 80px)); margin-left: calc((100% - min(1520px, calc(100vw - 80px))) / 2); }
@@ -313,7 +316,16 @@
   }
   @media (max-width: 560px) {
     .map-ovl-floor .map-floor-label { min-width: 0; font-size: 11.5px; }
-    .seg button { padding: 6px 10px; font-size: 12.5px; }
+    .mapx-toolbar { flex-wrap: nowrap; }
+    .seg { flex: 0 1 auto; min-width: 0; }
+    .seg button { padding: 6px 11px; font-size: 12.5px; }
+    .seg-long { display: none; }
+    .mapx-icon-btn { width: 34px; padding-left: 0; padding-right: 0; text-align: center; }
+    .mapx-icon-btn .ico { display: inline; font-size: 15px; }
+    .mapx-icon-btn .lbl { display: none; }
+    .mapx-side { padding: 12px; }
+    .mapx-side #map-legend .chip { padding: 4px 9px; font-size: 12px; }
+    .mapx-side .route-bot-settings { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
   #map-canvas { width: 100%; height: 640px; display: block; border-radius: 6px; background: var(--surface-2); cursor: grab; touch-action: none; }
   #map-canvas.dragging { cursor: grabbing; }
@@ -483,11 +495,11 @@
           <div class="seg" id="map-modes" role="tablist" aria-label="Map mode">
             <button type="button" role="tab" data-mode="explore" class="active">Spawns</button>
             <button type="button" role="tab" data-mode="path">Find path</button>
-            <button type="button" role="tab" data-mode="route">Route builder</button>
+            <button type="button" role="tab" data-mode="route">Route<span class="seg-long"> builder</span></button>
           </div>
           <div class="mapx-toolbar-right">
-            <button class="map-btn" id="map-layers-btn" type="button" aria-expanded="false">Layers</button>
-            <button class="map-btn" id="map-reset" type="button">Reset view</button>
+            <button class="map-btn mapx-icon-btn" id="map-layers-btn" type="button" aria-expanded="false" title="Layers"><span class="ico" aria-hidden="true">☰</span><span class="lbl">Layers</span></button>
+            <button class="map-btn mapx-icon-btn" id="map-reset" type="button" title="Reset view"><span class="ico" aria-hidden="true">⟲</span><span class="lbl">Reset view</span></button>
           </div>
         </div>
         <div class="map-canvas-wrap">
@@ -515,11 +527,7 @@
         <section class="mapx-panel" data-panel="explore">
           <div class="mapx-h-row"><div class="mapx-h">Spawns</div><span class="map-meta" id="map-meta">–</span></div>
           <div class="map-legend" id="map-legend"></div>
-          <ul class="mapx-tips">
-            <li>Filter by monster with the search box above; hover a dot for details.</li>
-            <li>Scroll to zoom, drag to pan, ▲/▼ to change floor (z=7 is ground).</li>
-            <li>Click the map to copy that tile's coordinates.</li>
-          </ul>
+          <p class="mapx-p">Search a monster above. Hover or tap a dot for details; click the map to copy a tile's coordinates.</p>
           <details class="mapx-tools">
             <summary>Data tools</summary>
             <div class="route-actions">
@@ -549,7 +557,7 @@
         </section>
         <section class="mapx-panel" data-panel="path" hidden>
           <div class="mapx-h">Find path</div>
-          <p class="mapx-p">Click a start point, then an end point - change floor in between if the end is on another floor. The route only walks walkable ground and changes floor at detected stairs, ladders and holes.</p>
+          <p class="mapx-p">Click a start point, then an end point (change floor in between if needed). Routes only walk walkable ground and change floor at stairs, ladders and holes.</p>
           <div class="map-path-bar" id="map-path-bar" style="display:none;">
             <span id="map-path-status"></span>
             <span class="map-path-floors" id="map-path-floors"></span>
@@ -568,9 +576,8 @@
               <button class="map-btn edit-only" id="route-clear" type="button">Clear</button>
               <button class="map-btn edit-only" id="route-copy" type="button">Copy share link</button>
               <button class="map-btn view-only" id="route-edit" type="button" style="display:none;">Edit a copy</button>
-              <button class="map-btn" id="route-close" type="button">Close route</button>
             </div>
-            <input type="text" class="route-link edit-only" id="route-link" readonly aria-label="Share link">
+            <input type="text" class="route-link edit-only" id="route-link" readonly aria-label="Share link" style="display:none;">
             <div class="route-bot">
               <div class="route-bot-title">Cave bot route</div>
               <div class="route-actions">
@@ -584,11 +591,11 @@
                     <option value="25">25 tiles</option>
                   </select>
                 </label>
-                <button class="map-btn edit-only" id="route-bot-fill" type="button" title="Add walk waypoints along the path and a waypoint at every stairs/hole/ladder it takes">Fill in bot waypoints</button>
+                <button class="map-btn edit-only" id="route-bot-fill" type="button" title="Add walk waypoints along the path and a waypoint at every stairs/hole/ladder it takes">Fill in waypoints</button>
                 <button class="map-btn edit-only" id="route-bot-unfill" type="button" style="display:none;">Undo fill-in</button>
-                <button class="map-btn" id="route-bot-copy" type="button">Copy bot JSON</button>
-                <button class="map-btn" id="route-bot-download" type="button">Download .json</button>
-                <button class="map-btn edit-only" id="route-bot-import-toggle" type="button">Import bot JSON</button>
+                <button class="map-btn" id="route-bot-copy" type="button" title="Copy the route in the bot's Import JSON format">Copy JSON</button>
+                <button class="map-btn" id="route-bot-download" type="button">Download</button>
+                <button class="map-btn edit-only" id="route-bot-import-toggle" type="button" title="Paste a route from the bot">Import</button>
               </div>
               <div class="route-bot-import edit-only" id="route-bot-import" hidden>
                 <textarea id="route-bot-import-text" rows="5" spellcheck="false" placeholder='Paste the route from the bot (Cave → Route → Copy), e.g. { "version": 1, "route": [ ... ] }'></textarea>
@@ -3680,18 +3687,21 @@ function routeRenderList() {
     const li = document.createElement("li");
     if (!p.en) li.className = "disabled";
     const row = document.createElement("div"); row.className = "route-row";
-    const num = document.createElement("span"); num.className = "route-num"; num.textContent = String(i + 1);
+    const showPoint = function () { setMapFloor(p.z); mapFitToPoint(p.x, p.y); drawMap(); };
+    const num = document.createElement("span"); num.className = "route-num clickable"; num.textContent = String(i + 1);
     num.style.background = botTypeColor(p.t); num.style.color = botTypeInk(p.t);
-    num.title = BOT_TYPES[p.t].label;
-    const where = document.createElement("span"); where.className = "route-where"; where.textContent = "z" + p.z + " x" + p.x + " y" + p.y;
-    row.appendChild(num); row.appendChild(where);
+    num.title = BOT_TYPES[p.t].label + " · z" + p.z + " x" + p.x + " y" + p.y + " - click to show on the map";
+    num.addEventListener("click", showPoint);
+    row.appendChild(num);
+    // Every row gets the badge slot (empty when there's nothing to check),
+    // so the type pickers line up.
     const chk = botCheckPoint(p, i);
+    const badge = document.createElement("span"); badge.className = "route-check" + (chk ? " " + chk.state : "");
     if (chk) {
-      const badge = document.createElement("span"); badge.className = "route-check " + chk.state;
       badge.textContent = chk.state === "ok" ? "✓" : (chk.state === "unsure" ? "?" : "⚠");
       badge.title = chk.msg;
-      row.appendChild(badge);
     }
+    row.appendChild(badge);
     if (editing) {
       const sel = document.createElement("select"); sel.className = "route-type"; sel.title = "Bot waypoint type";
       Object.keys(BOT_TYPES).forEach(function (t) {
@@ -3700,10 +3710,6 @@ function routeRenderList() {
       sel.value = p.t;
       sel.addEventListener("change", function () { botSetType(p, sel.value); routeState.open.add(i); routeChanged(); });
       row.appendChild(sel);
-      const inp = document.createElement("input");
-      inp.type = "text"; inp.className = "route-note"; inp.maxLength = ROUTE_NOTE_MAX; inp.placeholder = "Note (optional)"; inp.value = p.note;
-      inp.addEventListener("input", function () { p.note = inp.value; routeUpdateLink(); drawMap(); });
-      row.appendChild(inp);
     } else {
       const ty = document.createElement("span"); ty.className = "route-type-view";
       ty.textContent = p.t === "walk" ? "" : BOT_TYPES[p.t].label + (p.label ? " “" + p.label + "”" : "");
@@ -3711,15 +3717,15 @@ function routeRenderList() {
       const note = document.createElement("span"); note.className = "route-note"; note.textContent = p.note || "";
       row.appendChild(note);
     }
-    const go = document.createElement("button"); go.className = "map-btn"; go.type = "button"; go.textContent = "Show";
-    go.addEventListener("click", function () { setMapFloor(p.z); mapFitToPoint(p.x, p.y); drawMap(); });
+    const go = document.createElement("button"); go.className = "map-btn icon"; go.type = "button"; go.textContent = "⌖"; go.title = "Show on the map";
+    go.addEventListener("click", showPoint);
     row.appendChild(go);
     if (editing) {
-      const gear = document.createElement("button"); gear.className = "map-btn" + (routeState.open.has(i) ? " active" : ""); gear.type = "button";
+      const gear = document.createElement("button"); gear.className = "map-btn icon" + (routeState.open.has(i) ? " active" : ""); gear.type = "button";
       gear.textContent = "⚙"; gear.title = "Bot settings for this waypoint";
       gear.addEventListener("click", function () { if (routeState.open.has(i)) routeState.open.delete(i); else routeState.open.add(i); routeRenderList(); });
       row.appendChild(gear);
-      const del = document.createElement("button"); del.className = "map-btn"; del.type = "button"; del.textContent = "✕"; del.title = "Remove point";
+      const del = document.createElement("button"); del.className = "map-btn icon"; del.type = "button"; del.textContent = "✕"; del.title = "Remove point";
       del.addEventListener("click", function () { routeState.points.splice(i, 1); routeState.open.clear(); routeChanged(); });
       row.appendChild(del);
     }
@@ -3755,6 +3761,15 @@ function botSettingsEl(p, i) {
   const changed = function () { routeUpdateLink(); drawMap(); botRenderMessages(); };
   const text = function (val, ph) { const e = document.createElement("input"); e.type = "text"; e.value = val == null ? "" : String(val); if (ph) e.placeholder = ph; return e; };
 
+  const whereEl = document.createElement("div"); whereEl.className = "rb-where";
+  whereEl.textContent = "z" + p.z + " x" + p.x + " y" + p.y;
+  whereEl.title = "Drag the marker on the map to move it";
+  box.appendChild(whereEl);
+  const noteIn = text(p.note, "Note shown on the map and in share links");
+  noteIn.maxLength = ROUTE_NOTE_MAX;
+  const noteField = field("Note", noteIn);
+  noteField.parentElement.classList.add("rb-note");
+  noteIn.addEventListener("input", function () { p.note = noteIn.value; routeUpdateLink(); drawMap(); });
   const idIn = field("Id", text(p.id, "wp-" + (i + 1)));
   idIn.maxLength = 60;
   idIn.addEventListener("input", function () { p.id = idIn.value.trim(); changed(); });
@@ -4512,7 +4527,6 @@ function initMap() {
   document.getElementById("route-loop").addEventListener("change", function (e) { routeState.loop = e.target.checked; routeChanged(); });
   document.getElementById("route-undo").addEventListener("click", function () { routeState.points.pop(); routeChanged(); });
   document.getElementById("route-clear").addEventListener("click", function () { routeState.points = []; routeChanged(); });
-  document.getElementById("route-close").addEventListener("click", routeClose);
   const botCopyText = function (text, btn, label) {
     const done = function () { btn.textContent = "Copied!"; setTimeout(function () { btn.textContent = label; }, 1500); };
     const fallback = function () {
@@ -4539,7 +4553,7 @@ function initMap() {
   document.getElementById("route-bot-copy").addEventListener("click", function () {
     if (!routeState.points.length) return;
     const ex = botExport();
-    botCopyText(ex.json, this, "Copy bot JSON");
+    botCopyText(ex.json, this, "Copy JSON");
     botRenderMessages("Copied " + routeState.points.length + " waypoints. In the bot: Cave → Route → Import JSON, paste.");
   });
   document.getElementById("route-bot-download").addEventListener("click", function () {
@@ -4577,7 +4591,7 @@ function initMap() {
     const box = document.getElementById("route-link"), btn = this;
     if (!box.value) return;
     const done = function () { btn.textContent = "Copied!"; setTimeout(function () { btn.textContent = "Copy share link"; }, 1500); };
-    const fallback = function () { box.focus(); box.select(); try { document.execCommand("copy"); done(); } catch (err) { /* leave it selected to copy by hand */ } };
+    const fallback = function () { box.style.display = ""; box.focus(); box.select(); try { document.execCommand("copy"); done(); } catch (err) { /* leave it shown and selected to copy by hand */ } };
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(box.value).then(done, fallback);
     else fallback();
   });
