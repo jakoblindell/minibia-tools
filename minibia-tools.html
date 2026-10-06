@@ -311,6 +311,14 @@
   .rb-json { grid-column: 1 / -1; font-size: 11.5px; color: var(--text-secondary); }
   .rb-json textarea, .route-bot-import textarea { font-family: 'SF Mono', Consolas, monospace; font-size: 11.5px; margin-top: 4px; }
   .rb-err { color: var(--bad, #c0392b); font-size: 11.5px; }
+  .kf-text { font-family: 'SF Mono', Consolas, monospace; font-size: 11.5px; width: 100%; background: var(--surface-2); color: var(--text-primary); border: 1px solid var(--border); border-radius: 6px; padding: 5px 8px; }
+  .kf-panel input[type=file] { font-size: 12px; max-width: 100%; }
+  .kf-results { max-height: 360px; overflow: auto; }
+  .kf-table { border-collapse: collapse; font-size: 12px; width: 100%; }
+  .kf-table th, .kf-table td { text-align: left; padding: 3px 8px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  .kf-table th { color: var(--text-muted); font-weight: 600; position: sticky; top: 0; background: var(--surface-1); }
+  .kf-table tr:not(:first-child) { cursor: pointer; }
+  .kf-table tr:not(:first-child):hover td { background: var(--surface-2); }
   .route-bot { border-top: 1px solid var(--border); padding-top: 8px; display: flex; flex-direction: column; gap: 6px; }
   .route-bot-title { font-size: 12px; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; color: var(--text-muted); }
   .route-bot-spacing { font-size: 12.5px; color: var(--text-secondary); display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
@@ -440,6 +448,7 @@
           </label>
           <button class="map-btn" id="map-label-unknowns-btn" style="display:none;" title="Step through markers the algorithm couldn't resolve and label each up/down/unknown by eye; export your answers as JSON to fold back into the data.">Label unknowns</button>
           <button class="map-btn" id="map-route-btn" style="display:none;" title="Click out waypoints to draw a hunting route; share it as a link.">Draw route</button>
+          <button class="map-btn" id="map-kf-btn" style="display:none;" title="Test: match a real-Tibia spawn export against our spawn clusters to find which floor each is on.">Known floors (test)</button>
           <button class="map-btn" id="map-path-btn" style="display:none;" title="Experimental: click a start and an end point on the map to find a walking route, using detected stairs/ladders/holes to change floors.">Find path</button>
           <span class="map-meta" id="map-cursor-coords"></span>
           <button class="map-btn" id="map-reset">Reset view</button>
@@ -448,6 +457,25 @@
       <div class="map-path-bar" id="map-path-bar" style="display:none;">
         <span id="map-path-status"></span>
         <span class="map-path-floors" id="map-path-floors"></span>
+      </div>
+      <div class="route-panel kf-panel" id="kf-panel" style="display:none;">
+        <div class="route-bot-title">Known floors from real-Tibia spawns (test)</div>
+        <div class="route-status">Load a real-Tibia spawn export (one monster or the whole file - anything with <code>"monster": {"name"}</code> and <code>"spots": [{"spawns": [{"x","y","z"}]}]</code>). Each of our spawn clusters with real spawns of the same monster within the radius takes their floor, if our terrain allows it there. Known-floor dots then show only on their floor, with a white ring. Runs in this browser only; the result is remembered here.</div>
+        <div class="route-actions">
+          <label class="route-bot-spacing">Export file <input type="file" id="kf-file" accept=".json,application/json"></label>
+          <label class="route-bot-spacing">Match radius
+            <select id="kf-radius"><option value="5">5 tiles</option><option value="8" selected>8 tiles</option><option value="12">12 tiles</option></select>
+          </label>
+        </div>
+        <textarea id="kf-text" class="kf-text" rows="3" spellcheck="false" placeholder="...or paste the export here"></textarea>
+        <div class="route-actions">
+          <button class="map-btn" id="kf-run" type="button">Match pasted text</button>
+          <button class="map-btn" id="kf-download" type="button">Download result</button>
+          <button class="map-btn" id="kf-clear" type="button">Clear known floors</button>
+          <button class="map-btn" id="kf-close" type="button">Close</button>
+        </div>
+        <div class="route-bot-msg" id="kf-status"></div>
+        <div class="kf-results" id="kf-results"></div>
       </div>
       <div class="route-panel" id="route-panel" style="display:none;">
         <input type="text" class="route-title-input edit-only" id="route-title" maxlength="120" placeholder="Route title, e.g. Dragon hunt north of the city">
@@ -739,7 +767,7 @@ function computeLootStats() {
 
 // Spawn clustering, from spawnMap points [x, y, count, floorMask]. Two points
 // only count as near each other if they share a plausible floor.
-(function computeSpawnStats() {
+function computeSpawnStats() {
   const all = [];
   (DATA.spawnMap && DATA.spawnMap.monsters || []).forEach(function (sm) {
     sm.points.forEach(function (p) { all.push({ name: sm.name, x: p[0], y: p[1], n: p[2], f: p[3] == null ? 0xFFFF : p[3] }); });
@@ -770,6 +798,17 @@ function computeLootStats() {
     if (bestAt) all.forEach(function (q) {
       if (q.name !== sm.name && near(bestAt, q, SPOT_RADIUS)) others[q.name] = (others[q.name] || 0) + q.n;
     });
+    // Floors confirmed from real-Tibia spawn data (points flagged p[4] === 1).
+    const byFloor = {};
+    let confirmed = 0;
+    sm.points.forEach(function (p) {
+      if (p[4] !== 1) return;
+      confirmed++;
+      for (let z = 0; z < 16; z++) if ((p[3] >> z) & 1) byFloor[z] = (byFloor[z] || 0) + p[2];
+    });
+    m.floorConfirmed = confirmed;
+    m.floorBreakdown = byFloor;
+    m.spawnPoints = sm.points.length;
     m.spawnTotal = total;
     m.bestSpot = best;
     m.bestSpotAt = bestAt ? { x: bestAt.x, y: bestAt.y, f: bestAt.f } : null;
@@ -778,7 +817,8 @@ function computeLootStats() {
     m.spotOthers = Object.keys(others).map(function (k) { return { name: k, n: others[k] }; })
       .sort(function (a, b) { return b.n - a.n; }).slice(0, 4);
   });
-})();
+}
+computeSpawnStats();
 
 // Most likely floor for a floor mask: the plausible floor closest to ground
 // level, or null when the mask says "any floor" (unknown).
@@ -1690,6 +1730,8 @@ function huntingRowHtml(m) {
     chips.push('<span class="stat-chip" title="An area = spawn points chained no more than 25 tiles apart"><b>' + fmt(m.spawnTotal) + '</b> spawns in ' + m.groundCount + ' area' + (m.groundCount > 1 ? 's' : '') + ', biggest <b>' + fmt(m.groundMax) + '</b></span>');
     const at = m.bestSpotAt, z = maskFloor(at.f);
     chips.push('<span class="stat-chip spot-pin" data-goto-spot="' + escAttr(m.name) + '" title="Most of this monster within 12 tiles of one point (about a screen). Click to show it on the map. Floors are inferred from terrain.">best spot <b>' + fmt(m.bestSpot) + '</b> within 12 tiles · x' + at.x + ' y' + at.y + (z !== null ? ' z' + z : '') + ' 📍</span>');
+    if (m.floorConfirmed) chips.push('<span class="stat-chip" title="Spawn clusters matched to real-Tibia spawns of this monster (Known floors test tool)">floor known for <b>' + m.floorConfirmed + '</b> of ' + m.spawnPoints + ' spawn points: ' +
+      Object.keys(m.floorBreakdown).sort(function (a, b) { return a - b; }).map(function (z) { return "z" + z + " ×" + m.floorBreakdown[z]; }).join(", ") + '</span>');
     if (m.spotOthers.length) chips.push('<span class="stat-chip">also there: ' + m.spotOthers.map(function (o) { return o.name + ' ×' + o.n; }).join(', ') + '</span>');
   } else {
     chips.push('<span class="stat-chip">no spawn data</span>');
@@ -2202,7 +2244,7 @@ function drawMap() {
       const color = isMatch ? mapTierColor(mo.tier) : null;
       for (let pi = 0; pi < mo.points.length; pi++) {
         const p = mo.points[pi];
-        if (state.filterImplausibleFloors && p[3] != null && !((p[3] >> state.mapFloor) & 1)) continue;
+        if (!spawnPointVisible(p)) continue;
         const [sx, sy] = worldToScreen(p[0], p[1]);
         if (sx < -10 || sx > w + 10 || sy < -10 || sy > h + 10) continue;
         const r = Math.max(1.6, Math.min(9, (1.6 + Math.sqrt(p[2]) * 1.3) * Math.min(1.4, mapView.scale * 40)));
@@ -2218,6 +2260,11 @@ function drawMap() {
           mapCtx.lineWidth = 1;
           mapCtx.strokeStyle = "#000";
           mapCtx.stroke();
+          if (p[4] === 1) {   // floor confirmed: white ring
+            mapCtx.globalAlpha = 0.95;
+            mapCtx.beginPath(); mapCtx.arc(sx, sy, r + 1.5, 0, Math.PI * 2);
+            mapCtx.lineWidth = 1.5; mapCtx.strokeStyle = "#fff"; mapCtx.stroke();
+          }
           matched++;
         } else {
           mapCtx.globalAlpha = 0.18;
@@ -2314,6 +2361,172 @@ function drawMap() {
   document.getElementById("map-meta").textContent = fmt(matched) + " matching points shown of " + fmt(DATA.spawnMap.monsters.reduce((s, m) => s + m.points.length, 0)) + " total";
 }
 
+// Spawn points carry no floor; p[3] is a terrain-guessed floor mask, and
+// p[4] === 1 marks a "known floor" deduced from real-Tibia spawn data (the
+// test tool below). Known-floor points only show on their floor; the rest
+// show everywhere unless "Hide implausible floors" is on.
+function spawnPointVisible(p) {
+  if (p[4] === 1) return ((p[3] >> state.mapFloor) & 1) === 1;
+  return !(state.filterImplausibleFloors && p[3] != null && !((p[3] >> state.mapFloor) & 1));
+}
+function spawnPointFloorText(p) {
+  if (p[4] !== 1) return "";
+  const zs = [];
+  for (let z = 0; z < 16; z++) if ((p[3] >> z) & 1) zs.push("z" + z);
+  return " · known floor " + zs.join("/") + " (matched real-Tibia spawns)";
+}
+
+// --- Known floors (test): match real-Tibia spawn exports against our spawn
+// clusters to deduce their floors. Minibia's map is largely the same world,
+// so a cluster with real spawns of the same monster within `radius` tiles
+// takes their floor(s) - only floors our terrain check already allows
+// (p[3]), preferring the nearest (within +2 tiles of the closest). Runs in
+// the browser on a pasted/loaded export; the result (small: [x, y, mask]
+// per matched cluster) is kept in localStorage and can be downloaded.
+const KNOWN_FLOORS_KEY = "minibia.knownFloors.v1";
+
+// Every {monster: {name}, spots: [{spawns: [{x, y, z}]}]} block anywhere in
+// the JSON (one monster, a list, or a big export keyed some other way).
+function kfFindEntries(root) {
+  const out = [], stack = [root];
+  while (stack.length) {
+    const node = stack.pop();
+    if (!node || typeof node !== "object") continue;
+    if (Array.isArray(node)) { for (let i = 0; i < node.length; i++) stack.push(node[i]); continue; }
+    if (node.monster && typeof node.monster.name === "string" && Array.isArray(node.spots)) { out.push(node); continue; }
+    for (const k in node) if (node[k] && typeof node[k] === "object") stack.push(node[k]);
+  }
+  return out;
+}
+// Accepts full JSON, or a fragment like the API's '"monster": {...}, "spots": [...]'.
+function kfParse(text) {
+  text = String(text || "").trim();
+  try { return JSON.parse(text); } catch (e) { /* try as a fragment */ }
+  return JSON.parse("{" + text.replace(/^,|,\s*$/g, "") + "}");
+}
+function kfName(s) { return String(s).toLowerCase().replace(/[^a-z0-9]+/g, " ").trim(); }
+
+function kfMatch(entries, radius) {
+  const tibia = new Map();   // name -> [[x, y, z], ...]
+  entries.forEach(function (e) {
+    const key = kfName(e.monster.name);
+    const list = tibia.get(key) || [];
+    e.spots.forEach(function (spot) {
+      (spot && Array.isArray(spot.spawns) ? spot.spawns : []).forEach(function (sp) {
+        if (sp && Number.isInteger(sp.x) && Number.isInteger(sp.y) && Number.isInteger(sp.z) && sp.z >= 0 && sp.z <= 15) list.push([sp.x, sp.y, sp.z]);
+      });
+    });
+    if (list.length) tibia.set(key, list);
+  });
+  const result = { radius: radius, monsters: {}, rows: [], tibiaMonsters: tibia.size, unmatchedTibia: [] };
+  const ours = new Set();
+  (DATA.spawnMap.monsters || []).forEach(function (sm) {
+    const key = kfName(sm.name);
+    ours.add(key);
+    const spawns = tibia.get(key);
+    if (!spawns) return;
+    const grid = new Map(), cell = 16;
+    spawns.forEach(function (t) {
+      const g = (t[0] >> 4) + "," + (t[1] >> 4);
+      if (!grid.has(g)) grid.set(g, []);
+      grid.get(g).push(t);
+    });
+    const known = [];
+    let single = 0;
+    const floors = {};
+    sm.points.forEach(function (p) {
+      const terrain = p._terrain !== undefined ? p._terrain : p[3];
+      const best = {};
+      for (let gx = (p[0] - radius) >> 4; gx <= (p[0] + radius) >> 4; gx++) {
+        for (let gy = (p[1] - radius) >> 4; gy <= (p[1] + radius) >> 4; gy++) {
+          (grid.get(gx + "," + gy) || []).forEach(function (t) {
+            const d = Math.max(Math.abs(t[0] - p[0]), Math.abs(t[1] - p[1]));
+            if (d <= radius && (best[t[2]] === undefined || d < best[t[2]])) best[t[2]] = d;
+          });
+        }
+      }
+      const zs = Object.keys(best).map(Number).filter(function (z) {
+        return terrain == null || (terrain & 0xFFFF) === 0xFFFF || ((terrain >> z) & 1);
+      });
+      if (!zs.length) return;
+      const dmin = Math.min.apply(null, zs.map(function (z) { return best[z]; }));
+      let mask = 0;
+      zs.forEach(function (z) { if (best[z] <= dmin + 2) { mask |= 1 << z; floors[z] = (floors[z] || 0) + p[2]; } });
+      if ((mask & (mask - 1)) === 0) single++;
+      known.push([p[0], p[1], mask]);
+    });
+    if (known.length) result.monsters[sm.name] = known;
+    result.rows.push({ name: sm.name, points: sm.points.length, matched: known.length, single: single, spawns: spawns.length, floors: floors });
+  });
+  tibia.forEach(function (_, key) { if (!ours.has(key)) result.unmatchedTibia.push(key); });
+  result.rows.sort(function (a, b) { return b.matched - a.matched; });
+  return result;
+}
+
+// Applies (or with null, clears) known floors on the spawn points, then
+// refreshes everything derived from them.
+function kfApply(known) {
+  (DATA.spawnMap.monsters || []).forEach(function (sm) {
+    const map = known && known.monsters[sm.name] ? new Map(known.monsters[sm.name].map(function (k) { return [k[0] + "," + k[1], k[2]]; })) : null;
+    sm.points.forEach(function (p) {
+      if (p._terrain === undefined) p._terrain = p[3];
+      const mask = map ? map.get(p[0] + "," + p[1]) : undefined;
+      if (mask) { p[3] = mask; p[4] = 1; }
+      else { p[3] = p._terrain; p.length = Math.min(p.length, 4); }
+    });
+  });
+  computeSpawnStats();
+  computeLootStats();
+  if (state.tab === "map") drawMap();
+  else if (state.tab === "monsters") render();
+}
+function kfSave(known) {
+  try {
+    if (known) localStorage.setItem(KNOWN_FLOORS_KEY, JSON.stringify({ radius: known.radius, monsters: known.monsters }));
+    else localStorage.removeItem(KNOWN_FLOORS_KEY);
+  } catch (e) { /* storage unavailable - still applied for this visit */ }
+}
+function kfLoadSaved() {
+  try {
+    const v = JSON.parse(localStorage.getItem(KNOWN_FLOORS_KEY) || "null");
+    if (v && v.monsters && typeof v.monsters === "object") return v;
+  } catch (e) { /* ignore */ }
+  return null;
+}
+
+function kfRenderResult(res) {
+  const status = document.getElementById("kf-status"), box = document.getElementById("kf-results");
+  box.textContent = "";
+  if (!res) { status.textContent = "No known floors applied."; return; }
+  if (!res.rows) {   // restored from storage: summary only
+    const names = Object.keys(res.monsters);
+    const n = names.reduce(function (s, k) { return s + res.monsters[k].length; }, 0);
+    status.textContent = "Known floors applied from an earlier run: " + n + " spawn clusters across " + names.length + " monsters (radius " + res.radius + "). Load the export again to see the full breakdown.";
+    return;
+  }
+  const matchedMonsters = res.rows.filter(function (r) { return r.matched; });
+  const pts = res.rows.reduce(function (s, r) { return s + r.points; }, 0);
+  const got = res.rows.reduce(function (s, r) { return s + r.matched; }, 0);
+  const single = res.rows.reduce(function (s, r) { return s + r.single; }, 0);
+  status.textContent = res.tibiaMonsters + " monsters in the export; " + res.rows.length + " also spawn here, " + matchedMonsters.length +
+    " with at least one match. " + got + " of their " + pts + " spawn clusters now have a known floor (" + single + " a single floor)." +
+    (res.unmatchedTibia.length ? " Not in Minibia's spawn data: " + res.unmatchedTibia.length + " (e.g. " + res.unmatchedTibia.slice(0, 6).join(", ") + ")." : "");
+  const table = document.createElement("table"); table.className = "kf-table";
+  const head = document.createElement("tr");
+  ["Monster", "Clusters", "Known floor", "Single floor", "By floor (spawns)"].forEach(function (h) { const th = document.createElement("th"); th.textContent = h; head.appendChild(th); });
+  table.appendChild(head);
+  res.rows.forEach(function (r) {
+    const tr = document.createElement("tr");
+    [r.name, String(r.points), r.matched + " (" + Math.round(100 * r.matched / Math.max(1, r.points)) + "%)", String(r.single),
+      Object.keys(r.floors).sort(function (a, b) { return a - b; }).map(function (z) { return "z" + z + " " + r.floors[z]; }).join(" · ")].forEach(function (v, ci) {
+      const td = document.createElement("td"); td.textContent = v; if (ci === 0) td.className = "kf-name"; tr.appendChild(td);
+    });
+    tr.addEventListener("click", function () { goToMonsterOnMap(r.name); });
+    table.appendChild(tr);
+  });
+  box.appendChild(table);
+}
+
 function mapPointAt(sx, sy) {
   const q = state.query.trim().toLowerCase();
   const monsters = DATA.spawnMap.monsters;
@@ -2325,6 +2538,7 @@ function mapPointAt(sx, sy) {
     if (!nameMatch || !tierMatch) continue;
     for (let pi = 0; pi < mo.points.length; pi++) {
       const p = mo.points[pi];
+      if (!spawnPointVisible(p)) continue;
       const [sx2, sy2] = worldToScreen(p[0], p[1]);
       const d = (sx2 - sx) * (sx2 - sx) + (sy2 - sy) * (sy2 - sy);
       if (d < bestDist) { bestDist = d; best = { mo, p }; }
@@ -4020,7 +4234,7 @@ function initMap() {
         mapTooltip.style.top = (touchState.tapY + 10) + "px";
         mapTooltip.querySelector(".t-name").textContent = hit.mo.name;
         mapTooltip.querySelector(".t-meta").textContent =
-          (hit.mo.tier != null ? TIER_LABELS[hit.mo.tier] + " · " : "") + "x" + hit.p[0] + " y" + hit.p[1] + (hit.p[2] > 1 ? " · cluster of " + hit.p[2] : "");
+          (hit.mo.tier != null ? TIER_LABELS[hit.mo.tier] + " · " : "") + "x" + hit.p[0] + " y" + hit.p[1] + (hit.p[2] > 1 ? " · cluster of " + hit.p[2] : "") + spawnPointFloorText(hit.p);
       } else if (connHit) {
         mapTooltip.style.display = "block";
         mapTooltip.style.left = (touchState.tapX + 14) + "px";
@@ -4096,7 +4310,7 @@ function initMap() {
       mapTooltip.style.top = (sy + 10) + "px";
       mapTooltip.querySelector(".t-name").textContent = hit.mo.name;
       mapTooltip.querySelector(".t-meta").textContent =
-        (hit.mo.tier != null ? TIER_LABELS[hit.mo.tier] + " · " : "") + "x" + hit.p[0] + " y" + hit.p[1] + (hit.p[2] > 1 ? " · cluster of " + hit.p[2] : "");
+        (hit.mo.tier != null ? TIER_LABELS[hit.mo.tier] + " · " : "") + "x" + hit.p[0] + " y" + hit.p[1] + (hit.p[2] > 1 ? " · cluster of " + hit.p[2] : "") + spawnPointFloorText(hit.p);
       mapCanvas.style.cursor = "default";
     } else if (connHit) {
       mapTooltip.style.display = "block";
@@ -4130,7 +4344,52 @@ function initMap() {
     document.getElementById("map-label-unknowns-btn").style.display = "";
     document.getElementById("map-path-btn").style.display = "";
     document.getElementById("map-route-btn").style.display = "";
+    document.getElementById("map-kf-btn").style.display = "";
   }
+  (function () {
+    let lastResult = null;
+    const panel = document.getElementById("kf-panel");
+    const run = function (text) {
+      const status = document.getElementById("kf-status");
+      let entries;
+      try { entries = kfFindEntries(kfParse(text)); } catch (e) { status.textContent = "Couldn't read that as JSON: " + e.message; return; }
+      if (!entries.length) { status.textContent = "No monster spawn data found (expected \"monster\": {\"name\"} with \"spots\": [{\"spawns\": [...]}])."; return; }
+      lastResult = kfMatch(entries, Number(document.getElementById("kf-radius").value));
+      kfApply(lastResult);
+      kfSave(lastResult);
+      kfRenderResult(lastResult);
+    };
+    document.getElementById("map-kf-btn").addEventListener("click", function () {
+      panel.style.display = panel.style.display === "none" ? "" : "none";
+      if (panel.style.display === "" && !lastResult) kfRenderResult(kfLoadSaved());
+    });
+    document.getElementById("kf-close").addEventListener("click", function () { panel.style.display = "none"; });
+    document.getElementById("kf-run").addEventListener("click", function () { run(document.getElementById("kf-text").value); });
+    document.getElementById("kf-file").addEventListener("change", function () {
+      const f = this.files && this.files[0];
+      if (!f) return;
+      document.getElementById("kf-status").textContent = "Reading " + f.name + "…";
+      const reader = new FileReader();
+      reader.onload = function () { setTimeout(function () { run(reader.result); }, 0); };
+      reader.onerror = function () { document.getElementById("kf-status").textContent = "Couldn't read the file."; };
+      reader.readAsText(f);
+    });
+    document.getElementById("kf-clear").addEventListener("click", function () {
+      lastResult = null; kfApply(null); kfSave(null); kfRenderResult(null);
+    });
+    document.getElementById("kf-download").addEventListener("click", function () {
+      const data = lastResult || kfLoadSaved();
+      if (!data) return;
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([JSON.stringify({ radius: data.radius, monsters: data.monsters })], { type: "application/json" }));
+      a.download = "known-floors.json";
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+    });
+    // Re-apply a previous run's result on load (per browser).
+    const saved = kfLoadSaved();
+    if (saved) kfApply(saved);
+  })();
   document.getElementById("map-path-btn").addEventListener("click", pathToggle);
   document.getElementById("map-route-btn").addEventListener("click", routeToggleEdit);
   document.getElementById("route-title").addEventListener("input", function (e) { routeState.title = e.target.value.slice(0, ROUTE_TITLE_MAX); routeUpdateLink(); });
