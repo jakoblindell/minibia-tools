@@ -99,11 +99,29 @@
     border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px;
   }
   #search::placeholder { color: var(--text-muted); }
-  select#sort {
+  select#sort { max-width: 100%; min-width: 0;
     font: inherit; font-size: 13px; background: var(--surface-1); color: var(--text-primary);
     border: 1px solid var(--border); border-radius: 8px; padding: 7px 10px;
   }
   .cat-filters, .tier-filters { display: flex; gap: 6px; flex-wrap: wrap; }
+  .map-filter-chips { flex-basis: 100%; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .map-filter-chips[hidden] { display: none; }
+  .fchip { display: inline-flex; align-items: stretch; border: 1px solid var(--border); border-radius: 999px; background: var(--surface-1); overflow: hidden; max-width: 100%; }
+  .fchip button { font: inherit; font-size: 12.5px; font-weight: 600; border: 0; background: transparent; color: var(--text-secondary); cursor: pointer; }
+  .fchip .fchip-toggle { padding: 5px 4px 5px 12px; display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
+  .fchip .fchip-toggle .fchip-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .fchip .fchip-toggle .fchip-count { font-weight: 400; color: var(--text-muted); }
+  .fchip .fchip-x { padding: 5px 10px 5px 6px; color: var(--text-muted); }
+  .fchip .fchip-x:hover { color: var(--text-primary); }
+  .fchip.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 16%, var(--surface-1)); }
+  .fchip.on .fchip-toggle { color: var(--text-primary); }
+  .fchip:not(.on) .fchip-name { text-decoration: line-through; opacity: .7; }
+  .fchip-clear { font: inherit; font-size: 12px; border: 0; background: none; color: var(--text-muted); text-decoration: underline; cursor: pointer; padding: 4px; }
+  /* iPhones zoom into any field with text under 16px when it's focused;
+     keep fields at 16px on touch screens so tapping one doesn't zoom. */
+  @media (pointer: coarse) {
+    input, select, textarea { font-size: 16px !important; }
+  }
   .hunt-row .chip-row .stat-chip b { font-weight: 700; }
   .spot-pin { cursor: pointer; text-decoration: underline dotted; }
   .loot-weight { color: var(--text-muted); text-align: right; white-space: nowrap; }
@@ -387,7 +405,9 @@
   .rb-json textarea, .route-bot-import textarea { font-family: 'SF Mono', Consolas, monospace; font-size: 11.5px; margin-top: 4px; }
   .rb-err { color: var(--bad, #c0392b); font-size: 11.5px; }
   .kf-text { font-family: 'SF Mono', Consolas, monospace; font-size: 11.5px; width: 100%; background: var(--surface-2); color: var(--text-primary); border: 1px solid var(--border); border-radius: 6px; padding: 5px 8px; }
-  .kf-panel input[type=file] { font-size: 12px; max-width: 100%; }
+  .kf-panel input[type=file] { font-size: 12px; max-width: 100%; min-width: 0; }
+  .kf-panel .route-bot-spacing { max-width: 100%; min-width: 0; }
+  @media (max-width: 560px) { .kf-panel input[type=file] { width: 100%; } .kf-panel .route-bot-spacing { flex: 1 1 100%; } }
   .kf-results { max-height: 360px; overflow: auto; }
   .kf-table { border-collapse: collapse; font-size: 12px; width: 100%; }
   .kf-table th, .kf-table td { text-align: left; padding: 3px 8px; border-bottom: 1px solid var(--border); white-space: nowrap; }
@@ -488,7 +508,9 @@
   <div class="stats" id="stat-tabs"></div>
 
   <div class="controls" id="controls-row">
-    <input type="search" id="search" placeholder="Search…">
+    <input type="search" id="search" placeholder="Search…" enterkeyhint="search" autocomplete="off">
+    <datalist id="map-monster-names"></datalist>
+    <div class="map-filter-chips" id="map-filter-chips" hidden></div>
     <select id="sort"></select>
     <div class="cat-filters" id="cat-filters"></div>
     <div class="tier-filters" id="tier-filters"></div>
@@ -575,7 +597,7 @@
         </section>
         <section class="mapx-panel" data-panel="route" hidden>
           <div class="route-panel" id="route-panel" style="display:none;">
-            <input type="text" class="route-title-input edit-only" id="route-title" maxlength="120" placeholder="Route title, e.g. Dragon hunt north of the city">
+            <input type="text" class="route-title-input edit-only" id="route-title" maxlength="120" placeholder="Route title (optional)">
             <h3 class="route-title view-only" id="route-title-view"></h3>
             <div class="route-status" id="route-status"></div>
             <div class="route-legend" id="route-legend"></div>
@@ -1053,10 +1075,13 @@ function goToMonsterOnMap(name) {
   if (!spawn) return;
   mapView.pinnedNpc = null;
   state.tab = "map";
-  state.query = spawn.name;
+  state.query = "";
   state.page = 1;
   const searchBox = document.getElementById("search");
-  if (searchBox) searchBox.value = spawn.name;
+  if (searchBox) searchBox.value = "";
+  // Show just this monster: its filter chip on, the others off (kept).
+  state.mapFilters.forEach(function (f) { f.on = false; });
+  mapAddFilter(spawn.name);
   refreshTabChrome();
   resizeMapCanvas();
   buildMapLegend();
@@ -1719,7 +1744,8 @@ function renderControlsVisibility() {
   if (state.tab === "map") {
     controlsRow.querySelector("#sort").style.display = "none";
     controlsRow.querySelector("#cat-filters").style.display = "none";
-    document.getElementById("search").placeholder = "Filter by monster name…";
+    document.getElementById("search").placeholder = "Add a monster…";
+    document.getElementById("search").setAttribute("list", "map-monster-names");
     resultsEl.style.display = "none";
     pag.style.display = "none";
     countEl.style.display = "none";
@@ -1727,10 +1753,12 @@ function renderControlsVisibility() {
     controlsRow.querySelector("#sort").style.display = "";
     controlsRow.querySelector("#cat-filters").style.display = "";
     document.getElementById("search").placeholder = "Search…";
+    document.getElementById("search").removeAttribute("list");
     resultsEl.style.display = "";
     pag.style.display = "";
     countEl.style.display = "";
   }
+  mapRenderFilterChips();
 }
 
 function renderSortOptions() {
@@ -2337,7 +2365,7 @@ function drawMap() {
   for (let pass = 0; pass < 2; pass++) {
     for (let mi = 0; mi < monsters.length; mi++) {
       const mo = monsters[mi];
-      const nameMatch = !q || mo.name.toLowerCase().includes(q);
+      const nameMatch = mapNameMatch(mo.name);
       const tierMatch = state.tier === "all" || String(mo.tier) === state.tier;
       const isMatch = nameMatch && tierMatch;
       if (pass === 0 && isMatch) continue;
@@ -2622,13 +2650,81 @@ function kfRenderResult(res) {
   box.appendChild(table);
 }
 
+// --- Map monster filters: search a monster and press Enter (or pick a
+// suggestion) to add it as a chip; tap a chip to toggle it, x to remove.
+// The map shows the union of the active chips (plus whatever is being
+// typed); no active chips = no name filter. Kept per browser.
+const MAP_FILTERS_KEY = "minibia.mapFilters";
+state.mapFilters = (function () {
+  try {
+    const v = JSON.parse(localStorage.getItem(MAP_FILTERS_KEY) || "[]");
+    if (Array.isArray(v)) return v.filter(function (f) { return f && typeof f.q === "string" && f.q; })
+      .slice(0, 40).map(function (f) { return { q: f.q.slice(0, 60).toLowerCase(), exact: !!f.exact, on: f.on !== false }; });
+  } catch (e) { /* ignore */ }
+  return [];
+})();
+function mapFiltersSave() { try { localStorage.setItem(MAP_FILTERS_KEY, JSON.stringify(state.mapFilters)); } catch (e) { /* ignore */ } }
+function mapFilterMatch(f, nameLower) { return f.exact ? nameLower === f.q : nameLower.indexOf(f.q) >= 0; }
+function mapNameMatch(name) {
+  const n = name.toLowerCase(), q = state.query.trim().toLowerCase();
+  const active = state.mapFilters.filter(function (f) { return f.on; });
+  if (!q && !active.length) return true;
+  if (q && n.indexOf(q) >= 0) return true;
+  return active.some(function (f) { return mapFilterMatch(f, n); });
+}
+// Adds (or re-enables) a filter: an exact monster name if the text is one,
+// otherwise "name contains" (e.g. "spider" -> every spider). Returns true if
+// it matches any monster on the map.
+function mapAddFilter(text) {
+  const q = String(text || "").trim().toLowerCase().slice(0, 60);
+  if (!q) return false;
+  const names = DATA.spawnMap.monsters.map(function (m) { return m.name.toLowerCase(); });
+  const exact = names.indexOf(q) >= 0;
+  if (!exact && !names.some(function (n) { return n.indexOf(q) >= 0; })) return false;
+  const existing = state.mapFilters.find(function (f) { return f.q === q; });
+  if (existing) existing.on = true;
+  else state.mapFilters.push({ q: q, exact: exact, on: true });
+  mapFiltersSave();
+  mapRenderFilterChips();
+  return true;
+}
+function mapRenderFilterChips() {
+  const box = document.getElementById("map-filter-chips");
+  if (!box) return;
+  box.textContent = "";
+  box.hidden = state.tab !== "map" || !state.mapFilters.length;
+  if (box.hidden) return;
+  state.mapFilters.forEach(function (f, i) {
+    const matches = DATA.spawnMap.monsters.filter(function (m) { return mapFilterMatch(f, m.name.toLowerCase()); });
+    const chip = document.createElement("span"); chip.className = "fchip" + (f.on ? " on" : "");
+    const t = document.createElement("button"); t.type = "button"; t.className = "fchip-toggle";
+    t.title = (f.on ? "Hide " : "Show ") + (f.exact ? matches[0] ? matches[0].name : f.q : "monsters named “" + f.q + "”") + " on the map";
+    t.setAttribute("aria-pressed", f.on ? "true" : "false");
+    const nm = document.createElement("span"); nm.className = "fchip-name";
+    nm.textContent = f.exact && matches[0] ? matches[0].name : "“" + f.q + "”";
+    t.appendChild(nm);
+    if (!f.exact) { const c = document.createElement("span"); c.className = "fchip-count"; c.textContent = matches.length + " types"; t.appendChild(c); }
+    t.addEventListener("click", function () { f.on = !f.on; mapFiltersSave(); mapRenderFilterChips(); drawMap(); });
+    const x = document.createElement("button"); x.type = "button"; x.className = "fchip-x"; x.textContent = "×"; x.title = "Remove filter";
+    x.setAttribute("aria-label", "Remove " + nm.textContent);
+    x.addEventListener("click", function () { state.mapFilters.splice(i, 1); mapFiltersSave(); mapRenderFilterChips(); drawMap(); });
+    chip.appendChild(t); chip.appendChild(x);
+    box.appendChild(chip);
+  });
+  if (state.mapFilters.length > 1) {
+    const clr = document.createElement("button"); clr.type = "button"; clr.className = "fchip-clear"; clr.textContent = "Clear all";
+    clr.addEventListener("click", function () { state.mapFilters = []; mapFiltersSave(); mapRenderFilterChips(); drawMap(); });
+    box.appendChild(clr);
+  }
+}
+
 function mapPointAt(sx, sy) {
   const q = state.query.trim().toLowerCase();
   const monsters = DATA.spawnMap.monsters;
   let best = null, bestDist = 12 * 12;
   for (let mi = 0; mi < monsters.length; mi++) {
     const mo = monsters[mi];
-    const nameMatch = !q || mo.name.toLowerCase().includes(q);
+    const nameMatch = mapNameMatch(mo.name);
     const tierMatch = state.tier === "all" || String(mo.tier) === state.tier;
     if (!nameMatch || !tierMatch) continue;
     for (let pi = 0; pi < mo.points.length; pi++) {
@@ -3789,7 +3885,7 @@ function botSettingsEl(p, i) {
   whereEl.textContent = "z" + p.z + " x" + p.x + " y" + p.y;
   whereEl.title = "Drag the marker on the map to move it";
   box.appendChild(whereEl);
-  const noteIn = text(p.note, "Note shown on the map and in share links");
+  const noteIn = text(p.note, "Shown on the map");
   noteIn.maxLength = ROUTE_NOTE_MAX;
   const noteField = field("Note", noteIn);
   noteField.parentElement.classList.add("rb-note");
@@ -3797,7 +3893,7 @@ function botSettingsEl(p, i) {
   const idIn = field("Id", text(p.id, "wp-" + (i + 1)));
   idIn.maxLength = 60;
   idIn.addEventListener("input", function () { p.id = idIn.value.trim(); changed(); });
-  const labIn = field("Label" + (p.t === "label" ? " (required)" : ""), text(p.label, p.t === "label" ? "e.g. hunt-start" : "optional anchor"));
+  const labIn = field("Label" + (p.t === "label" ? " (required)" : ""), text(p.label, p.t === "label" ? "required" : "optional"));
   labIn.maxLength = 60;
   labIn.addEventListener("input", function () { p.label = labIn.value.trim(); changed(); });
   const en = document.createElement("input"); en.type = "checkbox"; en.checked = p.en;
@@ -4646,6 +4742,36 @@ document.getElementById("search").addEventListener("input", function (e) {
   else if (state.tab !== "runecalc" && state.tab !== "hunt") render();
 });
 document.getElementById("sort").addEventListener("change", function (e) { state.sort = e.target.value; state.page = 1; render(); });
+(function () {
+  const box = document.getElementById("search");
+  const add = function () {
+    if (state.tab !== "map" || !box.value.trim()) return false;
+    if (!mapAddFilter(box.value)) return false;
+    box.value = ""; state.query = ""; drawMap();
+    return true;
+  };
+  box.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && !e.isComposing && state.tab === "map") { e.preventDefault(); add(); }
+  });
+  // Picking a suggestion (not typing) puts in a whole monster name: add it
+  // straight away.
+  box.addEventListener("input", function (e) {
+    if (state.tab !== "map" || (e.inputType && e.inputType !== "insertReplacementText")) return;
+    const v = box.value.trim().toLowerCase();
+    if (v && DATA.spawnMap.monsters.some(function (m) { return m.name.toLowerCase() === v; })) add();
+  });
+  const dl = document.getElementById("map-monster-names");
+  DATA.spawnMap.monsters.map(function (m) { return m.name; }).sort().forEach(function (n) {
+    const o = document.createElement("option"); o.value = n; dl.appendChild(o);
+  });
+})();
+// On touch screens, Enter in a one-line field closes the keyboard.
+document.addEventListener("keydown", function (e) {
+  if (e.key !== "Enter" || e.isComposing) return;
+  const t = e.target;
+  if (!t || t.tagName !== "INPUT" || t.type === "checkbox" || t.type === "file") return;
+  if (window.matchMedia && window.matchMedia("(pointer: coarse)").matches) setTimeout(function () { t.blur(); }, 0);
+});
 
 
 // Rune Making calculator: chip rows are rebuilt by renderRuneCalcChips()
