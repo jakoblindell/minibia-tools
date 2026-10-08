@@ -376,7 +376,7 @@
   .route-status { font-size: 12.5px; color: var(--text-secondary); }
   .route-points { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; max-height: 420px; overflow-y: auto; }
   .route-points li { display: flex; align-items: center; gap: 8px; font-size: 12.5px; min-width: 0; }
-  .route-points .route-num, .path-bot-up .route-num { flex: none; width: 22px; height: 22px; border-radius: 50%; background: #ff8c00; color: #111; font-weight: 700; font-size: 11.5px; display: inline-flex; align-items: center; justify-content: center; }
+  .route-points .route-num, .pb-up .route-num { flex: none; width: 22px; height: 22px; border-radius: 50%; background: #ff8c00; color: #111; font-weight: 700; font-size: 11.5px; display: inline-flex; align-items: center; justify-content: center; }
   .route-points .route-where { flex: none; color: var(--text-muted); font-family: 'SF Mono', Consolas, monospace; font-size: 11.5px; }
   .route-points .route-note { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
   .route-points input.route-note { font: inherit; font-size: 12.5px; background: var(--surface-2); color: var(--text-primary); border: 1px solid var(--border); border-radius: 6px; padding: 3px 7px; }
@@ -422,13 +422,35 @@
   .route-bot-msg.has-errors { color: var(--bad, #c0392b); }
   .path-bot { margin-top: 10px; }
   .path-bot[hidden] { display: none; }
-  .path-bot-ups { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
-  .path-bot-ups:empty { display: none; }
-  .path-bot-up { display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 12.5px; color: var(--text-secondary); }
-  .path-bot-up .path-bot-where { flex: 1 1 auto; min-width: 0; }
-  .path-bot-up select { flex: none; font: inherit; font-size: 12.5px; background: var(--surface-2); color: var(--text-primary); border: 1px solid var(--border); border-radius: 6px; padding: 3px 6px; }
-  .path-bot-up select.unpicked { border-color: var(--bad, #dc2626); }
-  .path-bot-up .map-btn { padding: 3px 8px; font-size: 12px; flex: none; }
+  .path-bot { gap: 10px; }
+  .pb-field { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 13px; color: var(--text-secondary); }
+  .pb-field select { flex: 0 1 auto; min-width: 0; font: inherit; font-size: 13px; background: var(--surface-2); color: var(--text-primary); border: 1px solid var(--border); border-radius: 8px; padding: 6px 8px; }
+  .pb-ups[hidden] { display: none; }
+  .pb-ups { display: flex; flex-direction: column; gap: 6px; }
+  .pb-ups-head { font-size: 13px; font-weight: 700; color: var(--text-primary); }
+  .pb-ups-head .pb-left { color: var(--bad, #dc2626); }
+  .pb-ups-head .pb-done { color: var(--good, #16a34a); }
+  .pb-hint { margin: 0; font-size: 12px; color: var(--text-muted); }
+  .path-bot-ups { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  .pb-up { border: 1px solid var(--border); border-left: 3px solid var(--bad, #dc2626); border-radius: 8px; padding: 8px 10px; display: flex; flex-direction: column; gap: 8px; background: var(--surface-2); }
+  .pb-up.picked { border-left-color: var(--good, #16a34a); }
+  .pb-up-head { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .pb-up-head .route-num { flex: none; }
+  .pb-up-where { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; line-height: 1.3; }
+  .pb-up-where b { font-size: 13px; color: var(--text-primary); }
+  .pb-up-where small { font-size: 11.5px; color: var(--text-muted); font-family: 'SF Mono', Consolas, monospace; }
+  .pb-up-head .map-btn { flex: none; padding: 6px 10px; }
+  .pb-up-warn { font-size: 12px; color: var(--bad, #dc2626); }
+  .pb-choice { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  .pb-choice button { font: inherit; font-size: 13px; font-weight: 600; min-height: 38px; padding: 6px 4px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface-1); color: var(--text-primary); cursor: pointer; }
+  .pb-choice button:hover { border-color: var(--accent); }
+  .pb-choice button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .map-btn.pb-primary { width: 100%; min-height: 40px; font-size: 13.5px; background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .map-btn.pb-primary:disabled { background: var(--surface-2); border-color: var(--border); color: var(--text-secondary); }
+  .map-path-floors .fl-short { display: none; }
+  @media (max-width: 560px) { .map-path-floors .fl-long { display: none; } .map-path-floors .fl-short { display: inline; } }
+  .pb-row { display: flex; flex-wrap: wrap; gap: 6px; }
+  .pb-row .map-btn { flex: 1 1 auto; min-height: 36px; }
   .beta-tag { font-size: 10px; font-weight: 700; letter-spacing: .04em; padding: 1px 5px; border-radius: 4px; border: 1px solid var(--border); color: var(--text-secondary); vertical-align: 1px; }
   .route-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   @media (max-width: 560px) {
@@ -606,22 +628,26 @@
           </div>
           <div class="route-bot path-bot" id="path-bot" hidden>
             <div class="route-bot-title">One-way cave bot route <span class="beta-tag">beta</span></div>
-            <div class="route-actions">
-              <label class="route-bot-spacing">Walk waypoint every
-                <select id="path-bot-spacing">
-                  <option value="0">none (floor changes only)</option>
-                  <option value="5">5 tiles</option>
-                  <option value="8">8 tiles</option>
-                  <option value="10" selected>10 tiles</option>
-                  <option value="15">15 tiles</option>
-                  <option value="25">25 tiles</option>
-                </select>
-              </label>
-              <button class="map-btn" id="path-bot-copy" type="button" title="Copy this path as waypoints in the bot's Import JSON format">Copy JSON</button>
+            <label class="pb-field"><span>Walk waypoints</span>
+              <select id="path-bot-spacing">
+                <option value="0">None</option>
+                <option value="5">Every 5 tiles</option>
+                <option value="8">Every 8 tiles</option>
+                <option value="10" selected>Every 10 tiles</option>
+                <option value="15">Every 15 tiles</option>
+                <option value="25">Every 25 tiles</option>
+              </select>
+            </label>
+            <div class="pb-ups" id="path-bot-ups-wrap" hidden>
+              <div class="pb-ups-head" id="path-bot-ups-head"></div>
+              <p class="pb-hint">The map draws stairs, ladders and rope spots the same, so pick what each way up is.</p>
+              <ol class="path-bot-ups" id="path-bot-ups"></ol>
+            </div>
+            <button class="map-btn pb-primary" id="path-bot-copy" type="button" title="Copy this path as waypoints in the bot's Import JSON format">Copy JSON</button>
+            <div class="pb-row">
               <button class="map-btn" id="path-bot-download" type="button">Download</button>
               <button class="map-btn" id="path-bot-edit" type="button" title="Open these waypoints in the Route builder to change types or positions">Edit in Route builder</button>
             </div>
-            <ol class="path-bot-ups" id="path-bot-ups"></ol>
             <div class="route-bot-msg" id="path-bot-msg"></div>
           </div>
         </section>
@@ -3240,15 +3266,13 @@ function pathBotRender(note) {
   box.hidden = !show;
   if (!show) return;
   const pb = pathBotPoints();
-  const pts = pb.points, walks = pts.length - pb.floors;
+  const pts = pb.points;
+  const unp = botUnpicked(pts);
   const lines = [];
   if (note) lines.push(note);
-  lines.push(pts.length + " waypoint" + (pts.length === 1 ? "" : "s") + ": " + walks + " walk" + (walks === 1 ? "" : "s") + " (start and goal included)" +
-    (pb.floors ? ", " + pb.floors + " floor change" + (pb.floors === 1 ? "" : "s") : "") + ". One way - no walk back to the start." +
+  lines.push(pts.length + " waypoint" + (pts.length === 1 ? "" : "s") + (pb.floors ? " · " + pb.floors + " floor change" + (pb.floors === 1 ? "" : "s") : "") + " · one way, no walk back." +
     (pts.length > ROUTE_MAX_POINTS ? " That's over " + ROUTE_MAX_POINTS + " - use a larger spacing." : ""));
-  const unp = botUnpicked(pts);
-  if (unp.length) lines.push("Pick what each way up is above - the map draws stairs, ladders and rope spots alike (⌖ shows it). Copy waits until all are picked.");
-  lines.push("In the bot turn Cave loop off for this route, or it walks back to waypoint 1 when it gets there.");
+  lines.push("In the bot, turn Cave loop off for this route - or it heads back to waypoint 1 when it arrives.");
   const sus = pathBotChecks(pts);
   if (sus.length) lines.push("⚠ " + sus.length + " floor-change waypoint" + (sus.length === 1 ? "" : "s") + " may be misplaced (red ring on the map): " + sus.slice(0, 4).join(" ") + (sus.length > 4 ? " (+" + (sus.length - 4) + " more)" : ""));
   const errs = botValidate(pts.map(botWaypoint));
@@ -3256,40 +3280,66 @@ function pathBotRender(note) {
   const el = document.getElementById("path-bot-msg");
   el.textContent = lines.join("\n");
   el.classList.toggle("has-errors", sus.length > 0 || errs.length > 0);
-  pathBotRenderUps(pts);
+  ["path-bot-copy", "path-bot-download"].forEach(function (id) {
+    const b = document.getElementById(id);
+    b.disabled = unp.length > 0;
+    b.title = unp.length ? "Pick what each way up is first" : (id === "path-bot-copy" ? "Copy this path as waypoints in the bot's Import JSON format" : "");
+  });
+  pathBotRenderUps(pts, unp.length);
 }
-// One row per way up on the path: its waypoint number, where, a picker.
-function pathBotRenderUps(pts) {
-  const ol = document.getElementById("path-bot-ups");
-  const keep = document.activeElement && ol.contains(document.activeElement) ? document.activeElement.getAttribute("data-key") : null;
+// One card per way up on the path: where it is, Show on map, and
+// Stairs / Ladder / Rope buttons.
+function pathBotRenderUps(pts, left) {
+  const wrap = document.getElementById("path-bot-ups-wrap"), ol = document.getElementById("path-bot-ups");
+  const keep = document.activeElement && ol.contains(document.activeElement) ? document.activeElement.getAttribute("data-focus") : null;
   ol.textContent = "";
-  if (BOT_UP_EXPORT) return;
-  pts.forEach(function (p, i) {
+  let n = 0;
+  if (!BOT_UP_EXPORT) pts.forEach(function (p, i) {
     if (p.t !== "up" && !p.picked) return;
+    n++;
     const key = p.z + "," + p.x + "," + p.y;
-    const li = document.createElement("li"); li.className = "path-bot-up";
+    const li = document.createElement("li"); li.className = "pb-up" + (p.picked ? " picked" : "");
+    const head = document.createElement("div"); head.className = "pb-up-head";
     const num = document.createElement("span"); num.className = "route-num"; num.textContent = String(i + 1);
     num.style.background = botTypeColor(p.t); num.style.color = botTypeInk(p.t);
-    const where = document.createElement("span"); where.className = "path-bot-where";
-    where.textContent = "Up z" + p.z + "→" + (p.z - 1) + (p.chk && p.chk.state === "bad" ? " ⚠" : "");
-    where.title = "Stand on x" + p.x + " y" + p.y + " z" + p.z + ", step " + (p.params.transitionTarget || p.params.targetOffset || "here");
-    const sel = document.createElement("select"); sel.setAttribute("data-key", key);
-    sel.setAttribute("aria-label", "What way up waypoint " + (i + 1) + " is");
-    const o0 = document.createElement("option"); o0.value = ""; o0.textContent = "Pick type…"; sel.appendChild(o0);
-    BOT_UP_CHOICES.forEach(function (t) { const o = document.createElement("option"); o.value = t; o.textContent = BOT_TYPES[t].label; sel.appendChild(o); });
-    sel.value = pathBot.choice[key] || "";
-    sel.classList.toggle("unpicked", !sel.value);
-    sel.addEventListener("change", function () {
-      if (sel.value) pathBot.choice[key] = sel.value; else delete pathBot.choice[key];
-      pathBot.key = "";
-      pathBotRender(); drawMap();
+    const where = document.createElement("span"); where.className = "pb-up-where";
+    const b = document.createElement("b"); b.textContent = "Up to " + mapFloorLabel(p.z - 1);
+    const sm = document.createElement("small"); sm.textContent = "x" + p.x + " y" + p.y + " z" + p.z;
+    where.appendChild(b); where.appendChild(sm);
+    const go = document.createElement("button"); go.className = "map-btn"; go.type = "button"; go.textContent = "Show"; go.title = "Show this spot on the map";
+    go.setAttribute("data-focus", key + ":show");
+    go.addEventListener("click", function () {
+      setMapFloor(p.z); mapFitToPoint(p.x, p.y); drawMap();
+      const r = mapCanvas.getBoundingClientRect();
+      if (r.bottom < 60 || r.top > window.innerHeight - 60) mapCanvas.scrollIntoView({ block: "center", behavior: "smooth" });
     });
-    const go = document.createElement("button"); go.className = "map-btn"; go.type = "button"; go.textContent = "⌖"; go.title = "Show on the map";
-    go.addEventListener("click", function () { setMapFloor(p.z); mapFitToPoint(p.x, p.y); drawMap(); });
-    li.appendChild(num); li.appendChild(where); li.appendChild(sel); li.appendChild(go);
+    head.appendChild(num); head.appendChild(where); head.appendChild(go);
+    li.appendChild(head);
+    if (p.chk && p.chk.state === "bad") {
+      const w = document.createElement("div"); w.className = "pb-up-warn"; w.textContent = "⚠ " + p.chk.msg;
+      li.appendChild(w);
+    }
+    const choice = document.createElement("div"); choice.className = "pb-choice"; choice.setAttribute("role", "group");
+    choice.setAttribute("aria-label", "What way up waypoint " + (i + 1) + " is");
+    const names = { "stairs-up": "Stairs", "ladder-up": "Ladder", "rope": "Rope" };
+    BOT_UP_CHOICES.forEach(function (t) {
+      const btn = document.createElement("button"); btn.type = "button"; btn.textContent = names[t] || BOT_TYPES[t].label;
+      btn.setAttribute("aria-pressed", pathBot.choice[key] === t ? "true" : "false");
+      btn.setAttribute("data-focus", key + ":" + t);
+      btn.addEventListener("click", function () {
+        pathBot.choice[key] = t;
+        pathBot.key = "";
+        pathBotRender(); drawMap();
+      });
+      choice.appendChild(btn);
+    });
+    li.appendChild(choice);
     ol.appendChild(li);
   });
-  if (keep) { const el = ol.querySelector('[data-key="' + keep + '"]'); if (el) el.focus(); }
+  wrap.hidden = n === 0;
+  const head = document.getElementById("path-bot-ups-head");
+  head.innerHTML = "Ways up · " + (left ? '<span class="pb-left">' + left + " of " + n + " to pick</span>" : '<span class="pb-done">all picked ✓</span>');
+  if (keep) { const el = ol.querySelector('[data-focus="' + keep + '"]'); if (el) el.focus(); }
 }
 function drawPathBotWaypoints(z) {
   if (!botPathFlag || !pathState.result) return;
@@ -3523,7 +3573,7 @@ function pathShowResult(r) {
   const doors = r.doors || [];
   pathState.result = { nodes: nodes, segs: segs, steps: steps, changes: changes, doors: doors };
   const chips = segs.map(function (sg, i) {
-    return '<button class="chip" type="button" data-path-seg="' + i + '">' + esc(mapFloorLabel(sg.z)) + '</button>';
+    return '<button class="chip" type="button" data-path-seg="' + i + '" title="' + esc(mapFloorLabel(sg.z)) + '"><span class="fl-long">' + esc(mapFloorLabel(sg.z)) + '</span><span class="fl-short">z' + sg.z + '</span></button>';
   }).join(" → ");
   pathSetStatus("Route: ~" + fmt(steps) + " steps, " + changes + " floor change" + (changes === 1 ? "" : "s") +
     (doors.length ? ", passes " + doors.length + " assumed door" + (doors.length === 1 ? "" : "s") + " (white squares - walls the minimap draws with no door, check these)" : "") +
