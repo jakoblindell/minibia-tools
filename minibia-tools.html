@@ -376,7 +376,7 @@
   .route-status { font-size: 12.5px; color: var(--text-secondary); }
   .route-points { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; max-height: 420px; overflow-y: auto; }
   .route-points li { display: flex; align-items: center; gap: 8px; font-size: 12.5px; min-width: 0; }
-  .route-points .route-num, .pb-up .route-num { flex: none; width: 22px; height: 22px; border-radius: 50%; background: #ff8c00; color: #111; font-weight: 700; font-size: 11.5px; display: inline-flex; align-items: center; justify-content: center; }
+  .route-points .route-num { flex: none; width: 22px; height: 22px; border-radius: 50%; background: #ff8c00; color: #111; font-weight: 700; font-size: 11.5px; display: inline-flex; align-items: center; justify-content: center; }
   .route-points .route-where { flex: none; color: var(--text-muted); font-family: 'SF Mono', Consolas, monospace; font-size: 11.5px; }
   .route-points .route-note { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
   .route-points input.route-note { font: inherit; font-size: 12.5px; background: var(--surface-2); color: var(--text-primary); border: 1px solid var(--border); border-radius: 6px; padding: 3px 7px; }
@@ -431,20 +431,29 @@
   .pb-ups-head .pb-left { color: var(--bad, #dc2626); }
   .pb-ups-head .pb-done { color: var(--good, #16a34a); }
   .pb-hint { margin: 0; font-size: 12px; color: var(--text-muted); }
-  .path-bot-ups { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
-  .pb-up { border: 1px solid var(--border); border-left: 3px solid var(--bad, #dc2626); border-radius: 8px; padding: 8px 10px; display: flex; flex-direction: column; gap: 8px; background: var(--surface-2); }
-  .pb-up.picked { border-left-color: var(--good, #16a34a); }
-  .pb-up-head { display: flex; align-items: center; gap: 10px; min-width: 0; }
-  .pb-up-head .route-num { flex: none; }
-  .pb-up-where { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; line-height: 1.3; }
-  .pb-up-where b { font-size: 13px; color: var(--text-primary); }
-  .pb-up-where small { font-size: 11.5px; color: var(--text-muted); font-family: 'SF Mono', Consolas, monospace; }
-  .pb-up-head .map-btn { flex: none; padding: 6px 10px; }
-  .pb-up-warn { font-size: 12px; color: var(--bad, #dc2626); }
+  .pb-up-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .pb-up-chip { display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: 12.5px; font-weight: 600; min-height: 34px; padding: 4px 10px 4px 5px; border-radius: 999px; border: 1px solid var(--bad, #dc2626); background: var(--surface-2); color: var(--text-primary); cursor: pointer; }
+  .pb-up-chip.picked { border-color: var(--border); }
+  .pb-up-chip:hover { border-color: var(--accent); }
+  .pb-up-chip .route-num, .upq .route-num { flex: none; width: 22px; height: 22px; border-radius: 50%; font-weight: 700; font-size: 11.5px; display: inline-flex; align-items: center; justify-content: center; }
   .pb-choice { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
-  .pb-choice button { font: inherit; font-size: 13px; font-weight: 600; min-height: 38px; padding: 6px 4px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface-1); color: var(--text-primary); cursor: pointer; }
+  .pb-choice button { font: inherit; font-size: 13.5px; font-weight: 600; min-height: 42px; padding: 6px 4px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface-2); color: var(--text-primary); cursor: pointer; }
   .pb-choice button:hover { border-color: var(--accent); }
   .pb-choice button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .upq[hidden] { display: none; }
+  .upq { left: 50%; transform: translateX(-50%); bottom: 10px; width: min(420px, calc(100% - 20px)); box-sizing: border-box; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; background: var(--surface-1); z-index: 6; }
+  .upq-head { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .upq-title { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; line-height: 1.3; }
+  .upq-title b { font-size: 14px; color: var(--text-primary); }
+  .upq-title small { font-size: 12px; color: var(--text-muted); }
+  .upq-title small .nw { display: block; }
+  .upq-x { flex: none; width: 34px; height: 34px; padding: 0; }
+  .upq-q { font-size: 13.5px; font-weight: 600; color: var(--text-primary); }
+  .upq-nav { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .upq-nav .map-btn { min-height: 34px; flex: none; white-space: nowrap; }
+  .upq-count { flex: 1 1 auto; min-width: 0; font-size: 12.5px; color: var(--text-secondary); text-align: center; }
+  .map-canvas-wrap.upq-on .map-ovl-coords, .map-canvas-wrap.upq-on .map-ovl-actions, .map-canvas-wrap.upq-on .map-layers-pop { display: none; }
+  .map-btn.pb-primary-soft { border-color: var(--accent); color: var(--accent); }
   .map-btn.pb-primary { width: 100%; min-height: 40px; font-size: 13.5px; background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
   .map-btn.pb-primary:disabled { background: var(--surface-2); border-color: var(--border); color: var(--text-secondary); }
   .map-path-floors .fl-short { display: none; }
@@ -576,6 +585,24 @@
             <button class="map-btn mapx-icon-btn" id="map-layers-btn" type="button" aria-expanded="false" title="Layers"><span class="ico" aria-hidden="true">☰</span><span class="lbl">Layers</span></button>
             <button class="map-btn mapx-icon-btn" id="map-reset" type="button" title="Reset view"><span class="ico" aria-hidden="true">⟲</span><span class="lbl">Reset view</span></button>
           </div>
+          <div class="map-ovl upq" id="upq" hidden role="dialog" aria-label="What is this way up?">
+            <div class="upq-head">
+              <span class="route-num" id="upq-num"></span>
+              <div class="upq-title"><b id="upq-title"></b><small id="upq-where"></small></div>
+              <button class="map-btn upq-x" id="upq-close" type="button" aria-label="Close" title="Close (pick the rest later)">✕</button>
+            </div>
+            <div class="upq-q">What's at the ringed spot?</div>
+            <div class="pb-choice" id="upq-choices">
+              <button type="button" data-t="stairs-up">Stairs</button>
+              <button type="button" data-t="ladder-up">Ladder</button>
+              <button type="button" data-t="rope">Rope</button>
+            </div>
+            <div class="upq-nav">
+              <button class="map-btn" id="upq-back" type="button">‹ Back</button>
+              <span class="upq-count" id="upq-count"></span>
+              <button class="map-btn" id="upq-skip" type="button">Skip ›</button>
+            </div>
+          </div>
           <div class="map-ovl map-layers-pop" id="map-layers" hidden>
             <div class="mapx-h">Layers</div>
             <label class="layer-opt"><input type="checkbox" id="map-known-floors" checked><span>Real-Tibia floors</span>
@@ -640,9 +667,10 @@
             </label>
             <div class="pb-ups" id="path-bot-ups-wrap" hidden>
               <div class="pb-ups-head" id="path-bot-ups-head"></div>
-              <p class="pb-hint">The map draws stairs, ladders and rope spots the same, so pick what each way up is.</p>
-              <ol class="path-bot-ups" id="path-bot-ups"></ol>
+              <p class="pb-hint" id="path-bot-ups-hint">The map draws stairs, ladders and rope spots the same. You'll be shown each one on the map to say which it is.</p>
+              <div class="pb-up-chips" id="path-bot-ups"></div>
             </div>
+            <button class="map-btn pb-primary" id="path-bot-pick" type="button">Pick ways up on the map</button>
             <button class="map-btn pb-primary" id="path-bot-copy" type="button" title="Copy this path as waypoints in the bot's Import JSON format">Copy JSON</button>
             <div class="pb-row">
               <button class="map-btn" id="path-bot-download" type="button">Download</button>
@@ -681,6 +709,7 @@
                 </label>
                 <button class="map-btn edit-only" id="route-bot-fill" type="button" title="Add walk waypoints along the path and a waypoint at every stairs/hole/ladder it takes">Fill in waypoints</button>
                 <button class="map-btn edit-only" id="route-bot-unfill" type="button" style="display:none;">Undo fill-in</button>
+                <button class="map-btn edit-only pb-primary-soft" id="route-bot-pickups" type="button" style="display:none;">Pick ways up on the map</button>
                 <button class="map-btn" id="route-bot-copy" type="button" title="Copy the route in the bot's Import JSON format">Copy JSON</button>
                 <button class="map-btn" id="route-bot-download" type="button">Download</button>
                 <button class="map-btn edit-only" id="route-bot-import-toggle" type="button" title="Paste a route from the bot">Import</button>
@@ -2495,6 +2524,7 @@ function drawMap() {
 
   if (routeState.mode !== "off") drawRouteOverlay();
   if (pathState.active) drawPathOverlay(w, h);
+  drawUpqHighlight();
 
   if (stairsLabeling.active && stairsLabeling.list.length) {
     const pt = stairsLabeling.list[stairsLabeling.index];
@@ -3264,7 +3294,7 @@ function pathBotRender(note) {
   if (!box) return;
   const show = botPathFlag && pathState.active && !!pathState.result;
   box.hidden = !show;
-  if (!show) return;
+  if (!show) { if (upq.kind === "path") upqClose(); return; }
   const pb = pathBotPoints();
   const pts = pb.points;
   const unp = botUnpicked(pts);
@@ -3280,73 +3310,173 @@ function pathBotRender(note) {
   const el = document.getElementById("path-bot-msg");
   el.textContent = lines.join("\n");
   el.classList.toggle("has-errors", sus.length > 0 || errs.length > 0);
-  ["path-bot-copy", "path-bot-download"].forEach(function (id) {
-    const b = document.getElementById(id);
-    b.disabled = unp.length > 0;
-    b.title = unp.length ? "Pick what each way up is first" : (id === "path-bot-copy" ? "Copy this path as waypoints in the bot's Import JSON format" : "");
-  });
+  const pick = document.getElementById("path-bot-pick"), copy = document.getElementById("path-bot-copy");
+  pick.hidden = unp.length === 0; copy.hidden = unp.length > 0;
+  pick.textContent = "Pick " + unp.length + " way" + (unp.length === 1 ? "" : "s") + " up on the map";
+  document.getElementById("path-bot-download").disabled = unp.length > 0;
   pathBotRenderUps(pts, unp.length);
 }
-// One card per way up on the path: where it is, Show on map, and
-// Stairs / Ladder / Rope buttons.
+// Summary of the ways up on the path: one chip each (tap to look at it again
+// in the step-by-step picker).
 function pathBotRenderUps(pts, left) {
-  const wrap = document.getElementById("path-bot-ups-wrap"), ol = document.getElementById("path-bot-ups");
-  const keep = document.activeElement && ol.contains(document.activeElement) ? document.activeElement.getAttribute("data-focus") : null;
-  ol.textContent = "";
+  const wrap = document.getElementById("path-bot-ups-wrap"), box = document.getElementById("path-bot-ups");
+  box.textContent = "";
   let n = 0;
   if (!BOT_UP_EXPORT) pts.forEach(function (p, i) {
     if (p.t !== "up" && !p.picked) return;
-    n++;
-    const key = p.z + "," + p.x + "," + p.y;
-    const li = document.createElement("li"); li.className = "pb-up" + (p.picked ? " picked" : "");
-    const head = document.createElement("div"); head.className = "pb-up-head";
+    const idx = n++;
+    const chip = document.createElement("button"); chip.type = "button"; chip.className = "pb-up-chip" + (p.picked ? " picked" : "");
+    chip.title = "Show it on the map" + (p.picked ? " (change it)" : "");
     const num = document.createElement("span"); num.className = "route-num"; num.textContent = String(i + 1);
     num.style.background = botTypeColor(p.t); num.style.color = botTypeInk(p.t);
-    const where = document.createElement("span"); where.className = "pb-up-where";
-    const b = document.createElement("b"); b.textContent = "Up to " + mapFloorLabel(p.z - 1);
-    const sm = document.createElement("small"); sm.textContent = "x" + p.x + " y" + p.y + " z" + p.z;
-    where.appendChild(b); where.appendChild(sm);
-    const go = document.createElement("button"); go.className = "map-btn"; go.type = "button"; go.textContent = "Show"; go.title = "Show this spot on the map";
-    go.setAttribute("data-focus", key + ":show");
-    go.addEventListener("click", function () {
-      setMapFloor(p.z); mapFitToPoint(p.x, p.y); drawMap();
-      const r = mapCanvas.getBoundingClientRect();
-      if (r.bottom < 60 || r.top > window.innerHeight - 60) mapCanvas.scrollIntoView({ block: "center", behavior: "smooth" });
-    });
-    head.appendChild(num); head.appendChild(where); head.appendChild(go);
-    li.appendChild(head);
-    if (p.chk && p.chk.state === "bad") {
-      const w = document.createElement("div"); w.className = "pb-up-warn"; w.textContent = "⚠ " + p.chk.msg;
-      li.appendChild(w);
-    }
-    const choice = document.createElement("div"); choice.className = "pb-choice"; choice.setAttribute("role", "group");
-    choice.setAttribute("aria-label", "What way up waypoint " + (i + 1) + " is");
-    const names = { "stairs-up": "Stairs", "ladder-up": "Ladder", "rope": "Rope" };
-    BOT_UP_CHOICES.forEach(function (t) {
-      const btn = document.createElement("button"); btn.type = "button"; btn.textContent = names[t] || BOT_TYPES[t].label;
-      btn.setAttribute("aria-pressed", pathBot.choice[key] === t ? "true" : "false");
-      btn.setAttribute("data-focus", key + ":" + t);
-      btn.addEventListener("click", function () {
-        pathBot.choice[key] = t;
-        pathBot.key = "";
-        pathBotRender(); drawMap();
-      });
-      choice.appendChild(btn);
-    });
-    li.appendChild(choice);
-    ol.appendChild(li);
+    chip.appendChild(num);
+    chip.appendChild(document.createTextNode(p.picked ? BOT_TYPES[p.t].label : "Not picked"));
+    chip.addEventListener("click", function () { upqStart("path", idx); });
+    box.appendChild(chip);
   });
   wrap.hidden = n === 0;
-  const head = document.getElementById("path-bot-ups-head");
-  head.innerHTML = "Ways up · " + (left ? '<span class="pb-left">' + left + " of " + n + " to pick</span>" : '<span class="pb-done">all picked ✓</span>');
-  if (keep) { const el = ol.querySelector('[data-focus="' + keep + '"]'); if (el) el.focus(); }
+  document.getElementById("path-bot-ups-hint").hidden = !left;
+  document.getElementById("path-bot-ups-head").innerHTML = "Ways up · " + (left ? '<span class="pb-left">' + left + " of " + n + " to pick</span>" : '<span class="pb-done">all picked ✓</span>');
+}
+
+// --- Step-by-step "what is this way up?" picker: zooms the map to each
+// way up in turn with the spot ringed, a card over the map asks stairs,
+// ladder or rope, and picking moves on to the next one. Works on the Find
+// path bot route ("path") and on Route builder waypoints ("route").
+const upq = { active: false, kind: "", items: [], i: 0 };
+function upqItems(kind) {
+  const out = [];
+  if (kind === "path") {
+    const pb = pathBotPoints();
+    if (!pb) return out;
+    pb.points.forEach(function (p) {
+      if (p.t !== "up" && !p.picked) return;
+      const key = p.z + "," + p.x + "," + p.y, dir = p.params.transitionTarget || p.params.targetOffset;
+      out.push({
+        z: p.z, x: p.x, y: p.y,
+        dir: function () { return dir; },
+        num: function () {
+          const pts = pathBotPoints().points;
+          for (let k = 0; k < pts.length; k++) if (pts[k].z === p.z && pts[k].x === p.x && pts[k].y === p.y) return k + 1;
+          return "?";
+        },
+        get: function () { return pathBot.choice[key] || ""; },
+        set: function (t) { pathBot.choice[key] = t; pathBot.key = ""; pathBotRender(); }
+      });
+    });
+  } else {
+    routeState.points.forEach(function (p) {
+      if (p.t !== "up") return;
+      out.push({
+        z: p.z, x: p.x, y: p.y,
+        dir: function () { return p.params.transitionTarget || p.params.targetOffset; },
+        num: function () { return routeState.points.indexOf(p) + 1; },
+        get: function () { return BOT_UP_CHOICES.indexOf(p.t) >= 0 ? p.t : ""; },
+        set: function (t) { botSetType(p, t); routeChanged(); }
+      });
+    });
+  }
+  return out;
+}
+function upqStart(kind, at) {
+  const items = upqItems(kind);
+  if (!items.length) return;
+  upq.active = true; upq.kind = kind; upq.items = items;
+  let i = typeof at === "number" ? at : items.findIndex(function (it) { return !it.get(); });
+  upq.i = Math.max(0, Math.min(items.length - 1, i));
+  document.getElementById("upq").hidden = false;
+  const wrap = document.querySelector(".map-canvas-wrap");
+  wrap.classList.add("upq-on");
+  document.getElementById("map-layers").hidden = true;
+  mapTooltip.style.display = "none";
+  const r = wrap.getBoundingClientRect();
+  if (r.top < 0 || r.bottom > window.innerHeight) wrap.scrollIntoView({ block: r.height + 20 > window.innerHeight ? "start" : "center", behavior: "smooth" });
+  upqShow();
+}
+function upqClose() {
+  if (!upq.active) return;
+  upq.active = false; upq.items = [];
+  document.getElementById("upq").hidden = true;
+  document.querySelector(".map-canvas-wrap").classList.remove("upq-on");
+  drawMap();
+}
+function upqShow() {
+  const it = upq.items[upq.i], n = upq.items.length;
+  const left = upq.items.filter(function (x) { return !x.get(); }).length;
+  const t = it.get() || "up";
+  const num = document.getElementById("upq-num");
+  num.textContent = String(it.num()); num.style.background = botTypeColor(t); num.style.color = botTypeInk(t);
+  document.getElementById("upq-title").textContent = "Way up " + (upq.i + 1) + " of " + n;
+  const where = document.getElementById("upq-where");
+  where.textContent = "";
+  ["To " + mapFloorLabel(it.z - 1), "x" + it.x + " y" + it.y + " z" + it.z].forEach(function (part, k) {
+    const sp = document.createElement("span"); sp.className = "nw"; sp.textContent = part; where.appendChild(sp);
+  });
+  document.querySelectorAll("#upq-choices button").forEach(function (b) { b.setAttribute("aria-pressed", b.getAttribute("data-t") === it.get() ? "true" : "false"); });
+  document.getElementById("upq-count").textContent = left ? left + " left" : "All picked ✓";
+  document.getElementById("upq-back").disabled = upq.i === 0;
+  document.getElementById("upq-skip").textContent = upq.i === n - 1 ? (left ? "Close" : "Done") : "Next ›";
+  // Centre the spot in the part of the map the card doesn't cover.
+  setMapFloor(it.z);
+  const step = BOT_DIR_STEP[it.dir()] || [0, 0];
+  const cx = it.x + 0.5 + step[0] * 0.5, cy = it.y + 0.5 + step[1] * 0.5;
+  const w = mapCanvas.width, h = mapCanvas.height;
+  const cover = document.getElementById("upq").getBoundingClientRect().height + 20;
+  const scale = Math.min(20, Math.max(mapView.scale, 12));
+  mapView.scale = scale;
+  mapView.offX = w / 2 - cx * scale;
+  mapView.offY = Math.max(50, (h - cover) / 2) - cy * scale;
+  drawMap();
+}
+function upqPick(t) {
+  const it = upq.items[upq.i];
+  it.set(t);
+  const n = upq.items.length;
+  for (let k = 1; k <= n; k++) {
+    const j = (upq.i + k) % n;
+    if (!upq.items[j].get()) { upq.i = j; upqShow(); return; }
+  }
+  upqFinish();
+}
+function upqFinish() {
+  const kind = upq.kind, n = upq.items.length;
+  upqClose();
+  const msg = "All " + n + " way" + (n === 1 ? "" : "s") + " up picked ✓";
+  const btn = document.getElementById(kind === "path" ? "path-bot-copy" : "route-bot-copy");
+  if (kind === "path") pathBotRender(msg + " - ready to copy."); else botRenderMessages(msg + ".");
+  const r = btn.getBoundingClientRect();
+  if (r.top < 0 || r.bottom > window.innerHeight) btn.scrollIntoView({ block: "center", behavior: "smooth" });
+}
+// While asking about a way up, the dots that would sit on top of it (its
+// waypoint, the stairs marker) are left out so the minimap tile shows.
+function upqHides(z, x, y) {
+  if (!upq.active) return false;
+  const it = upq.items[upq.i];
+  if (!it || it.z !== z) return false;
+  const step = BOT_DIR_STEP[it.dir()] || [0, 0];
+  return Math.max(Math.abs(x - it.x - step[0]), Math.abs(y - it.y - step[1])) <= 1;
+}
+// The ring around the way up being asked about (on the stairs/ladder tile
+// it steps to, or the stand tile when there's no direction).
+function drawUpqHighlight() {
+  if (!upq.active) return;
+  const it = upq.items[upq.i];
+  if (!it || it.z !== state.mapFloor) return;
+  const step = BOT_DIR_STEP[it.dir()] || [0, 0];
+  const [sx, sy] = worldToScreen(it.x + step[0] + 0.5, it.y + step[1] + 0.5);
+  const r = Math.max(18, mapView.scale * 1.8);
+  mapCtx.save();
+  mapCtx.beginPath(); mapCtx.arc(sx, sy, r, 0, Math.PI * 2);
+  mapCtx.lineWidth = 7; mapCtx.strokeStyle = "rgba(0,0,0,0.65)"; mapCtx.stroke();
+  mapCtx.lineWidth = 3.5; mapCtx.strokeStyle = "#fff"; mapCtx.stroke();
+  mapCtx.restore();
 }
 function drawPathBotWaypoints(z) {
   if (!botPathFlag || !pathState.result) return;
   const pts = pathBotPoints().points;
   mapCtx.font = "700 10px 'Segoe UI', sans-serif"; mapCtx.textAlign = "center"; mapCtx.textBaseline = "middle";
   pts.forEach(function (p, i) {
-    if (p.z !== z || i === 0 || i === pts.length - 1) return;
+    if (p.z !== z || i === 0 || i === pts.length - 1 || upqHides(p.z, p.x, p.y)) return;
     const [sx, sy] = worldToScreen(p.x + 0.5, p.y + 0.5);
     if (p.chk && p.chk.state !== "ok") {
       mapCtx.beginPath(); mapCtx.arc(sx, sy, 13, 0, Math.PI * 2);
@@ -3701,7 +3831,7 @@ function drawPathOverlay(w, h) {
     for (let i = 1; i < nodes.length; i++) {
       const a = nodes[i - 1], b = nodes[i];
       if (a.z === b.z) continue;
-      if (a.z === z) {
+      if (a.z === z && !upqHides(a.z, a.x, a.y)) {
         dot(a.x, a.y, "#ffd600");
         const [sx, sy] = worldToScreen(a.x + 0.5, a.y + 0.5);
         mapCtx.fillStyle = "#000"; mapCtx.fillText(b.z < a.z ? "↑" : "↓", sx, sy + 0.5);
@@ -4267,7 +4397,7 @@ function botFillIn(spacing) {
   routeState.points = out;
   routeState.open.clear();
   return "Added " + added + " waypoint" + (added === 1 ? "" : "s") + (floors ? " (" + floors + " floor change" + (floors === 1 ? "" : "s") + ")" : "") + "." +
-    (ups && !BOT_UP_EXPORT ? " Pick what each “Up: pick type” row is - stairs, ladder or rope; the map can't tell them apart." : "");
+    (ups && !BOT_UP_EXPORT ? " The map can't tell stairs, ladders and rope spots apart - pick each way up (button below)." : "");
 }
 
 function botWaypoint(p, i) {
@@ -4383,12 +4513,15 @@ function botRenderMessages(extra) {
     });
     if (sus.length) lines.push("⚠ " + sus.length + " floor-change waypoint" + (sus.length === 1 ? "" : "s") + " may be misplaced (red ring on the map): " + sus.slice(0, 4).join(" ") + (sus.length > 4 ? " (+" + (sus.length - 4) + " more)" : ""));
     const unp = botUnpicked(routeState.points);
-    if (unp.length) lines.push("Pick what each way up is (stairs, ladder or rope) before copying: " + unp.slice(0, 8).join(", ") + (unp.length > 8 ? " (+" + (unp.length - 8) + " more)" : "") + " - the “Up: pick type” rows.");
+    if (unp.length) lines.push(unp.length + " way" + (unp.length === 1 ? "" : "s") + " up still need" + (unp.length === 1 ? "s" : "") + " a type (stairs, ladder or rope) before copying: " + unp.slice(0, 8).join(", ") + (unp.length > 8 ? " (+" + (unp.length - 8) + " more)" : "") + ". Use “Pick ways up on the map”, or the row's type list.");
     const errs = botValidate(routeState.points.map(botWaypoint));
     if (errs.length) lines.push("The bot would reject this route: " + errs.slice(0, 6).join("; ") + (errs.length > 6 ? " (+" + (errs.length - 6) + " more)" : ""));
   }
   el.textContent = lines.join("\n");
   el.classList.toggle("has-errors", lines.length > (routeState.botNote ? 1 : 0));
+  const pk = document.getElementById("route-bot-pickups"), nUp = botUnpicked(routeState.points).length;
+  pk.style.display = nUp ? "" : "none";
+  pk.textContent = "Pick " + nUp + " way" + (nUp === 1 ? "" : "s") + " up on the map";
   botRenderLegend();
 }
 
@@ -4443,6 +4576,7 @@ function routeStartEdit() {
   pathPrepare();
 }
 function routeClose() {
+  if (upq.kind === "route") upqClose();
   routeState.mode = "off";
   routeState.gen++;
   routeState.legs = [];
@@ -4542,7 +4676,7 @@ function drawRouteOverlay() {
       mapCtx.font = "700 11px 'Segoe UI', sans-serif"; mapCtx.textAlign = "center"; mapCtx.textBaseline = "middle";
       for (let k = 1; k < leg.nodes.length; k++) {
         const u = leg.nodes[k - 1], v = leg.nodes[k];
-        if (u.z === v.z || u.z !== z) continue;
+        if (u.z === v.z || u.z !== z || upqHides(u.z, u.x, u.y)) continue;
         const [sx, sy] = worldToScreen(u.x + 0.5, u.y + 0.5);
         mapCtx.beginPath(); mapCtx.arc(sx, sy, 7, 0, Math.PI * 2);
         mapCtx.fillStyle = "#ffd600"; mapCtx.fill(); mapCtx.lineWidth = 2; mapCtx.strokeStyle = "#000"; mapCtx.stroke();
@@ -4559,7 +4693,7 @@ function drawRouteOverlay() {
     }
   }
   routeState.points.forEach(function (p, i) {
-    if (p.z !== z) return;
+    if (p.z !== z || upqHides(p.z, p.x, p.y)) return;
     const [sx, sy] = worldToScreen(p.x + 0.5, p.y + 0.5);
     const chk = botCheckPoint(p, i);
     if (chk && chk.state !== "ok") {
@@ -4593,7 +4727,9 @@ function resizeMapCanvas() {
   // re-run every time the tab becomes visible, not just once at load.
   const rect = mapCanvas.getBoundingClientRect();
   const visible = rect.width > 0;
-  const w = Math.max(300, Math.round(rect.width));
+  // The drawing buffer must match the on-screen width exactly, or the map
+  // is drawn stretched and taps land off target (narrow phones are < 300px).
+  const w = visible ? Math.max(1, Math.round(rect.width)) : 300;
   const h = mapCanvas.clientHeight || 640;
   const hadSize = mapCanvas.width > 0 && mapCanvas.height > 0 && mapView.initialized;
   // Preserve the user's current pan/zoom across a real window resize —
@@ -4697,7 +4833,9 @@ function initMap() {
       if (e.touches.length === 0) { routeDragEnd(); mapView.dragging = false; touchState.pinching = false; }
       return;
     }
-    if ((routeState.mode === "edit" || pathState.active) && !touchState.pinching && !touchState.moved && e.changedTouches.length === 1) {
+    if (upq.active) {
+      // Picking ways up: taps on the map do nothing (pan and zoom still work).
+    } else if ((routeState.mode === "edit" || pathState.active) && !touchState.pinching && !touchState.moved && e.changedTouches.length === 1) {
       mapTooltip.style.display = "none";
       if (routeState.mode === "edit") routeAddPoint(touchState.tapX, touchState.tapY);
       else pathHandleClick(touchState.tapX, touchState.tapY);
@@ -4753,6 +4891,7 @@ function initMap() {
     const rect = mapCanvas.getBoundingClientRect();
     const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
     if (sx < 0 || sy < 0 || sx > rect.width || sy > rect.height) return;
+    if (upq.active) return;
     if (routeState.mode === "edit") { routeAddPoint(sx, sy); return; }
     if (pathState.active) { pathHandleClick(sx, sy); return; }
     const connHit = mapConnectionAt(sx, sy);
@@ -4932,6 +5071,18 @@ function initMap() {
   });
   botPathFlag = botPathFlagOn();
   window.addEventListener("hashchange", function () { botPathFlag = botPathFlagOn(); pathBotRender(); drawMap(); });
+  document.getElementById("path-bot-pick").addEventListener("click", function () { upqStart("path"); });
+  document.getElementById("route-bot-pickups").addEventListener("click", function () { upqStart("route"); });
+  document.getElementById("upq-choices").addEventListener("click", function (e) {
+    const b = e.target.closest("[data-t]");
+    if (b && upq.active) upqPick(b.getAttribute("data-t"));
+  });
+  document.getElementById("upq-close").addEventListener("click", upqClose);
+  document.getElementById("upq-back").addEventListener("click", function () { if (upq.i > 0) { upq.i--; upqShow(); } });
+  document.getElementById("upq-skip").addEventListener("click", function () {
+    if (upq.i < upq.items.length - 1) { upq.i++; upqShow(); return; }
+    if (upq.items.every(function (it) { return it.get(); })) upqFinish(); else upqClose();
+  });
   document.getElementById("path-bot-spacing").addEventListener("change", function () { pathBotRender(); drawMap(); });
   const pathUnpickedBlock = function () {
     const pb = pathBotPoints();
@@ -4972,7 +5123,7 @@ function initMap() {
     setMapFloor(pts[0].z);
     routeFitFloor(pts[0].z);
     routeChanged();
-    botRenderMessages("Path loaded as a one-way route (loop off)." + (botUnpicked(pts).length ? " Pick a type on the “Up: pick type” rows, then Copy JSON." : ""));
+    botRenderMessages("Path loaded as a one-way route (loop off).");
   });
   document.getElementById("route-bot-import-toggle").addEventListener("click", function () {
     const box = document.getElementById("route-bot-import");
@@ -5060,6 +5211,7 @@ document.getElementById("sort").addEventListener("change", function (e) { state.
 })();
 // On touch screens, Enter in a one-line field closes the keyboard.
 document.addEventListener("keydown", function (e) {
+  if (e.key === "Escape" && upq.active) { upqClose(); return; }
   if (e.key !== "Enter" || e.isComposing) return;
   const t = e.target;
   if (!t || t.tagName !== "INPUT" || t.type === "checkbox" || t.type === "file") return;
