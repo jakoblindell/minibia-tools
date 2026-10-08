@@ -376,7 +376,7 @@
   .route-status { font-size: 12.5px; color: var(--text-secondary); }
   .route-points { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; max-height: 420px; overflow-y: auto; }
   .route-points li { display: flex; align-items: center; gap: 8px; font-size: 12.5px; min-width: 0; }
-  .route-points .route-num { flex: none; width: 22px; height: 22px; border-radius: 50%; background: #ff8c00; color: #111; font-weight: 700; font-size: 11.5px; display: inline-flex; align-items: center; justify-content: center; }
+  .route-points .route-num, .path-bot-up .route-num { flex: none; width: 22px; height: 22px; border-radius: 50%; background: #ff8c00; color: #111; font-weight: 700; font-size: 11.5px; display: inline-flex; align-items: center; justify-content: center; }
   .route-points .route-where { flex: none; color: var(--text-muted); font-family: 'SF Mono', Consolas, monospace; font-size: 11.5px; }
   .route-points .route-note { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
   .route-points input.route-note { font: inherit; font-size: 12.5px; background: var(--surface-2); color: var(--text-primary); border: 1px solid var(--border); border-radius: 6px; padding: 3px 7px; }
@@ -422,6 +422,13 @@
   .route-bot-msg.has-errors { color: var(--bad, #c0392b); }
   .path-bot { margin-top: 10px; }
   .path-bot[hidden] { display: none; }
+  .path-bot-ups { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+  .path-bot-ups:empty { display: none; }
+  .path-bot-up { display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 12.5px; color: var(--text-secondary); }
+  .path-bot-up .path-bot-where { flex: 1 1 auto; min-width: 0; }
+  .path-bot-up select { flex: none; font: inherit; font-size: 12.5px; background: var(--surface-2); color: var(--text-primary); border: 1px solid var(--border); border-radius: 6px; padding: 3px 6px; }
+  .path-bot-up select.unpicked { border-color: var(--bad, #dc2626); }
+  .path-bot-up .map-btn { padding: 3px 8px; font-size: 12px; flex: none; }
   .beta-tag { font-size: 10px; font-weight: 700; letter-spacing: .04em; padding: 1px 5px; border-radius: 4px; border: 1px solid var(--border); color: var(--text-secondary); vertical-align: 1px; }
   .route-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   @media (max-width: 560px) {
@@ -614,6 +621,7 @@
               <button class="map-btn" id="path-bot-download" type="button">Download</button>
               <button class="map-btn" id="path-bot-edit" type="button" title="Open these waypoints in the Route builder to change types or positions">Edit in Route builder</button>
             </div>
+            <ol class="path-bot-ups" id="path-bot-ups"></ol>
             <div class="route-bot-msg" id="path-bot-msg"></div>
           </div>
         </section>
@@ -3186,20 +3194,27 @@ function botPathFlagOn() {
   } catch (e) { return /(^#|&)bot-path(&|$)/.test(h); }
 }
 let botPathFlag = false;
-const pathBot = { key: "", points: [], floors: 0, ups: 0 };
+// choice: what each way up is, by its stand tile "z,x,y" (kept while only
+// the walk spacing changes).
+const pathBot = { key: "", res: null, points: [], floors: 0, ups: 0, choice: {} };
 function pathBotPoints() {
   const res = pathState.result;
   if (!res) return null;
   const spacing = Number(document.getElementById("path-bot-spacing").value) || 0;
   const key = spacing + "|" + res.nodes.length + "|" + res.nodes[0].x + "," + res.nodes[0].y + "," + res.nodes[0].z + "|" + res.steps;
   if (pathBot.key === key && pathBot.res === res) return pathBot;
+  if (pathBot.res !== res) pathBot.choice = {};
   const nodes = res.nodes, s = nodes[0], g = nodes[nodes.length - 1];
   const first = routeMakePoint(s.z, s.x, s.y, ""); first.fill = true;
   const out = [first];
   const n = botLegFill(out, nodes, spacing);
   const last = out[out.length - 1];
   if (out.length === 1 || last.z !== g.z || last.x !== g.x || last.y !== g.y) out.push(routeMakePoint(g.z, g.x, g.y, ""));
-  out.forEach(function (p) { delete p.fill; });
+  out.forEach(function (p) {
+    delete p.fill;
+    const c = p.t === "up" ? pathBot.choice[p.z + "," + p.x + "," + p.y] : null;
+    if (c) { p.picked = true; botSetType(p, c); }
+  });
   pathBot.key = key; pathBot.res = res; pathBot.points = out; pathBot.floors = n.floors; pathBot.ups = n.ups;
   return pathBot;
 }
@@ -3231,7 +3246,8 @@ function pathBotRender(note) {
   lines.push(pts.length + " waypoint" + (pts.length === 1 ? "" : "s") + ": " + walks + " walk" + (walks === 1 ? "" : "s") + " (start and goal included)" +
     (pb.floors ? ", " + pb.floors + " floor change" + (pb.floors === 1 ? "" : "s") : "") + ". One way - no walk back to the start." +
     (pts.length > ROUTE_MAX_POINTS ? " That's over " + ROUTE_MAX_POINTS + " - use a larger spacing." : ""));
-  if (pb.ups) lines.push("Going up is set to “Stairs up” - if it's a ladder or rope spot, change it with Edit in Route builder.");
+  const unp = botUnpicked(pts);
+  if (unp.length) lines.push("Pick what each way up is above - the map draws stairs, ladders and rope spots alike (⌖ shows it). Copy waits until all are picked.");
   lines.push("In the bot turn Cave loop off for this route, or it walks back to waypoint 1 when it gets there.");
   const sus = pathBotChecks(pts);
   if (sus.length) lines.push("⚠ " + sus.length + " floor-change waypoint" + (sus.length === 1 ? "" : "s") + " may be misplaced (red ring on the map): " + sus.slice(0, 4).join(" ") + (sus.length > 4 ? " (+" + (sus.length - 4) + " more)" : ""));
@@ -3240,6 +3256,40 @@ function pathBotRender(note) {
   const el = document.getElementById("path-bot-msg");
   el.textContent = lines.join("\n");
   el.classList.toggle("has-errors", sus.length > 0 || errs.length > 0);
+  pathBotRenderUps(pts);
+}
+// One row per way up on the path: its waypoint number, where, a picker.
+function pathBotRenderUps(pts) {
+  const ol = document.getElementById("path-bot-ups");
+  const keep = document.activeElement && ol.contains(document.activeElement) ? document.activeElement.getAttribute("data-key") : null;
+  ol.textContent = "";
+  if (BOT_UP_EXPORT) return;
+  pts.forEach(function (p, i) {
+    if (p.t !== "up" && !p.picked) return;
+    const key = p.z + "," + p.x + "," + p.y;
+    const li = document.createElement("li"); li.className = "path-bot-up";
+    const num = document.createElement("span"); num.className = "route-num"; num.textContent = String(i + 1);
+    num.style.background = botTypeColor(p.t); num.style.color = botTypeInk(p.t);
+    const where = document.createElement("span"); where.className = "path-bot-where";
+    where.textContent = "Up z" + p.z + "→" + (p.z - 1) + (p.chk && p.chk.state === "bad" ? " ⚠" : "");
+    where.title = "Stand on x" + p.x + " y" + p.y + " z" + p.z + ", step " + (p.params.transitionTarget || p.params.targetOffset || "here");
+    const sel = document.createElement("select"); sel.setAttribute("data-key", key);
+    sel.setAttribute("aria-label", "What way up waypoint " + (i + 1) + " is");
+    const o0 = document.createElement("option"); o0.value = ""; o0.textContent = "Pick type…"; sel.appendChild(o0);
+    BOT_UP_CHOICES.forEach(function (t) { const o = document.createElement("option"); o.value = t; o.textContent = BOT_TYPES[t].label; sel.appendChild(o); });
+    sel.value = pathBot.choice[key] || "";
+    sel.classList.toggle("unpicked", !sel.value);
+    sel.addEventListener("change", function () {
+      if (sel.value) pathBot.choice[key] = sel.value; else delete pathBot.choice[key];
+      pathBot.key = "";
+      pathBotRender(); drawMap();
+    });
+    const go = document.createElement("button"); go.className = "map-btn"; go.type = "button"; go.textContent = "⌖"; go.title = "Show on the map";
+    go.addEventListener("click", function () { setMapFloor(p.z); mapFitToPoint(p.x, p.y); drawMap(); });
+    li.appendChild(num); li.appendChild(where); li.appendChild(sel); li.appendChild(go);
+    ol.appendChild(li);
+  });
+  if (keep) { const el = ol.querySelector('[data-key="' + keep + '"]'); if (el) el.focus(); }
 }
 function drawPathBotWaypoints(z) {
   if (!botPathFlag || !pathState.result) return;
@@ -3640,6 +3690,7 @@ const BOT_TYPES = {
   "stairs-up": { label: "Stairs up", params: { transitionTarget: "auto" } },
   "floor-down": { label: "Floor down", params: { transitionTarget: "auto" } },
   "ladder-up": { label: "Ladder up", params: { transitionTarget: "auto" } },
+  "up": { label: "Up: pick type", params: { transitionTarget: "auto" }, internal: true },
   "drop-item": { label: "Drop item", params: { dropItemName: "", dropMode: "all", dropAmount: 0, dropKeep: 0, dropTargetOffset: "here", dropRequireFull: false } },
   "depot": { label: "Depot", params: { depot: { mode: "npc", radius: 14, waitMs: 60000, exploreSteps: 8, ackMs: 4000, bags: { all: "Loot", stackables: "Stackables", unstackables: "Unstackables" }, rules: [] } } },
   "npc": { label: "NPC", params: { npcName: "", npcPreset: "deposit-all" } },
@@ -3647,6 +3698,19 @@ const BOT_TYPES = {
   "goto": { label: "Go to label", params: { targetLabel: "" } },
   "supply-check": { label: "Supply check", params: { lowTargetId: "", okTargetId: "next" } }
 };
+// "up" is not a bot type: it's what the path generator writes for a way up,
+// since the minimap draws stairs, ladders and rope spots alike. You pick one
+// of BOT_UP_CHOICES before export (Copy is blocked until then). If the bot
+// gets a type that finds the way up by itself, set BOT_UP_EXPORT to its name
+// and "up" waypoints export as that instead.
+const BOT_UP_CHOICES = ["stairs-up", "ladder-up", "rope"];
+const BOT_UP_EXPORT = null;
+function botUnpicked(points) {
+  if (BOT_UP_EXPORT) return [];
+  const out = [];
+  points.forEach(function (p, i) { if (p.t === "up" && p.en) out.push("#" + (i + 1)); });
+  return out;
+}
 // Params that hold a direction; carried over when the type changes, so a
 // generated "stairs-up" can become a ladder or rope without re-picking it.
 const BOT_DIR_KEYS = ["transitionTarget", "targetOffset", "standDirection", "dropTargetOffset"];
@@ -3698,7 +3762,7 @@ function botIsFullSet(params) { return Object.keys(BOT_FULL_DEFAULTS).every(func
 // white for contrast.
 const BOT_TYPE_COLORS = {
   "walk": "#ff8c00", "stand": "#a3e635", "wait": "#94a3b8", "use": "#f472b6", "rope": "#22d3ee", "shovel": "#a16207",
-  "magic-rope": "#99f6e4", "stairs-up": "#22c55e", "ladder-up": "#15803d", "floor-down": "#2563eb", "drop-item": "#fb7185",
+  "magic-rope": "#99f6e4", "stairs-up": "#22c55e", "ladder-up": "#15803d", "up": "#334155", "floor-down": "#2563eb", "drop-item": "#fb7185",
   "depot": "#eab308", "npc": "#a855f7", "label": "#f8fafc", "goto": "#cbd5e1", "supply-check": "#14b8a6"
 };
 function botTypeColor(t) { return BOT_TYPE_COLORS[t] || BOT_TYPE_COLORS.walk; }
@@ -3719,6 +3783,7 @@ const BOT_CHECKS = {
   "floor-down": { want: 2, dz: 1, reach: 1, dirKey: "transitionTarget", what: "hole/stairs down" },
   "stairs-up": { want: 1, dz: -1, reach: 1, dirKey: "transitionTarget", what: "stairs up" },
   "ladder-up": { want: 1, dz: -1, reach: 1, dirKey: "transitionTarget", what: "ladder" },
+  "up": { want: 1, dz: -1, reach: 1, dirKey: "transitionTarget", what: "way up" },
   "rope": { want: 1, dz: -1, reach: 1, dirKey: "targetOffset", what: "rope spot" },
   "magic-rope": { want: 1, dz: -1, reach: 0, dirKey: null, what: "rope spot" }
 };
@@ -3941,6 +4006,7 @@ function routeRenderList() {
     if (editing) {
       const sel = document.createElement("select"); sel.className = "route-type"; sel.title = "Bot waypoint type";
       Object.keys(BOT_TYPES).forEach(function (t) {
+        if (BOT_TYPES[t].internal && p.t !== t) return;
         const o = document.createElement("option"); o.value = t; o.textContent = BOT_TYPES[t].label; sel.appendChild(o);
       });
       sel.value = p.t;
@@ -4097,9 +4163,8 @@ function botDirTo(a, b) {
 // a "walk" every `spacing` tiles (0 = none) and a floor-change waypoint at
 // every stairs/hole/ladder the path takes - placed on the tile you stand on
 // before the step, with the step direction filled in. Going down is
-// "floor-down"; going up defaults to "stairs-up" (the minimap can't tell
-// stairs, ladders and rope spots apart - change the type on those rows if
-// it's a ladder or rope). The leg's own ends are left to the caller.
+// "floor-down"; going up is "up" (pick stairs/ladder/rope - the minimap
+// can't tell them apart). The leg's own ends are left to the caller.
 function botLegFill(out, nodes, spacing) {
   const tiles = botLegTiles(nodes);
   let walked = 0, added = 0, floors = 0, ups = 0;
@@ -4108,7 +4173,7 @@ function botLegFill(out, nodes, spacing) {
     if (t.portal) {
       const marker = tiles[k - 1], before = k >= 2 && !tiles[k - 1].portal && tiles[k - 2].z === marker.z ? tiles[k - 2] : null;
       const at = before || marker;
-      const wp = routeMakePoint(at.z, at.x, at.y, "", { t: t.z > marker.z ? "floor-down" : "stairs-up" });
+      const wp = routeMakePoint(at.z, at.x, at.y, "", { t: t.z > marker.z ? "floor-down" : "up" });
       wp.params.transitionTarget = before ? botDirTo(before, marker) : "auto";
       // A walk sample on the stand tile itself would be redundant.
       const last = out[out.length - 1];
@@ -4140,25 +4205,26 @@ function botFillIn(spacing) {
   if (routeState.legs.length !== pairs.length || routeState.legs.some(function (l) { return !l; })) return "Still calculating the route - try again in a moment.";
   if (routeState.legs.some(function (l) { return !l.ok; })) return "Some legs couldn't be walked (dashed). Fix those points first - fill-in needs a walkable path.";
   const out = [];
-  let added = 0, floors = 0;
+  let added = 0, floors = 0, ups = 0;
   pairs.forEach(function (pr, i) {
     out.push(pr[0]);
     const n = botLegFill(out, routeState.legs[i].nodes, spacing);
-    added += n.added; floors += n.floors;
+    added += n.added; floors += n.floors; ups += n.ups;
   });
   if (!routeState.loop) out.push(routeState.points[routeState.points.length - 1]);
   if (out.length > ROUTE_MAX_POINTS) return "That would make " + out.length + " waypoints (max " + ROUTE_MAX_POINTS + ") - use a larger spacing.";
   routeState.undoFill = routeState.points.slice();
   routeState.points = out;
   routeState.open.clear();
-  return "Added " + added + " waypoint" + (added === 1 ? "" : "s") + (floors ? " (" + floors + " floor change" + (floors === 1 ? "" : "s") + " - check stairs vs ladder/rope)" : "") + ".";
+  return "Added " + added + " waypoint" + (added === 1 ? "" : "s") + (floors ? " (" + floors + " floor change" + (floors === 1 ? "" : "s") + ")" : "") + "." +
+    (ups && !BOT_UP_EXPORT ? " Pick what each “Up: pick type” row is - stairs, ladder or rope; the map can't tell them apart." : "");
 }
 
 function botWaypoint(p, i) {
   return {
     id: p.id || ("wp-" + (i + 1)),
     enabled: p.en,
-    type: p.t,
+    type: p.t === "up" && BOT_UP_EXPORT ? BOT_UP_EXPORT : p.t,
     label: p.label || "",
     position: { x: p.x, y: p.y, z: p.z },
     params: botClone(p.params)
@@ -4172,7 +4238,7 @@ function botValidate(route) {
   route.forEach(function (w) { ids[w.id] = (ids[w.id] || 0) + 1; if (w.label) labels[w.label] = (labels[w.label] || 0) + 1; });
   const dirOk = function (v, auto) { return BOT_DIRS.indexOf(v) >= 0 || (auto && v === "auto"); };
   route.forEach(function (w, i) {
-    const n = "#" + (i + 1) + " (" + BOT_TYPES[w.type].label + ")", pr = w.params;
+    const n = "#" + (i + 1) + " (" + (BOT_TYPES[w.type] ? BOT_TYPES[w.type].label : w.type) + ")", pr = w.params;
     if (w.type === "label" && !w.label) errs.push(n + ": a label waypoint needs a label");
     if (w.label && labels[w.label] > 1) errs.push(n + ": label “" + w.label + "” is used more than once");
     if (ids[w.id] > 1) errs.push(n + ": id “" + w.id + "” is used more than once");
@@ -4224,11 +4290,12 @@ function botImport(text) {
     let z = num(pos.z, 7);
     if (!Number.isInteger(pos.x) || !Number.isInteger(pos.y)) warn.push("#" + (i + 1) + " has no position (the bot uses 0,0,7)");
     if (z < MAP_FLOOR_MIN || z > MAP_FLOOR_MAX) { warn.push("#" + (i + 1) + " floor " + z + " is off the map"); z = 7; }
-    if (w.type != null && !BOT_TYPES[w.type]) warn.push("#" + (i + 1) + " unknown type “" + String(w.type).slice(0, 30) + "” becomes walk");
+    const ty = BOT_UP_EXPORT && w.type === BOT_UP_EXPORT ? "up" : (BOT_TYPES[w.type] && !BOT_TYPES[w.type].internal ? w.type : null);
+    if (w.type != null && !ty) warn.push("#" + (i + 1) + " unknown type “" + String(w.type).slice(0, 30) + "” becomes walk");
     const params = botSafeParams(w.params);
     if (w.params != null && !params) warn.push("#" + (i + 1) + " params weren't a usable object (reset to defaults)");
     return routeMakePoint(z, x, y, "", {
-      t: w.type, id: typeof w.id === "string" ? w.id : "", label: typeof w.label === "string" ? w.label : "",
+      t: ty, id: typeof w.id === "string" ? w.id : "", label: typeof w.label === "string" ? w.label : "",
       en: w.enabled !== false, params: params
     });
   });
@@ -4265,6 +4332,8 @@ function botRenderMessages(extra) {
       if (c && c.state === "bad") sus.push("#" + (i + 1) + " " + BOT_TYPES[p.t].label + ": " + c.msg);
     });
     if (sus.length) lines.push("⚠ " + sus.length + " floor-change waypoint" + (sus.length === 1 ? "" : "s") + " may be misplaced (red ring on the map): " + sus.slice(0, 4).join(" ") + (sus.length > 4 ? " (+" + (sus.length - 4) + " more)" : ""));
+    const unp = botUnpicked(routeState.points);
+    if (unp.length) lines.push("Pick what each way up is (stairs, ladder or rope) before copying: " + unp.slice(0, 8).join(", ") + (unp.length > 8 ? " (+" + (unp.length - 8) + " more)" : "") + " - the “Up: pick type” rows.");
     const errs = botValidate(routeState.points.map(botWaypoint));
     if (errs.length) lines.push("The bot would reject this route: " + errs.slice(0, 6).join("; ") + (errs.length > 6 ? " (+" + (errs.length - 6) + " more)" : ""));
   }
@@ -4791,14 +4860,19 @@ function initMap() {
     routeChanged();
     botRenderMessages("Fill-in undone.");
   });
+  const routeUnpickedBlock = function () {
+    const unp = botUnpicked(routeState.points);
+    if (unp.length) botRenderMessages("Not copied: " + unp.length + " way" + (unp.length === 1 ? " up still needs" : "s up still need") + " a type (stairs, ladder or rope) - the bot would just walk there.");
+    return unp.length > 0;
+  };
   document.getElementById("route-bot-copy").addEventListener("click", function () {
-    if (!routeState.points.length) return;
+    if (!routeState.points.length || routeUnpickedBlock()) return;
     const ex = botExport();
     botCopyText(ex.json, this, "Copy JSON");
     botRenderMessages("Copied " + routeState.points.length + " waypoints. In the bot: Cave → Route → Import JSON, paste.");
   });
   document.getElementById("route-bot-download").addEventListener("click", function () {
-    if (!routeState.points.length) return;
+    if (!routeState.points.length || routeUnpickedBlock()) return;
     const ex = botExport();
     const a = document.createElement("a");
     a.href = URL.createObjectURL(new Blob([ex.json], { type: "application/json" }));
@@ -4809,13 +4883,21 @@ function initMap() {
   botPathFlag = botPathFlagOn();
   window.addEventListener("hashchange", function () { botPathFlag = botPathFlagOn(); pathBotRender(); drawMap(); });
   document.getElementById("path-bot-spacing").addEventListener("change", function () { pathBotRender(); drawMap(); });
+  const pathUnpickedBlock = function () {
+    const pb = pathBotPoints();
+    const unp = pb ? botUnpicked(pb.points) : [];
+    if (unp.length) pathBotRender("Not copied: pick what each way up is first (" + unp.join(", ") + ") - the bot would just walk there.");
+    return unp.length > 0;
+  };
   document.getElementById("path-bot-copy").addEventListener("click", function () {
+    if (pathUnpickedBlock()) return;
     const ex = pathBotExport();
     if (!ex) return;
     botCopyText(ex.json, this, "Copy JSON");
     pathBotRender("Copied " + ex.count + " waypoints. In the bot: Cave → Route → Import JSON, paste.");
   });
   document.getElementById("path-bot-download").addEventListener("click", function () {
+    if (pathUnpickedBlock()) return;
     const ex = pathBotExport();
     if (!ex) return;
     const g = pathState.result.nodes[pathState.result.nodes.length - 1];
@@ -4840,7 +4922,7 @@ function initMap() {
     setMapFloor(pts[0].z);
     routeFitFloor(pts[0].z);
     routeChanged();
-    botRenderMessages("Path loaded as a one-way route (loop off). Change a waypoint's type in the list, then Copy JSON.");
+    botRenderMessages("Path loaded as a one-way route (loop off)." + (botUnpicked(pts).length ? " Pick a type on the “Up: pick type” rows, then Copy JSON." : ""));
   });
   document.getElementById("route-bot-import-toggle").addEventListener("click", function () {
     const box = document.getElementById("route-bot-import");
