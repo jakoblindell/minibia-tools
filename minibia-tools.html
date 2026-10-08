@@ -420,6 +420,9 @@
   .route-bot-spacing select { font: inherit; font-size: 12.5px; background: var(--surface-2); color: var(--text-primary); border: 1px solid var(--border); border-radius: 6px; padding: 3px 6px; }
   .route-bot-msg { font-size: 12px; color: var(--text-secondary); white-space: pre-line; }
   .route-bot-msg.has-errors { color: var(--bad, #c0392b); }
+  .path-bot { margin-top: 10px; }
+  .path-bot[hidden] { display: none; }
+  .beta-tag { font-size: 10px; font-weight: 700; letter-spacing: .04em; padding: 1px 5px; border-radius: 4px; border: 1px solid var(--border); color: var(--text-secondary); vertical-align: 1px; }
   .route-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   @media (max-width: 560px) {
     .route-points .route-where { display: none; }
@@ -593,6 +596,25 @@
           <div class="map-path-bar" id="map-path-bar" style="display:none;">
             <span id="map-path-status"></span>
             <span class="map-path-floors" id="map-path-floors"></span>
+          </div>
+          <div class="route-bot path-bot" id="path-bot" hidden>
+            <div class="route-bot-title">One-way cave bot route <span class="beta-tag">beta</span></div>
+            <div class="route-actions">
+              <label class="route-bot-spacing">Walk waypoint every
+                <select id="path-bot-spacing">
+                  <option value="0">none (floor changes only)</option>
+                  <option value="5">5 tiles</option>
+                  <option value="8">8 tiles</option>
+                  <option value="10" selected>10 tiles</option>
+                  <option value="15">15 tiles</option>
+                  <option value="25">25 tiles</option>
+                </select>
+              </label>
+              <button class="map-btn" id="path-bot-copy" type="button" title="Copy this path as waypoints in the bot's Import JSON format">Copy JSON</button>
+              <button class="map-btn" id="path-bot-download" type="button">Download</button>
+              <button class="map-btn" id="path-bot-edit" type="button" title="Open these waypoints in the Route builder to change types or positions">Edit in Route builder</button>
+            </div>
+            <div class="route-bot-msg" id="path-bot-msg"></div>
           </div>
         </section>
         <section class="mapx-panel" data-panel="route" hidden>
@@ -3147,6 +3169,95 @@ function pathHint(text) {
 function pathSetStatus(text, floorsHtml) {
   document.getElementById("map-path-status").textContent = text;
   document.getElementById("map-path-floors").innerHTML = floorsHtml || "";
+  pathBotRender();
+}
+
+// --- One-way bot route from a found path (feature flag: #bot-path in the
+// URL turns it on for this device, #bot-path-off turns it off). The path
+// becomes cave bot waypoints - start, walks every N tiles, a floor-change
+// waypoint at every stairs/hole/ladder, the goal - with no walk back.
+const BOT_PATH_FLAG_KEY = "minibia.flag.botPath";
+function botPathFlagOn() {
+  const h = location.hash.toLowerCase();
+  try {
+    if (/(^#|&)bot-path-off(&|$)/.test(h)) localStorage.removeItem(BOT_PATH_FLAG_KEY);
+    else if (/(^#|&)bot-path(&|$)/.test(h)) localStorage.setItem(BOT_PATH_FLAG_KEY, "1");
+    return localStorage.getItem(BOT_PATH_FLAG_KEY) === "1";
+  } catch (e) { return /(^#|&)bot-path(&|$)/.test(h); }
+}
+let botPathFlag = false;
+const pathBot = { key: "", points: [], floors: 0, ups: 0 };
+function pathBotPoints() {
+  const res = pathState.result;
+  if (!res) return null;
+  const spacing = Number(document.getElementById("path-bot-spacing").value) || 0;
+  const key = spacing + "|" + res.nodes.length + "|" + res.nodes[0].x + "," + res.nodes[0].y + "," + res.nodes[0].z + "|" + res.steps;
+  if (pathBot.key === key && pathBot.res === res) return pathBot;
+  const nodes = res.nodes, s = nodes[0], g = nodes[nodes.length - 1];
+  const first = routeMakePoint(s.z, s.x, s.y, ""); first.fill = true;
+  const out = [first];
+  const n = botLegFill(out, nodes, spacing);
+  const last = out[out.length - 1];
+  if (out.length === 1 || last.z !== g.z || last.x !== g.x || last.y !== g.y) out.push(routeMakePoint(g.z, g.x, g.y, ""));
+  out.forEach(function (p) { delete p.fill; });
+  pathBot.key = key; pathBot.res = res; pathBot.points = out; pathBot.floors = n.floors; pathBot.ups = n.ups;
+  return pathBot;
+}
+function pathBotChecks(points) {
+  const sus = [];
+  points.forEach(function (p, i) {
+    const c = botCheckAt(p, points[i + 1] || null);
+    p.chk = c;
+    if (c && c.state === "bad") sus.push("#" + (i + 1) + " " + BOT_TYPES[p.t].label + ": " + c.msg);
+  });
+  return sus;
+}
+function pathBotExport() {
+  const pb = pathBotPoints();
+  if (!pb) return null;
+  const route = pb.points.map(botWaypoint);
+  return { json: JSON.stringify({ version: 1, route: route }, null, 2), count: route.length, errors: botValidate(route) };
+}
+function pathBotRender(note) {
+  const box = document.getElementById("path-bot");
+  if (!box) return;
+  const show = botPathFlag && pathState.active && !!pathState.result;
+  box.hidden = !show;
+  if (!show) return;
+  const pb = pathBotPoints();
+  const pts = pb.points, walks = pts.length - pb.floors;
+  const lines = [];
+  if (note) lines.push(note);
+  lines.push(pts.length + " waypoint" + (pts.length === 1 ? "" : "s") + ": " + walks + " walk" + (walks === 1 ? "" : "s") + " (start and goal included)" +
+    (pb.floors ? ", " + pb.floors + " floor change" + (pb.floors === 1 ? "" : "s") : "") + ". One way - no walk back to the start." +
+    (pts.length > ROUTE_MAX_POINTS ? " That's over " + ROUTE_MAX_POINTS + " - use a larger spacing." : ""));
+  if (pb.ups) lines.push("Going up is set to “Stairs up” - if it's a ladder or rope spot, change it with Edit in Route builder.");
+  lines.push("In the bot turn Cave loop off for this route, or it walks back to waypoint 1 when it gets there.");
+  const sus = pathBotChecks(pts);
+  if (sus.length) lines.push("⚠ " + sus.length + " floor-change waypoint" + (sus.length === 1 ? "" : "s") + " may be misplaced (red ring on the map): " + sus.slice(0, 4).join(" ") + (sus.length > 4 ? " (+" + (sus.length - 4) + " more)" : ""));
+  const errs = botValidate(pts.map(botWaypoint));
+  if (errs.length) lines.push("The bot would reject this route: " + errs.slice(0, 6).join("; "));
+  const el = document.getElementById("path-bot-msg");
+  el.textContent = lines.join("\n");
+  el.classList.toggle("has-errors", sus.length > 0 || errs.length > 0);
+}
+function drawPathBotWaypoints(z) {
+  if (!botPathFlag || !pathState.result) return;
+  const pts = pathBotPoints().points;
+  mapCtx.font = "700 10px 'Segoe UI', sans-serif"; mapCtx.textAlign = "center"; mapCtx.textBaseline = "middle";
+  pts.forEach(function (p, i) {
+    if (p.z !== z || i === 0 || i === pts.length - 1) return;
+    const [sx, sy] = worldToScreen(p.x + 0.5, p.y + 0.5);
+    if (p.chk && p.chk.state !== "ok") {
+      mapCtx.beginPath(); mapCtx.arc(sx, sy, 13, 0, Math.PI * 2);
+      mapCtx.lineWidth = 3; mapCtx.strokeStyle = p.chk.state === "bad" ? "#ef4444" : "#facc15";
+      mapCtx.setLineDash(p.chk.state === "bad" ? [] : [4, 3]); mapCtx.stroke(); mapCtx.setLineDash([]);
+    }
+    mapCtx.beginPath(); mapCtx.arc(sx, sy, 8, 0, Math.PI * 2);
+    mapCtx.fillStyle = botTypeColor(p.t); mapCtx.fill();
+    mapCtx.lineWidth = 2; mapCtx.strokeStyle = "#000"; mapCtx.stroke();
+    mapCtx.fillStyle = botTypeInk(p.t); mapCtx.fillText(String(i + 1), sx, sy + 0.5);
+  });
 }
 
 function pathLoadImage(z) {
@@ -3499,6 +3610,7 @@ function drawPathOverlay(w, h) {
     }
   }
   if (res) drawDoorMarkers(res.nodes, res.doors, z);
+  drawPathBotWaypoints(z);
   if (pathState.start && pathState.start.z === z) dot(pathState.start.x, pathState.start.y, "#22c55e");
   if (pathState.goal && pathState.goal.z === z) dot(pathState.goal.x, pathState.goal.y, "#ef4444");
   mapCtx.restore();
@@ -3635,6 +3747,11 @@ function botNextPoint(i) {
   return null;
 }
 function botCheckPoint(p, i) {
+  return BOT_CHECKS[p.t] && p.en ? botCheckAt(p, botNextPoint(i)) : null;
+}
+// Checks a floor-change waypoint against the map's stairs/hole markers and
+// the floor of the waypoint after it (nx, or null for none).
+function botCheckAt(p, nx) {
   const rule = BOT_CHECKS[p.t];
   if (!rule || !p.en) return null;
   const idx = botMarkers(), known = idx.known[p.z], unknown = idx.unknown[p.z];
@@ -3655,7 +3772,6 @@ function botCheckPoint(p, i) {
   else if (unsure) res = { state: "unsure", msg: "Only an unresolved stairs/hole marker " + where + " - can't confirm it's a " + rule.what + "." };
   else if (wrongWay) res = { state: "bad", msg: "The marker " + where + " goes " + (rule.want === 2 ? "up" : "down") + ", not " + (rule.want === 2 ? "down" : "up") + " - possibly the wrong type or spot." };
   else res = { state: "bad", msg: "No " + rule.what + " " + where + " on the map - possibly misplaced." };
-  const nx = botNextPoint(i);
   if (nx && nx.z !== p.z + rule.dz && res.state !== "bad") {
     res = { state: "bad", msg: res.msg + " But the next waypoint is on z" + nx.z + ", not z" + (p.z + rule.dz) + "." };
   }
@@ -3977,13 +4093,47 @@ function botDirTo(a, b) {
   return "here";
 }
 
-// Expands the route into bot waypoints along the computed legs: your own
-// points stay as they are; in between it adds a "walk" every `spacing` tiles
-// (0 = none) and a floor-change waypoint at every stairs/hole/ladder the
-// path takes - placed on the tile you stand on before the step, with the
-// step direction filled in. Going down is "floor-down"; going up defaults
-// to "stairs-up" (the minimap can't tell stairs, ladders and rope spots
-// apart - change the type on those rows if it's a ladder or rope).
+// Appends the waypoints along one computed leg (pathfinder nodes) to `out`:
+// a "walk" every `spacing` tiles (0 = none) and a floor-change waypoint at
+// every stairs/hole/ladder the path takes - placed on the tile you stand on
+// before the step, with the step direction filled in. Going down is
+// "floor-down"; going up defaults to "stairs-up" (the minimap can't tell
+// stairs, ladders and rope spots apart - change the type on those rows if
+// it's a ladder or rope). The leg's own ends are left to the caller.
+function botLegFill(out, nodes, spacing) {
+  const tiles = botLegTiles(nodes);
+  let walked = 0, added = 0, floors = 0, ups = 0;
+  for (let k = 1; k < tiles.length; k++) {
+    const t = tiles[k];
+    if (t.portal) {
+      const marker = tiles[k - 1], before = k >= 2 && !tiles[k - 1].portal && tiles[k - 2].z === marker.z ? tiles[k - 2] : null;
+      const at = before || marker;
+      const wp = routeMakePoint(at.z, at.x, at.y, "", { t: t.z > marker.z ? "floor-down" : "stairs-up" });
+      wp.params.transitionTarget = before ? botDirTo(before, marker) : "auto";
+      // A walk sample on the stand tile itself would be redundant.
+      const last = out[out.length - 1];
+      if (last && last.t === "walk" && last.fill && last.z === at.z && last.x === at.x && last.y === at.y) { out.pop(); added--; }
+      out.push(wp); wp.fill = true; added++; floors++;
+      if (t.z < marker.z) ups++;
+      walked = 0;
+      continue;
+    }
+    walked++;
+    if (spacing > 0 && walked >= spacing && k < tiles.length - 1) {
+      const end = tiles[tiles.length - 1];
+      if (end.z === t.z && Math.max(Math.abs(end.x - t.x), Math.abs(end.y - t.y)) <= 2) continue;
+      const nextPortal = tiles[k + 1] && tiles[k + 1].portal;
+      if (nextPortal) continue;
+      const wp = routeMakePoint(t.z, t.x, t.y, ""); wp.fill = true;
+      out.push(wp); added++;
+      walked = 0;
+    }
+  }
+  return { added: added, floors: floors, ups: ups };
+}
+
+// Expands the route into bot waypoints along the computed legs (see
+// botLegFill): your own points stay as they are, the fill goes in between.
 function botFillIn(spacing) {
   const pairs = routePairs();
   if (!pairs.length) return "Add at least two points first.";
@@ -3993,33 +4143,8 @@ function botFillIn(spacing) {
   let added = 0, floors = 0;
   pairs.forEach(function (pr, i) {
     out.push(pr[0]);
-    const tiles = botLegTiles(routeState.legs[i].nodes);
-    let walked = 0;
-    for (let k = 1; k < tiles.length; k++) {
-      const t = tiles[k];
-      if (t.portal) {
-        const marker = tiles[k - 1], before = k >= 2 && !tiles[k - 1].portal && tiles[k - 2].z === marker.z ? tiles[k - 2] : null;
-        const at = before || marker;
-        const wp = routeMakePoint(at.z, at.x, at.y, "", { t: t.z > marker.z ? "floor-down" : "stairs-up" });
-        wp.params.transitionTarget = before ? botDirTo(before, marker) : "auto";
-        // A walk sample on the stand tile itself would be redundant.
-        const last = out[out.length - 1];
-        if (last && last.t === "walk" && last.fill && last.z === at.z && last.x === at.x && last.y === at.y) out.pop();
-        out.push(wp); wp.fill = true; added++; floors++;
-        walked = 0;
-        continue;
-      }
-      walked++;
-      if (spacing > 0 && walked >= spacing && k < tiles.length - 1) {
-        const end = tiles[tiles.length - 1];
-        if (end.z === t.z && Math.max(Math.abs(end.x - t.x), Math.abs(end.y - t.y)) <= 2) continue;
-        const nextPortal = tiles[k + 1] && tiles[k + 1].portal;
-        if (nextPortal) continue;
-        const wp = routeMakePoint(t.z, t.x, t.y, ""); wp.fill = true;
-        out.push(wp); added++;
-        walked = 0;
-      }
-    }
+    const n = botLegFill(out, routeState.legs[i].nodes, spacing);
+    added += n.added; floors += n.floors;
   });
   if (!routeState.loop) out.push(routeState.points[routeState.points.length - 1]);
   if (out.length > ROUTE_MAX_POINTS) return "That would make " + out.length + " waypoints (max " + ROUTE_MAX_POINTS + ") - use a larger spacing.";
@@ -4680,6 +4805,42 @@ function initMap() {
     a.download = (slugify(routeState.title || "") || "route") + ".json";
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  });
+  botPathFlag = botPathFlagOn();
+  window.addEventListener("hashchange", function () { botPathFlag = botPathFlagOn(); pathBotRender(); drawMap(); });
+  document.getElementById("path-bot-spacing").addEventListener("change", function () { pathBotRender(); drawMap(); });
+  document.getElementById("path-bot-copy").addEventListener("click", function () {
+    const ex = pathBotExport();
+    if (!ex) return;
+    botCopyText(ex.json, this, "Copy JSON");
+    pathBotRender("Copied " + ex.count + " waypoints. In the bot: Cave → Route → Import JSON, paste.");
+  });
+  document.getElementById("path-bot-download").addEventListener("click", function () {
+    const ex = pathBotExport();
+    if (!ex) return;
+    const g = pathState.result.nodes[pathState.result.nodes.length - 1];
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([ex.json], { type: "application/json" }));
+    a.download = "path-to-" + g.x + "-" + g.y + "-" + g.z + ".json";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  });
+  document.getElementById("path-bot-edit").addEventListener("click", function () {
+    const pb = pathBotPoints();
+    if (!pb) return;
+    if (pb.points.length > ROUTE_MAX_POINTS) { pathBotRender("Too many waypoints for the Route builder - use a larger spacing."); return; }
+    if (routeState.points.length && !confirm("Replace the " + routeState.points.length + "-point route in the Route builder with these " + pb.points.length + " waypoints?")) return;
+    const pts = pb.points.map(function (p) {
+      return routeMakePoint(p.z, p.x, p.y, "", { t: p.t, params: botClone(p.params) });
+    });
+    routeState.points = pts; routeState.loop = false; routeState.undoFill = null; routeState.open.clear(); routeState.fromLink = false;
+    document.getElementById("route-loop").checked = false;
+    document.getElementById("route-bot-unfill").style.display = "none";
+    mapSetMode("route");
+    setMapFloor(pts[0].z);
+    routeFitFloor(pts[0].z);
+    routeChanged();
+    botRenderMessages("Path loaded as a one-way route (loop off). Change a waypoint's type in the list, then Copy JSON.");
   });
   document.getElementById("route-bot-import-toggle").addEventListener("click", function () {
     const box = document.getElementById("route-bot-import");
