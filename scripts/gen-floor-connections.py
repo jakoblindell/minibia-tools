@@ -55,7 +55,8 @@ Doors: the minimap draws doors in the same color as the wall around them,
 so a house is a sealed box as far as the terrain can tell. The script also
 writes data/derived/door-candidates.json: every 1-tile-thick building wall
 tile (grey stone or red wall color) with walkable ground on two opposite
-sides *that aren't otherwise connected on that floor*. The pathfinder may
+sides *that aren't otherwise connected on that floor* (8-connected: a
+diagonal step between two blocked tiles counts, as in the game). The pathfinder may
 step through those as assumed doors (at a small extra cost). Because a
 crossing must join two separate walkable areas, a route can never use it
 to cut through a wall it could have walked around.
@@ -87,6 +88,7 @@ UP = 1
 DOWN = 2
 GUESSED = 4
 DEAD_END = -1  # classify() sentinel, never written out
+RAMP_PART = -2  # classify() sentinel: drawn part of a ramp, not a way up/down, never written out
 
 
 def idx_to_rgb(idx):
@@ -100,11 +102,13 @@ DOOR_WALL_RGB = {idx_to_rgb(86), idx_to_rgb(186)}  # grey stone wall, red wall
 
 
 def label_components(walk):
-    """4-connected components of a boolean grid. 4-connectivity matches the
-    pathfinder, which never cuts a diagonal corner past a blocked tile."""
+    """8-connected components of a boolean grid. 8-connectivity matches the
+    pathfinder and the game: a diagonal step is allowed even between two
+    blocked tiles (e.g. between two trees), so two areas touching only at a
+    corner are one area and no assumed door is needed between them."""
     try:
         from scipy import ndimage
-        lab, _ = ndimage.label(walk)
+        lab, _ = ndimage.label(walk, structure=np.ones((3, 3), dtype=bool))
         return lab
     except ImportError:
         pass
@@ -121,10 +125,11 @@ def label_components(walk):
         q = deque([(sy, sx)])
         while q:
             y, x = q.popleft()
-            for ny, nx in ((y - 1, x), (y + 1, x), (y, x - 1), (y, x + 1)):
-                if 0 <= ny < H and 0 <= nx < W and walk[ny, nx] and not lab[ny, nx]:
-                    lab[ny, nx] = n
-                    q.append((ny, nx))
+            for ny in (y - 1, y, y + 1):
+                for nx in (x - 1, x, x + 1):
+                    if 0 <= ny < H and 0 <= nx < W and walk[ny, nx] and not lab[ny, nx]:
+                        lab[ny, nx] = n
+                        q.append((ny, nx))
     return lab
 
 
@@ -305,7 +310,22 @@ def pair_markers(marker_sets, fixed):
         first, which splits a column of identical markers into stacked
         pairs (z0-z1, z2-z3...) - how ladder towers alternate their ladder
         and hole sides.
-    `fixed` is pre-assigned (the hidden stair tops, always DOWN)."""
+      - A ramp is often drawn wider on one floor than the other (a 2x2
+        yellow block below, a 1-wide top above): only the tiles stacked
+        under/over the other floor's marker change floor, the rest is the
+        drawn foot of the ramp (e.g. x32547 y32076 z7 beside the real ramp
+        tile x32548). So two patches that both already have a stacked pair
+        never pair by distance - neither with each other (the foot of a
+        ramp with its own top) nor across to a neighbouring stair two
+        tiles away. The off-stack tiles of such patches come back in
+        `parts` (when nothing else pairs them) and are not a way up or
+        down. Pairing by distance stays for a patch with no stacked partner
+        of its own (an arrival drawn a tile off), even when the other side
+        touches another stair's drawing - but an off-stack tile only ever
+        goes the way its own patch's stacked stair goes (the foot of a ramp
+        up is not also a hole down).
+    `fixed` is pre-assigned (the hidden stair tops, always DOWN).
+    Returns (direction, parts)."""
     patch_of = {}   # (z, x, y) -> patch id
     patches = []    # id -> (z, [(x, y), ...])
     for z, pts in marker_sets.items():
@@ -344,19 +364,34 @@ def pair_markers(marker_sets, fixed):
                 if (dx or dy) and (z + 1, x + dx, y + dy) in patch_of:
                     candidates.append(((1, max(abs(dx), abs(dy)), z), (z, x, y), (z + 1, x + dx, y + dy)))
     candidates.sort()
-    for _, a, b in candidates:
+    anchored = {}     # patch with a stacked pair -> the directions it goes
+    stacked = set()   # tiles in a stacked pair
+    skipped = set()
+    for key, a, b in candidates:
+        pa, pb = patch_of[a], patch_of[b]
+        if key[0] == 1 and ((pa in anchored and pb in anchored) or
+                            (pa in anchored and a not in stacked and DOWN not in anchored[pa]) or
+                            (pb in anchored and b not in stacked and UP not in anchored[pb])):
+            skipped.update(t for t in (a, b) if patch_of[t] in anchored and t not in stacked)
+            continue
         if direction.get(a) in (None, DOWN) and direction.get(b) in (None, UP):
             direction[a], direction[b] = DOWN, UP
-    return direction
+            if key[0] == 0:
+                anchored.setdefault(pa, set()).add(DOWN); anchored.setdefault(pb, set()).add(UP)
+                stacked.update((a, b))
+    parts = {t for t in skipped if t not in direction}
+    return direction, parts
 
 
-def classify(floors, paired, z, wx, wy, manual_labels):
+def classify(floors, paired, parts, z, wx, wy, manual_labels):
     manual = manual_labels.get((z, wx, wy))
     if manual is not None:
         return manual
     flags = paired.get((z, wx, wy))
     if flags is not None:
         return flags
+    if (z, wx, wy) in parts:
+        return RAMP_PART
 
     up_state = terrain_state(floors, z - 1, wx, wy, RADIUS)
     down_state = terrain_state(floors, z + 1, wx, wy, RADIUS)
@@ -388,20 +423,22 @@ def main():
     # yellow only counts as a stair top if that yellow isn't already going
     # down - otherwise it's just floor or roof (upper floors are mostly
     # light grey roof) that happens to sit over a staircase.
-    paired = pair_markers(yellow_sets, {})
+    # Nor over the drawn foot of a ramp (pair_markers' parts) - that one
+    # isn't a stair at all.
+    paired, parts0 = pair_markers(yellow_sets, {})
     stair_tops = {}
     for z, pts in hidden_stair_tops(floors, yellow_sets).items():
-        ok = {(x, y) for (x, y) in pts if paired.get((z + 1, x, y)) != DOWN}
+        ok = {(x, y) for (x, y) in pts if paired.get((z + 1, x, y)) != DOWN and (z + 1, x, y) not in parts0}
         if ok:
             stair_tops[z] = ok
     marker_sets = {z: yellow_sets.get(z, set()) | stair_tops.get(z, set())
                    for z in set(yellow_sets) | set(stair_tops)}
-    paired = pair_markers(marker_sets, {(z, x, y): DOWN for z, pts in stair_tops.items() for (x, y) in pts})
+    paired, parts = pair_markers(marker_sets, {(z, x, y): DOWN for z, pts in stair_tops.items() for (x, y) in pts})
     manual_labels = load_manual_labels()
 
     connections = {}
     unknowns = {}
-    n_total = n_confirmed = n_guessed = n_manual = n_dead = n_unknown = 0
+    n_total = n_confirmed = n_guessed = n_manual = n_dead = n_unknown = n_parts = 0
     for z in sorted(set(yellow_sets) | set(stair_tops)):
         pts = yellow_sets.get(z, set())
         rows = []
@@ -409,7 +446,10 @@ def main():
         for (wx, wy) in pts:
             n_total += 1
             is_manual = (z, wx, wy) in manual_labels
-            flags = classify(floors, paired, z, wx, wy, manual_labels)
+            flags = classify(floors, paired, parts, z, wx, wy, manual_labels)
+            if flags == RAMP_PART:
+                n_parts += 1
+                continue
             if flags == DEAD_END:
                 n_dead += 1
                 continue
@@ -452,6 +492,7 @@ def main():
     print("floor connections: %d yellow markers found, %d confirmed, %d guessed, %d manually labeled, "
           "%d dead ends (dropped), %d still unresolved"
           % (n_total, n_confirmed, n_guessed, n_manual, n_dead, n_unknown))
+    print("ramp parts dropped: %d marker tiles drawn beside a stacked stair/ramp tile, not a way up/down themselves" % n_parts)
     print("yellow roof/ground patches skipped: %d tiles (patches > %d tiles, or rings)" % (n_patch, MAX_MARKER_PATCH))
     print("hidden stair tops: %d light grey tiles above a yellow marker, added as confirmed 'down'" % n_tops)
     print("door candidates: %d (written to door-candidates.json)" % n_doors)

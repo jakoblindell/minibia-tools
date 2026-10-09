@@ -3027,8 +3027,10 @@ const PATH_WORKER_SRC = function () {
   }
   function octile(dx, dy) { return dx > dy ? dx + (SQRT2 - 1) * dy : dy + (SQRT2 - 1) * dx; }
 
-  // Straight/diagonal jumps for the "no corner cutting" JPS variant -
-  // iterative, since recursion along a 2000-tile corridor would blow the stack.
+  // Straight/diagonal jumps for JPS with corner cutting: like the game, a
+  // diagonal step only needs its destination walkable - you can squeeze
+  // diagonally between two trees or past a wall corner. Iterative, since
+  // recursion along a 2000-tile corridor would blow the stack.
   function jumpStraight(z, x, y, dx, dy) {
     for (;;) {
       x += dx; y += dy;
@@ -3036,57 +3038,49 @@ const PATH_WORKER_SRC = function () {
       const idx = (z * H + y) * W + x;
       if (idx === goal || isP(z, x, y)) return idx;
       if (dx !== 0) {
-        if ((walk(z, x, y - 1) && !walk(z, x - dx, y - 1)) || (walk(z, x, y + 1) && !walk(z, x - dx, y + 1))) return idx;
+        if ((!walk(z, x, y - 1) && walk(z, x + dx, y - 1)) || (!walk(z, x, y + 1) && walk(z, x + dx, y + 1))) return idx;
       } else {
-        if ((walk(z, x - 1, y) && !walk(z, x - 1, y - dy)) || (walk(z, x + 1, y) && !walk(z, x + 1, y - dy))) return idx;
+        if ((!walk(z, x - 1, y) && walk(z, x - 1, y + dy)) || (!walk(z, x + 1, y) && walk(z, x + 1, y + dy))) return idx;
       }
     }
   }
   function jumpDiag(z, x, y, dx, dy) {
     for (;;) {
-      if (!walk(z, x + dx, y) || !walk(z, x, y + dy)) return -1;
       x += dx; y += dy;
       if (!walk(z, x, y)) return -1;
       const idx = (z * H + y) * W + x;
       if (idx === goal || isP(z, x, y)) return idx;
+      if ((!walk(z, x - dx, y) && walk(z, x - dx, y + dy)) || (!walk(z, x, y - dy) && walk(z, x + dx, y - dy))) return idx;
       if (jumpStraight(z, x, y, dx, 0) !== -1 || jumpStraight(z, x, y, 0, dy) !== -1) return idx;
     }
   }
   const DIRS = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]];
+  // Pruned successors (natural + forced neighbours) given the direction we
+  // arrived from; no parent (start, or just off stairs) = all 8.
   function neighbors(z, x, y, px, py, out) {
     out.length = 0;
     if (px < 0) {
       for (let k = 0; k < 8; k++) {
         const dx = DIRS[k][0], dy = DIRS[k][1];
-        if (dx && dy) { if (walk(z, x + dx, y) && walk(z, x, y + dy) && walk(z, x + dx, y + dy)) out.push(dx, dy); }
-        else if (walk(z, x + dx, y + dy)) out.push(dx, dy);
+        if (walk(z, x + dx, y + dy)) out.push(dx, dy);
       }
       return;
     }
     const dx = Math.sign(x - px), dy = Math.sign(y - py);
     if (dx !== 0 && dy !== 0) {
-      const wy = walk(z, x, y + dy), wx = walk(z, x + dx, y);
-      if (wy) out.push(0, dy);
-      if (wx) out.push(dx, 0);
-      if (wy && wx && walk(z, x + dx, y + dy)) out.push(dx, dy);
+      if (walk(z, x, y + dy)) out.push(0, dy);
+      if (walk(z, x + dx, y)) out.push(dx, 0);
+      if (walk(z, x + dx, y + dy)) out.push(dx, dy);
+      if (!walk(z, x - dx, y) && walk(z, x - dx, y + dy)) out.push(-dx, dy);
+      if (!walk(z, x, y - dy) && walk(z, x + dx, y - dy)) out.push(dx, -dy);
     } else if (dx !== 0) {
-      const n = walk(z, x + dx, y), t = walk(z, x, y + 1), b = walk(z, x, y - 1);
-      if (n) {
-        out.push(dx, 0);
-        if (t && walk(z, x + dx, y + 1)) out.push(dx, 1);
-        if (b && walk(z, x + dx, y - 1)) out.push(dx, -1);
-      }
-      if (t) out.push(0, 1);
-      if (b) out.push(0, -1);
+      if (walk(z, x + dx, y)) out.push(dx, 0);
+      if (!walk(z, x, y + 1) && walk(z, x + dx, y + 1)) out.push(dx, 1);
+      if (!walk(z, x, y - 1) && walk(z, x + dx, y - 1)) out.push(dx, -1);
     } else {
-      const n = walk(z, x, y + dy), r = walk(z, x + 1, y), l = walk(z, x - 1, y);
-      if (n) {
-        out.push(0, dy);
-        if (r && walk(z, x + 1, y + dy)) out.push(1, dy);
-        if (l && walk(z, x - 1, y + dy)) out.push(-1, dy);
-      }
-      if (r) out.push(1, 0);
-      if (l) out.push(-1, 0);
+      if (walk(z, x, y + dy)) out.push(0, dy);
+      if (!walk(z, x + 1, y) && walk(z, x + 1, y + dy)) out.push(1, dy);
+      if (!walk(z, x - 1, y) && walk(z, x - 1, y + dy)) out.push(-1, dy);
     }
   }
 
@@ -3161,7 +3155,7 @@ const PATH_WORKER_SRC = function () {
       let px = -1, py = -1;
       if (p !== -1) {
         const ppx = p % W, pt = (p - ppx) / W, ppy = pt % H, ppz = (pt - ppy) / H;
-        if (ppz === z) { px = ppx; py = ppy; } // arrived via stairs -> expand every direction
+        if (ppz === z && !viaDoor.has(cur)) { px = ppx; py = ppy; } // arrived via stairs or a door -> expand every direction
       }
       neighbors(z, x, y, px, py, nb);
       for (let k = 0; k < nb.length; k += 2) {
