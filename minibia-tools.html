@@ -3009,6 +3009,12 @@ const PATH_BLOCKING_IDX = [0, 12, 40, 86, 114, 186, 192];
 
 const PATH_WORKER_SRC = function () {
   let W = 0, H = 0, WH = 0, floors = [], pbits = [], portals = new Map(), goal = -1;
+  // Stairs edges backwards (target -> sources), for pocketOf().
+  const rstairs = new Map();
+  // Assumed doors allowed in the current search: 0 = none, 1 = only into or
+  // out of `pocket`, 2 = any (see findRoute).
+  let doorMode = 2, pocket = null;
+  const POCKET_LIMIT = 10000;
   // Edge kinds: 0 = stairs/ladder/hole (fixed cost), 1 = assumed door
   // through a 1-tile wall (2 steps + a penalty, so real openings and known
   // stairs win whenever they're comparable).
@@ -3175,6 +3181,7 @@ const PATH_WORKER_SRC = function () {
         for (let k = 0; k < targets.length; k += 2) {
           const tn = targets[k], kind = targets[k + 1];
           if (closed.has(tn)) continue;
+          if (kind === 1 && (doorMode === 0 || (doorMode === 1 && !pocket.has(cur) && !pocket.has(tn)))) continue;
           const ng = gc + EDGE_COST[kind];
           const old = gScore.get(tn);
           if (old === undefined || ng < old) {
@@ -3189,6 +3196,58 @@ const PATH_WORKER_SRC = function () {
     return { ok: false, reason: "no route - the two points aren't connected by walkable ground or known stairs", expanded: expanded };
   }
 
+  // Everything reachable from a tile with no assumed door - walking, and
+  // stairs either way - if that's a small enclosed area (a house, a tower
+  // room in a city wall); null when it's open ground (more than
+  // POCKET_LIMIT tiles).
+  function pocketOf(idx) {
+    const seen = new Set([idx]), queue = [idx];
+    const add = function (n) { if (!seen.has(n)) { seen.add(n); queue.push(n); } };
+    for (let q = 0; q < queue.length; q++) {
+      if (seen.size > POCKET_LIMIT) return null;
+      const cur = queue[q];
+      const x = cur % W, t = (cur - x) / W, y = t % H, z = (t - y) / H;
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+        if ((dx || dy) && walk(z, x + dx, y + dy)) add(cur + dy * W + dx);
+      }
+      const fw = portals.get(cur);
+      if (fw) for (let k = 0; k < fw.length; k += 2) if (fw[k + 1] === 0) add(fw[k]);
+      const bw = rstairs.get(cur);
+      if (bw) for (let k = 0; k < bw.length; k++) add(bw[k]);
+    }
+    return seen;
+  }
+  // Assumed doors are a last resort. When start and goal are both on open
+  // ground, the route takes none (a walled city is entered by its stairs or
+  // gate, not through a wall or a tower room in it); when one of them is in
+  // a small enclosed area, doors are only allowed into/out of that area
+  // (walk into a house, not through one on the way). If that finds nothing,
+  // search again with every door, as a fallback.
+  function findRoute(sz, sx, sy, gz, gx, gy) {
+    const s = snap(sz, sx, sy), g = snap(gz, gx, gy);
+    let mode = 2;
+    pocket = null;
+    if (s && g) {
+      const ps = pocketOf((sz * H + s[1]) * W + s[0]), pg = pocketOf((gz * H + g[1]) * W + g[0]);
+      if (!ps && !pg) mode = 0;
+      else {
+        pocket = ps || new Set();
+        if (pg) pg.forEach(function (n) { pocket.add(n); });
+        mode = 1;
+      }
+    }
+    doorMode = mode;
+    let r = find(sz, sx, sy, gz, gx, gy);
+    if (!r.ok && mode !== 2) {
+      doorMode = 2;
+      const r2 = find(sz, sx, sy, gz, gx, gy);
+      r2.expanded = (r2.expanded || 0) + (r.expanded || 0);
+      r = r2;
+    }
+    pocket = null; doorMode = 2;
+    return r;
+  }
+
   self.onmessage = function (e) {
     const m = e.data;
     if (m.type === "init") {
@@ -3200,6 +3259,7 @@ const PATH_WORKER_SRC = function () {
         const src = pr[i], dst = pr[i + 1];
         let list = portals.get(src); if (!list) { list = []; portals.set(src, list); }
         list.push(dst, pr[i + 2]);
+        if (pr[i + 2] === 0) { let back = rstairs.get(dst); if (!back) { back = []; rstairs.set(dst, back); } back.push(src); }
         const z = Math.floor(src / WH), local = src - z * WH;
         if (!pbits[z]) pbits[z] = new Uint8Array(bitLen);
         pbits[z][local >> 3] |= 1 << (local & 7);
@@ -3207,7 +3267,7 @@ const PATH_WORKER_SRC = function () {
       self.postMessage({ type: "ready" });
     } else if (m.type === "find") {
       const t0 = performance.now();
-      const r = find(m.s[0], m.s[1], m.s[2], m.g[0], m.g[1], m.g[2]);
+      const r = findRoute(m.s[0], m.s[1], m.s[2], m.g[0], m.g[1], m.g[2]);
       r.ms = performance.now() - t0;
       r.type = "result"; r.id = m.id;
       self.postMessage(r);
