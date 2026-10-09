@@ -56,7 +56,11 @@ so a house is a sealed box as far as the terrain can tell. The script also
 writes data/derived/door-candidates.json: every 1-tile-thick building wall
 tile (grey stone or red wall color) with walkable ground on two opposite
 sides *that aren't otherwise connected on that floor* (8-connected: a
-diagonal step between two blocked tiles counts, as in the game). The pathfinder may
+diagonal step between two blocked tiles counts, as in the game) - nor
+through other floors: if each side can reach the other by walking and the
+detected stairs/ladders/holes (linked the way the pathfinder links them), the
+wall is a real wall, e.g. a walled city entered by its stairs, and dropped
+(reach_without_doors; needs scipy, otherwise every candidate is kept). The pathfinder may
 step through those as assumed doors (at a small extra cost). Because a
 crossing must join two separate walkable areas, a route can never use it
 to cut through a wall it could have walked around.
@@ -134,18 +138,26 @@ def label_components(walk, diagonal=False):
     return lab
 
 
-def door_candidates(arr, m):
-    """Flat [x, y, orient, ...] (orient 0 = passes west<->east, 1 = north<->
-    south) for 1-thick wall tiles joining two different walkable areas."""
+def walk_mask(arr):
+    """Walkable tiles of one floor image - the same rule the pathfinder
+    decodes in the browser (drawn, and not a blocking color)."""
     opaque = arr[:, :, 3] > 0
     rgb = arr[:, :, :3]
     blocking = np.zeros(opaque.shape, dtype=bool)
     for c in BLOCKING_RGB:
         blocking |= (rgb[:, :, 0] == c[0]) & (rgb[:, :, 1] == c[1]) & (rgb[:, :, 2] == c[2])
+    return opaque & ~blocking
+
+
+def door_candidates(arr, m):
+    """Flat [x, y, orient, ...] (orient 0 = passes west<->east, 1 = north<->
+    south) for 1-thick wall tiles joining two different walkable areas."""
+    opaque = arr[:, :, 3] > 0
+    rgb = arr[:, :, :3]
     wall = np.zeros(opaque.shape, dtype=bool)
     for c in DOOR_WALL_RGB:
         wall |= (rgb[:, :, 0] == c[0]) & (rgb[:, :, 1] == c[1]) & (rgb[:, :, 2] == c[2])
-    lab = np.pad(label_components(opaque & ~blocking, diagonal=True), 1)
+    lab = np.pad(label_components(walk_mask(arr), diagonal=True), 1)
     wall &= opaque
     lw, le, ln, ls = lab[1:-1, :-2], lab[1:-1, 2:], lab[:-2, 1:-1], lab[2:, 1:-1]
     horiz = wall & (lw > 0) & (le > 0) & (lw != le)
@@ -157,6 +169,73 @@ def door_candidates(arr, m):
         for x, y in zip((xs + ox).tolist(), (ys + oy).tolist()):
             out.extend((x, y, orient))
     return out
+
+
+def reach_without_doors(floors, connections):
+    """Which tiles can reach each other both ways with no assumed door:
+    walkable 8-connected areas per floor, linked by the stairs/ladders/holes
+    in `connections` exactly as the pathfinder links them (a marker going
+    up lands on z-1 on a marker going down within 2 tiles, else the nearest
+    walkable tile within 2; going down likewise). Returns f(z, x, y) -> id of
+    the strongly connected group, or -1 off walkable ground; None without
+    scipy. A door between two tiles of one group is never needed - there's
+    a way round, through other floors if not on this one."""
+    try:
+        from scipy.sparse import coo_matrix
+        from scipy.sparse.csgraph import connected_components
+    except ImportError:
+        return None
+    labs, offs, total = {}, {}, 0
+    for z, (arr, m) in floors.items():
+        lab = label_components(walk_mask(arr), diagonal=True)
+        labs[z], offs[z] = (lab, m["worldOriginX"], m["worldOriginY"]), total
+        total += int(lab.max())
+
+    def area(z, x, y):
+        if z not in labs:
+            return -1
+        lab, ox, oy = labs[z]
+        px, py = x - ox, y - oy
+        if not (0 <= py < lab.shape[0] and 0 <= px < lab.shape[1]) or not lab[py, px]:
+            return -1
+        return offs[z] + int(lab[py, px]) - 1
+
+    flags = {int(z): {(r[0], r[1]): r[2] for r in rows} for z, rows in connections.items()}
+
+    def landing(tz, x, y, want):
+        for first_pass in (True, False):
+            best, best_d = -1, None
+            for dy in range(-2, 3):
+                for dx in range(-2, 3):
+                    a = area(tz, x + dx, y + dy)
+                    if a < 0 or (first_pass and not (flags.get(tz, {}).get((x + dx, y + dy), 0) & want)):
+                        continue
+                    d = dx * dx + dy * dy
+                    if best_d is None or d < best_d:
+                        best, best_d = a, d
+            if best >= 0:
+                return best
+        return -1
+
+    src, dst = [], []
+    for z, marks in flags.items():
+        for (x, y), f in marks.items():
+            a = area(z, x, y)
+            if a < 0:
+                continue
+            for bit, tz, want in ((UP, z - 1, DOWN), (DOWN, z + 1, UP)):
+                if f & bit:
+                    t = landing(tz, x, y, want)
+                    if t >= 0:
+                        src.append(a)
+                        dst.append(t)
+    graph = coo_matrix((np.ones(len(src), dtype=np.int8), (src, dst)), shape=(total, total))
+    _, group = connected_components(graph, directed=True, connection="strong")
+
+    def reach(z, x, y):
+        a = area(z, x, y)
+        return int(group[a]) if a >= 0 else -1
+    return reach
 
 
 def load_floors(minimap_meta):
@@ -484,6 +563,23 @@ def main():
     dump(comp, "compendium", "__MINIBIA_COMPENDIUM__")
 
     doors = {str(z): door_candidates(arr, m) for z, (arr, m) in floors.items()}
+    # Only where there's no other way: a wall whose two sides already reach
+    # each other through stairs/other floors (a walled city entered by its
+    # stairs) is a real wall, not a door.
+    reach = reach_without_doors(floors, connections)
+    n_door_walls = 0
+    if reach is not None:
+        for zk, v in doors.items():
+            z, keep = int(zk), []
+            for i in range(0, len(v), 3):
+                x, y, horiz = v[i], v[i + 1], v[i + 2] == 0
+                a = reach(z, x - 1, y) if horiz else reach(z, x, y - 1)
+                b = reach(z, x + 1, y) if horiz else reach(z, x, y + 1)
+                if a >= 0 and a == b:
+                    n_door_walls += 1
+                else:
+                    keep.extend(v[i:i + 3])
+            doors[zk] = keep
     doors = {z: v for z, v in doors.items() if v}
     with open(os.path.join(DERIVED, "door-candidates.json"), "w", encoding="utf-8") as f:
         json.dump(doors, f, separators=(",", ":"))
@@ -496,7 +592,8 @@ def main():
     print("ramp parts dropped: %d marker tiles drawn beside a stacked stair/ramp tile, not a way up/down themselves" % n_parts)
     print("yellow roof/ground patches skipped: %d tiles (patches > %d tiles, or rings)" % (n_patch, MAX_MARKER_PATCH))
     print("hidden stair tops: %d light grey tiles above a yellow marker, added as confirmed 'down'" % n_tops)
-    print("door candidates: %d (written to door-candidates.json)" % n_doors)
+    print("door candidates: %d (written to door-candidates.json); %d walls dropped whose two sides already "
+          "connect through stairs/other floors%s" % (n_doors, n_door_walls, "" if reach else " (scipy missing - not checked)"))
 
 
 if __name__ == "__main__":
