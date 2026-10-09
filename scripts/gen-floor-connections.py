@@ -101,14 +101,15 @@ STAIR_TOP_RGB = idx_to_rgb(129)  # light grey - see "Hidden stair tops" above
 DOOR_WALL_RGB = {idx_to_rgb(86), idx_to_rgb(186)}  # grey stone wall, red wall
 
 
-def label_components(walk):
-    """8-connected components of a boolean grid. 8-connectivity matches the
-    pathfinder and the game: a diagonal step is allowed even between two
-    blocked tiles (e.g. between two trees), so two areas touching only at a
-    corner are one area and no assumed door is needed between them."""
+def label_components(walk, diagonal=False):
+    """Connected components of a boolean grid - 4-connected, or 8-connected
+    with diagonal=True. Walkable areas use 8: like the game, the pathfinder
+    steps diagonally even between two blocked tiles (e.g. between two
+    trees), so two areas touching only at a corner are one area and no
+    assumed door is needed between them. Yellow patches stay 4-connected."""
     try:
         from scipy import ndimage
-        lab, _ = ndimage.label(walk, structure=np.ones((3, 3), dtype=bool))
+        lab, _ = ndimage.label(walk, structure=np.ones((3, 3), dtype=bool) if diagonal else None)
         return lab
     except ImportError:
         pass
@@ -127,7 +128,7 @@ def label_components(walk):
             y, x = q.popleft()
             for ny in (y - 1, y, y + 1):
                 for nx in (x - 1, x, x + 1):
-                    if 0 <= ny < H and 0 <= nx < W and walk[ny, nx] and not lab[ny, nx]:
+                    if (ny == y or nx == x or diagonal) and 0 <= ny < H and 0 <= nx < W and walk[ny, nx] and not lab[ny, nx]:
                         lab[ny, nx] = n
                         q.append((ny, nx))
     return lab
@@ -144,7 +145,7 @@ def door_candidates(arr, m):
     wall = np.zeros(opaque.shape, dtype=bool)
     for c in DOOR_WALL_RGB:
         wall |= (rgb[:, :, 0] == c[0]) & (rgb[:, :, 1] == c[1]) & (rgb[:, :, 2] == c[2])
-    lab = np.pad(label_components(opaque & ~blocking), 1)
+    lab = np.pad(label_components(opaque & ~blocking, diagonal=True), 1)
     wall &= opaque
     lw, le, ln, ls = lab[1:-1, :-2], lab[1:-1, 2:], lab[:-2, 1:-1], lab[2:, 1:-1]
     horiz = wall & (lw > 0) & (le > 0) & (lw != le)
