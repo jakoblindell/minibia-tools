@@ -3009,6 +3009,12 @@ const PATH_BLOCKING_IDX = [0, 12, 40, 86, 114, 186, 192];
 
 const PATH_WORKER_SRC = function () {
   let W = 0, H = 0, WH = 0, floors = [], pbits = [], portals = new Map(), goal = -1;
+  // Stairs/ramps/holes (sources of a stairs edge): stepping onto one changes
+  // floor, so a route never walks across one - walk() treats them as
+  // obstacles, a route reaches one only from a tile next to it (nbits: the
+  // tiles beside one, which are always jump points) and from one it only
+  // takes the stairs.
+  const tbits = [], nbits = [];
   // Stairs edges backwards (target -> sources), for pocketOf().
   const rstairs = new Map();
   // Assumed doors allowed in the current search: 0 = none, 1 = only into or
@@ -3026,12 +3032,20 @@ const PATH_WORKER_SRC = function () {
   const FALLBACK_DOOR_COST = 250;
   let doorCost = EDGE_COST[1];
 
-  function walk(z, x, y) {
+  function walkRaw(z, x, y) {
     if (x < 0 || y < 0 || x >= W || y >= H) return false;
     const b = floors[z]; if (!b) return false;
     const i = y * W + x;
     return ((b[i >> 3] >> (i & 7)) & 1) === 1;
   }
+  function bit(arr, z, x, y) {
+    const b = arr[z]; if (!b || x < 0 || y < 0 || x >= W || y >= H) return false;
+    const i = y * W + x;
+    return ((b[i >> 3] >> (i & 7)) & 1) === 1;
+  }
+  function isT(z, x, y) { return bit(tbits, z, x, y); }
+  function isN(z, x, y) { return bit(nbits, z, x, y); }
+  function walk(z, x, y) { return walkRaw(z, x, y) && !isT(z, x, y); }
   function isP(z, x, y) {
     const b = pbits[z]; if (!b) return false;
     const i = y * W + x;
@@ -3048,7 +3062,7 @@ const PATH_WORKER_SRC = function () {
       x += dx; y += dy;
       if (!walk(z, x, y)) return -1;
       const idx = (z * H + y) * W + x;
-      if (idx === goal || isP(z, x, y)) return idx;
+      if (idx === goal || isP(z, x, y) || isN(z, x, y)) return idx;
       if (dx !== 0) {
         if ((!walk(z, x, y - 1) && walk(z, x + dx, y - 1)) || (!walk(z, x, y + 1) && walk(z, x + dx, y + 1))) return idx;
       } else {
@@ -3061,7 +3075,7 @@ const PATH_WORKER_SRC = function () {
       x += dx; y += dy;
       if (!walk(z, x, y)) return -1;
       const idx = (z * H + y) * W + x;
-      if (idx === goal || isP(z, x, y)) return idx;
+      if (idx === goal || isP(z, x, y) || isN(z, x, y)) return idx;
       if ((!walk(z, x - dx, y) && walk(z, x - dx, y + dy)) || (!walk(z, x, y - dy) && walk(z, x + dx, y - dy))) return idx;
       if (jumpStraight(z, x, y, dx, 0) !== -1 || jumpStraight(z, x, y, 0, dy) !== -1) return idx;
     }
@@ -3169,7 +3183,23 @@ const PATH_WORKER_SRC = function () {
         const ppx = p % W, pt = (p - ppx) / W, ppy = pt % H, ppz = (pt - ppy) / H;
         if (ppz === z && !viaDoor.has(cur)) { px = ppx; py = ppy; } // arrived via stairs or a door -> expand every direction
       }
-      neighbors(z, x, y, px, py, nb);
+      // Walked onto stairs: the only way on is the stairs themselves.
+      if (px >= 0 && isT(z, x, y)) nb.length = 0;
+      else neighbors(z, x, y, px, py, nb);
+      if (isN(z, x, y) && !(px >= 0 && isT(z, x, y))) {
+        for (let k = 0; k < 8; k++) {
+          const dx = DIRS[k][0], dy = DIRS[k][1];
+          if (!isT(z, x + dx, y + dy)) continue;
+          const tn = cur + dy * W + dx;
+          if (closed.has(tn)) continue;
+          const ng = gc + (dx && dy ? SQRT2 : 1);
+          const old = gScore.get(tn);
+          if (old === undefined || ng < old) {
+            gScore.set(tn, ng); parent.set(tn, cur); viaDoor.delete(tn);
+            hPush(tn, ng + octile(Math.abs(x + dx - g[0]), Math.abs(y + dy - g[1])) * 1.001);
+          }
+        }
+      }
       for (let k = 0; k < nb.length; k += 2) {
         const dx = nb[k], dy = nb[k + 1];
         const jp = (dx !== 0 && dy !== 0) ? jumpDiag(z, x, y, dx, dy) : jumpStraight(z, x, y, dx, dy);
@@ -3214,7 +3244,7 @@ const PATH_WORKER_SRC = function () {
       const cur = queue[q];
       const x = cur % W, t = (cur - x) / W, y = t % H, z = (t - y) / H;
       for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
-        if ((dx || dy) && walk(z, x + dx, y + dy)) add(cur + dy * W + dx);
+        if ((dx || dy) && walkRaw(z, x + dx, y + dy)) add(cur + dy * W + dx);
       }
       const fw = portals.get(cur);
       if (fw) for (let k = 0; k < fw.length; k += 2) if (fw[k + 1] === 0) add(fw[k]);
@@ -3274,7 +3304,28 @@ const PATH_WORKER_SRC = function () {
         const z = Math.floor(src / WH), local = src - z * WH;
         if (!pbits[z]) pbits[z] = new Uint8Array(bitLen);
         pbits[z][local >> 3] |= 1 << (local & 7);
+        if (pr[i + 2] === 0) {
+          if (!tbits[z]) tbits[z] = new Uint8Array(bitLen);
+          tbits[z][local >> 3] |= 1 << (local & 7);
+        }
       }
+      tbits.forEach(function (tb, z) {
+        if (!tb) return;
+        const nb = nbits[z] = new Uint8Array(bitLen);
+        for (let i = 0; i < tb.length; i++) {
+          if (!tb[i]) continue;
+          for (let k = 0; k < 8; k++) {
+            if (!((tb[i] >> k) & 1)) continue;
+            const t = i * 8 + k, x = t % W, y = (t - x) / W;
+            for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+              if ((dx || dy) && walkRaw(z, x + dx, y + dy) && !isT(z, x + dx, y + dy)) {
+                const n = t + dy * W + dx;
+                nb[n >> 3] |= 1 << (n & 7);
+              }
+            }
+          }
+        }
+      });
       self.postMessage({ type: "ready" });
     } else if (m.type === "find") {
       const t0 = performance.now();
@@ -3612,6 +3663,25 @@ function pathPrepare() {
       await new Promise(function (r) { setTimeout(r, 0); });
     }
     canvas.width = canvas.height = 0;
+
+    // Ramps and pyramid sides are bands of the stairs yellow: the outer
+    // tiles are walkable ground, the ones under the floor above are where
+    // you climb onto it - not walked on (see gen-floor-connections.py,
+    // slopes.json: [y, x0, length, ...] runs per floor). Optional.
+    try {
+      const slopes = await fetch("data/derived/slopes.json").then(function (r) { return r.ok ? r.json() : {}; });
+      Object.keys(slopes).forEach(function (zk) {
+        const b = bits[zk], v = slopes[zk];
+        if (!b) return;
+        for (let i = 0; i < v.length; i += 3) {
+          const row = (v[i] - minY) * W - minX;
+          for (let x = v[i + 1]; x < v[i + 1] + v[i + 2]; x++) {
+            const k = row + x;
+            b[k >> 3] &= ~(1 << (k & 7));
+          }
+        }
+      });
+    } catch (e) { /* no slope data - yellow stays walkable */ }
 
     // Stairs/ladders/holes -> portal edges. A marker on floor z flagged "up"
     // lands on z-1 (at the matching marker there if one is within 2 tiles,
