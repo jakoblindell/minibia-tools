@@ -3019,6 +3019,12 @@ const PATH_WORKER_SRC = function () {
   // through a 1-tile wall (2 steps + a penalty, so real openings and known
   // stairs win whenever they're comparable).
   const SQRT2 = Math.SQRT2, EXPAND_LIMIT = 1500000, EDGE_COST = [3, 12];
+  // Door cost in the every-door fallback: high enough that the route only
+  // takes the doors it can't do without and walks round the rest (a tower
+  // room in a city wall stays a wall even when a real door elsewhere on the
+  // route is needed).
+  const FALLBACK_DOOR_COST = 250;
+  let doorCost = EDGE_COST[1];
 
   function walk(z, x, y) {
     if (x < 0 || y < 0 || x >= W || y >= H) return false;
@@ -3182,7 +3188,7 @@ const PATH_WORKER_SRC = function () {
           const tn = targets[k], kind = targets[k + 1];
           if (closed.has(tn)) continue;
           if (kind === 1 && (doorMode === 0 || (doorMode === 1 && !pocket.has(cur) && !pocket.has(tn)))) continue;
-          const ng = gc + EDGE_COST[kind];
+          const ng = gc + (kind === 1 ? doorCost : EDGE_COST[kind]);
           const old = gScore.get(tn);
           if (old === undefined || ng < old) {
             const tx = tn % W, ty = ((tn - tx) / W) % H;
@@ -3222,7 +3228,8 @@ const PATH_WORKER_SRC = function () {
   // gate, not through a wall or a tower room in it); when one of them is in
   // a small enclosed area, doors are only allowed into/out of that area
   // (walk into a house, not through one on the way). If that finds nothing,
-  // search again with every door, as a fallback.
+  // search again with every door allowed but each one expensive, so the
+  // route uses as few as it can.
   function findRoute(sz, sx, sy, gz, gx, gy) {
     const s = snap(sz, sx, sy), g = snap(gz, gx, gy);
     let mode = 2;
@@ -3238,13 +3245,17 @@ const PATH_WORKER_SRC = function () {
     }
     doorMode = mode;
     let r = find(sz, sx, sy, gz, gx, gy);
+    let fellBack = false;
     if (!r.ok && mode !== 2) {
-      doorMode = 2;
+      fellBack = true;
+      doorMode = 2; doorCost = FALLBACK_DOOR_COST;
       const r2 = find(sz, sx, sy, gz, gx, gy);
       r2.expanded = (r2.expanded || 0) + (r.expanded || 0);
       r = r2;
     }
-    pocket = null; doorMode = 2;
+    pocket = null; doorMode = 2; doorCost = EDGE_COST[1];
+    r.doorTry = mode; // 0 none, 1 pocket only, 2 any (2 also after a failed 0/1)
+    r.fellBack = fellBack;
     return r;
   }
 
