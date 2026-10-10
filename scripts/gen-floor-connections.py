@@ -138,26 +138,70 @@ def label_components(walk, diagonal=False):
     return lab
 
 
-def walk_mask(arr):
-    """Walkable tiles of one floor image - the same rule the pathfinder
-    decodes in the browser (drawn, and not a blocking color)."""
+def slope_mask(floors, z):
+    """Yellow tiles that climb: a ramp or pyramid side is drawn as a band of
+    the stairs yellow (bigger than a staircase, or a ring - not a marker).
+    Its outer tiles are a walkable "pre-ramp" at this floor; the tiles that
+    sit directly under something drawn on the floor above are where you go
+    up onto it. Those aren't flat ground (and not a known way up either),
+    so routes don't step on them."""
+    arr, m = floors[z]
+    is_yellow = (arr[:, :, 3] > 0) & (arr[:, :, 0] == YELLOW_RGB[0]) & \
+                (arr[:, :, 1] == YELLOW_RGB[1]) & (arr[:, :, 2] == YELLOW_RGB[2])
+    ox, oy = m["worldOriginX"], m["worldOriginY"]
+    for (x, y) in yellow_points(arr, m):
+        is_yellow[y - oy, x - ox] = False
+    climb = np.zeros(is_yellow.shape, dtype=bool)
+    if z - 1 not in floors:
+        return climb
+    up, um = floors[z - 1]
+    ys, xs = np.nonzero(is_yellow)
+    px, py = xs + ox - um["worldOriginX"], ys + oy - um["worldOriginY"]
+    inside = (px >= 0) & (py >= 0) & (px < up.shape[1]) & (py < up.shape[0])
+    drawn = np.zeros(len(ys), dtype=bool)
+    drawn[inside] = up[py[inside], px[inside], 3] > 0
+    climb[ys[drawn], xs[drawn]] = True
+    return climb
+
+
+def walk_mask(floors, z):
+    """Walkable tiles of one floor - the same rule the pathfinder decodes in
+    the browser: drawn, not a blocking color, not a climbing slope tile."""
+    arr, m = floors[z]
     opaque = arr[:, :, 3] > 0
     rgb = arr[:, :, :3]
     blocking = np.zeros(opaque.shape, dtype=bool)
     for c in BLOCKING_RGB:
         blocking |= (rgb[:, :, 0] == c[0]) & (rgb[:, :, 1] == c[1]) & (rgb[:, :, 2] == c[2])
-    return opaque & ~blocking
+    return opaque & ~blocking & ~slope_mask(floors, z)
 
 
-def door_candidates(arr, m):
+def slope_runs(floors, z):
+    """slope_mask as flat [y, x0, length, ...] runs in world coordinates,
+    for data/derived/slopes.json (the pathfinder clears these tiles)."""
+    mask = slope_mask(floors, z)
+    m = floors[z][1]
+    ox, oy = m["worldOriginX"], m["worldOriginY"]
+    out = []
+    for py in np.nonzero(mask.any(axis=1))[0].tolist():
+        row = mask[py]
+        d = np.diff(np.concatenate(([0], row.astype(np.int8), [0])))
+        starts, ends = np.nonzero(d == 1)[0], np.nonzero(d == -1)[0]
+        for a, b in zip(starts.tolist(), ends.tolist()):
+            out.extend((py + oy, a + ox, b - a))
+    return out
+
+
+def door_candidates(floors, z):
     """Flat [x, y, orient, ...] (orient 0 = passes west<->east, 1 = north<->
     south) for 1-thick wall tiles joining two different walkable areas."""
+    arr, m = floors[z]
     opaque = arr[:, :, 3] > 0
     rgb = arr[:, :, :3]
     wall = np.zeros(opaque.shape, dtype=bool)
     for c in DOOR_WALL_RGB:
         wall |= (rgb[:, :, 0] == c[0]) & (rgb[:, :, 1] == c[1]) & (rgb[:, :, 2] == c[2])
-    lab = np.pad(label_components(walk_mask(arr), diagonal=True), 1)
+    lab = np.pad(label_components(walk_mask(floors, z), diagonal=True), 1)
     wall &= opaque
     lw, le, ln, ls = lab[1:-1, :-2], lab[1:-1, 2:], lab[:-2, 1:-1], lab[2:, 1:-1]
     horiz = wall & (lw > 0) & (le > 0) & (lw != le)
@@ -187,7 +231,7 @@ def reach_without_doors(floors, connections):
         return None
     labs, offs, total = {}, {}, 0
     for z, (arr, m) in floors.items():
-        lab = label_components(walk_mask(arr), diagonal=True)
+        lab = label_components(walk_mask(floors, z), diagonal=True)
         labs[z], offs[z] = (lab, m["worldOriginX"], m["worldOriginY"]), total
         total += int(lab.max())
 
@@ -562,7 +606,12 @@ def main():
 
     dump(comp, "compendium", "__MINIBIA_COMPENDIUM__")
 
-    doors = {str(z): door_candidates(arr, m) for z, (arr, m) in floors.items()}
+    slopes = {str(z): slope_runs(floors, z) for z in floors}
+    slopes = {z: v for z, v in slopes.items() if v}
+    with open(os.path.join(DERIVED, "slopes.json"), "w", encoding="utf-8") as f:
+        json.dump(slopes, f, separators=(",", ":"))
+
+    doors = {str(z): door_candidates(floors, z) for z in floors}
     # Only where there's no other way: a wall whose two sides already reach
     # each other through stairs/other floors (a walled city entered by its
     # stairs) is a real wall, not a door.
@@ -592,6 +641,8 @@ def main():
     print("ramp parts dropped: %d marker tiles drawn beside a stacked stair/ramp tile, not a way up/down themselves" % n_parts)
     print("yellow roof/ground patches skipped: %d tiles (patches > %d tiles, or rings)" % (n_patch, MAX_MARKER_PATCH))
     print("hidden stair tops: %d light grey tiles above a yellow marker, added as confirmed 'down'" % n_tops)
+    print("slopes: %d yellow ramp/pyramid tiles under the floor above (the climbing part) written to slopes.json - routes don't step on them"
+          % sum(sum(v[i + 2] for i in range(0, len(v), 3)) for v in slopes.values()))
     print("door candidates: %d (written to door-candidates.json); %d walls dropped whose two sides already "
           "connect through stairs/other floors%s" % (n_doors, n_door_walls, "" if reach else " (scipy missing - not checked)"))
 
