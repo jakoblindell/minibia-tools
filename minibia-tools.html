@@ -3006,6 +3006,10 @@ function stairsLabelExit() {
 // which is what keeps a cross-map search in the thousands of nodes rather
 // than millions - and runs in a Web Worker so the page stays responsive.
 const PATH_BLOCKING_IDX = [0, 12, 40, 86, 114, 186, 192];
+// Swamp (bright green). Some of it is walkable swamp ground, some swamp
+// water, and the minimap draws both alike - routes only cross it when
+// there's no swamp-free way (see findRoute in the worker).
+const PATH_SWAMP_IDX = 30;
 
 const PATH_WORKER_SRC = function () {
   let W = 0, H = 0, WH = 0, floors = [], pbits = [], portals = new Map(), goal = -1;
@@ -3015,6 +3019,16 @@ const PATH_WORKER_SRC = function () {
   // tiles beside one, which are always jump points) and from one it only
   // takes the stairs.
   const tbits = [], nbits = [];
+  // Swamp tiles; walkable only while swampOk (see findRoute).
+  const sbits = [];
+  let swampOk = true;
+  const SWAMP_LIMIT = 20000;
+  // In the swamp fallback every swamp tile costs this many steps, so the
+  // route crosses as little of it as it can. Weighted tiles don't fit jump
+  // point search, so that fallback searches tile by tile (plainSearch).
+  const SWAMP_COST = 10;
+  let plainSearch = false;
+  function isSwamp(z, x, y) { return bit(sbits, z, x, y); }
   // Stairs edges backwards (target -> sources), for pocketOf().
   const rstairs = new Map();
   // Assumed doors allowed in the current search: 0 = none, 1 = only into or
@@ -3036,7 +3050,10 @@ const PATH_WORKER_SRC = function () {
     if (x < 0 || y < 0 || x >= W || y >= H) return false;
     const b = floors[z]; if (!b) return false;
     const i = y * W + x;
-    return ((b[i >> 3] >> (i & 7)) & 1) === 1;
+    if (((b[i >> 3] >> (i & 7)) & 1) !== 1) return false;
+    if (swampOk) return true;
+    const s = sbits[z];
+    return !s || ((s[i >> 3] >> (i & 7)) & 1) === 0;
   }
   function bit(arr, z, x, y) {
     const b = arr[z]; if (!b || x < 0 || y < 0 || x >= W || y >= H) return false;
@@ -3185,6 +3202,21 @@ const PATH_WORKER_SRC = function () {
       }
       // Walked onto stairs: the only way on is the stairs themselves.
       if (px >= 0 && isT(z, x, y)) nb.length = 0;
+      else if (plainSearch) {
+        nb.length = 0;
+        for (let k = 0; k < 8; k++) {
+          const dx = DIRS[k][0], dy = DIRS[k][1];
+          if (!walk(z, x + dx, y + dy)) continue;
+          const tn = cur + dy * W + dx;
+          if (closed.has(tn)) continue;
+          const ng = gc + (dx && dy ? SQRT2 : 1) * (isSwamp(z, x + dx, y + dy) ? SWAMP_COST : 1);
+          const old = gScore.get(tn);
+          if (old === undefined || ng < old) {
+            gScore.set(tn, ng); parent.set(tn, cur); viaDoor.delete(tn);
+            hPush(tn, ng + octile(Math.abs(x + dx - g[0]), Math.abs(y + dy - g[1])) * 1.001);
+          }
+        }
+      }
       else neighbors(z, x, y, px, py, nb);
       if (isN(z, x, y) && !(px >= 0 && isT(z, x, y))) {
         for (let k = 0; k < 8; k++) {
@@ -3236,11 +3268,15 @@ const PATH_WORKER_SRC = function () {
   // stairs either way - if that's a small enclosed area (a house, a tower
   // room in a city wall); null when it's open ground (more than
   // POCKET_LIMIT tiles).
-  function pocketOf(idx) {
+  function pocketOf(idx) { return flood(idx, POCKET_LIMIT, -1); }
+  // The flood behind pocketOf: the tile set if it ends within `limit`
+  // tiles, null if it grows past that, true as soon as it reaches `target`.
+  function flood(idx, limit, target) {
     const seen = new Set([idx]), queue = [idx];
     const add = function (n) { if (!seen.has(n)) { seen.add(n); queue.push(n); } };
     for (let q = 0; q < queue.length; q++) {
-      if (seen.size > POCKET_LIMIT) return null;
+      if (seen.size > limit) return null;
+      if (target >= 0 && seen.has(target)) return true;
       const cur = queue[q];
       const x = cur % W, t = (cur - x) / W, y = t % H, z = (t - y) / H;
       for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
@@ -3251,6 +3287,7 @@ const PATH_WORKER_SRC = function () {
       const bw = rstairs.get(cur);
       if (bw) for (let k = 0; k < bw.length; k++) add(bw[k]);
     }
+    if (target >= 0 && seen.has(target)) return true;
     return seen;
   }
   // Assumed doors are a last resort. When start and goal are both on open
@@ -3260,7 +3297,46 @@ const PATH_WORKER_SRC = function () {
   // (walk into a house, not through one on the way). If that finds nothing,
   // search again with every door allowed but each one expensive, so the
   // route uses as few as it can.
+  // Swamp is a last resort too: when start and goal both stand on dry
+  // ground, search without swamp first (a quick flood skips that when one
+  // of them is in a dry patch the other isn't in - e.g. Venore, reached
+  // only across swamp), and only allow swamp if that finds nothing.
   function findRoute(sz, sx, sy, gz, gx, gy) {
+    swampOk = true;
+    const s = snap(sz, sx, sy), g = snap(gz, gx, gy);
+    let tryDry = !!(s && g);
+    if (tryDry) {
+      swampOk = false;
+      const si = (sz * H + s[1]) * W + s[0], gi = (gz * H + g[1]) * W + g[0];
+      if (!walkRaw(sz, s[0], s[1]) || !walkRaw(gz, g[0], g[1])) tryDry = false;
+      else {
+        // A closed dry patch (the flood ends) that doesn't hold the other
+        // end means the route has to cross swamp.
+        const fs = flood(si, SWAMP_LIMIT, gi);
+        if (fs !== true && fs !== null) tryDry = false;
+        else if (fs === null) {
+          const fg = flood(gi, SWAMP_LIMIT, si);
+          if (fg !== true && fg !== null) tryDry = false;
+        }
+      }
+    }
+    let r = null, expanded = 0;
+    if (tryDry) {
+      r = routeWithDoors(sz, sx, sy, gz, gx, gy);
+      expanded += r.expanded || 0;
+    }
+    if (!r || !r.ok) {
+      swampOk = true; plainSearch = true;
+      r = routeWithDoors(sz, sx, sy, gz, gx, gy);
+      expanded += r.expanded || 0;
+      r.swamp = true;
+    }
+    swampOk = true; plainSearch = false;
+    r.expanded = expanded;
+    r.dryTried = tryDry;
+    return r;
+  }
+  function routeWithDoors(sz, sx, sy, gz, gx, gy) {
     const s = snap(sz, sx, sy), g = snap(gz, gx, gy);
     let mode = 2;
     pocket = null;
@@ -3294,6 +3370,7 @@ const PATH_WORKER_SRC = function () {
     if (m.type === "init") {
       W = m.W; H = m.H; WH = W * H;
       for (const z in m.floors) floors[+z] = new Uint8Array(m.floors[z]);
+      if (m.swamp) for (const z in m.swamp) sbits[+z] = new Uint8Array(m.swamp[z]);
       const pr = m.portals; // Int32Array [src, dst, kind, src, dst, kind, ...]
       const bitLen = Math.ceil(WH / 8);
       for (let i = 0; i < pr.length; i += 3) {
@@ -3635,7 +3712,7 @@ function pathPrepare() {
     PATH_BLOCKING_IDX.forEach(function (i) { blocking[i] = 1; });
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d", { willReadFrequently: true });
-    const bits = {};
+    const bits = {}, swamp = {};
     for (let k = 0; k < zs.length; k++) {
       const z = zs[k], m = meta[z];
       pathReportPrep("Preparing walkable terrain (first use only)… floor " + (k + 1) + " / " + zs.length + ".");
@@ -3645,6 +3722,7 @@ function pathPrepare() {
       ctx.drawImage(img, 0, 0);
       const data = ctx.getImageData(0, 0, img.width, img.height).data;
       const b = new Uint8Array(bitLen);
+      let sw = null;
       const ox = m.worldOriginX - minX, oy = m.worldOriginY - minY, iw = img.width, ih = img.height;
       for (let py = 0; py < ih; py++) {
         let o = (py * iw) << 2;
@@ -3657,9 +3735,11 @@ function pathPrepare() {
           if (blocking[pal]) continue;
           const i = rowBase + px;
           b[i >> 3] |= 1 << (i & 7);
+          if (pal === PATH_SWAMP_IDX) { if (!sw) sw = new Uint8Array(bitLen); sw[i >> 3] |= 1 << (i & 7); }
         }
       }
       bits[z] = b;
+      if (sw) swamp[z] = sw;
       await new Promise(function (r) { setTimeout(r, 0); });
     }
     canvas.width = canvas.height = 0;
@@ -3748,10 +3828,12 @@ function pathPrepare() {
     pathState.worker = worker;
     const floorsMsg = {}, transfer = [portalArr.buffer];
     Object.keys(bits).forEach(function (z) { floorsMsg[z] = bits[z].buffer; transfer.push(bits[z].buffer); });
+    const swampMsg = {};
+    Object.keys(swamp).forEach(function (z) { swampMsg[z] = swamp[z].buffer; transfer.push(swamp[z].buffer); });
     await new Promise(function (resolve, reject) {
       worker.onmessage = function (e) { if (e.data.type === "ready") resolve(); };
       worker.onerror = function (e) { reject(new Error(e.message || "worker failed")); };
-      worker.postMessage({ type: "init", W: W, H: H, floors: floorsMsg, portals: portalArr }, transfer);
+      worker.postMessage({ type: "init", W: W, H: H, floors: floorsMsg, swamp: swampMsg, portals: portalArr }, transfer);
     });
     worker.onmessage = pathWorkerMessage;
     worker.onerror = function (e) {
