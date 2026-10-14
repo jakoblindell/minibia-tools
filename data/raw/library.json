@@ -2675,12 +2675,6 @@
                     "max": 14
                 },
                 {
-                    "name": "old and used backpack",
-                    "probability": 0.33,
-                    "min": 1,
-                    "max": 1
-                },
-                {
                     "name": "meat",
                     "probability": 0.09613,
                     "min": 1,
@@ -8122,6 +8116,12 @@
                 {
                     "name": "bird feather",
                     "probability": 0.2,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "roc feather",
+                    "probability": 0.0001,
                     "min": 1,
                     "max": 1
                 }
@@ -14416,6 +14416,12 @@
                     "probability": 0.00117,
                     "min": 1,
                     "max": 1
+                },
+                {
+                    "name": "Sam's old backpack",
+                    "probability": 0.0002,
+                    "min": 1,
+                    "max": 1
                 }
             ]
         },
@@ -17361,7 +17367,7 @@
             "loot": [
                 {
                     "name": "platinum coin",
-                    "probability": 0.4961,
+                    "probability": 0.3969,
                     "min": 1,
                     "max": 8
                 },
@@ -17369,17 +17375,17 @@
                     "name": "gold coin",
                     "probability": 0.334,
                     "min": 1,
-                    "max": 67
+                    "max": 54
                 },
                 {
                     "name": "gold coin",
                     "probability": 0.334,
                     "min": 1,
-                    "max": 67
+                    "max": 54
                 },
                 {
                     "name": "spirit container",
-                    "probability": 0.002,
+                    "probability": 0.00143,
                     "min": 1,
                     "max": 1
                 }
@@ -21476,8 +21482,8 @@
                 },
                 {
                     "name": "firefield",
-                    "min": 0,
-                    "max": 0,
+                    "min": 200,
+                    "max": 380,
                     "element": null
                 },
                 {
@@ -21584,12 +21590,6 @@
                     "max": 1
                 },
                 {
-                    "name": "molten axe",
-                    "probability": 0.00143,
-                    "min": 1,
-                    "max": 1
-                },
-                {
                     "name": "dragon scale mail",
                     "probability": 0.0012,
                     "min": 1,
@@ -21598,6 +21598,12 @@
                 {
                     "name": "molten helmet",
                     "probability": 0.001,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "molten axe",
+                    "probability": 0.0003,
                     "min": 1,
                     "max": 1
                 }
@@ -23091,7 +23097,8 @@
             "elements": {
                 "earth": -10,
                 "holy": -8,
-                "physical": -5
+                "physical": -5,
+                "explosion": 20
             },
             "immunities": {
                 "fire": true,
@@ -23135,7 +23142,7 @@
                 },
                 {
                     "name": "skull staff",
-                    "probability": 0.06088,
+                    "probability": 0.03044,
                     "min": 1,
                     "max": 1
                 },
@@ -23146,38 +23153,20 @@
                     "max": 1
                 },
                 {
-                    "name": "mind stone",
-                    "probability": 0.02128,
-                    "min": 1,
-                    "max": 1
-                },
-                {
-                    "name": "energy ring",
-                    "probability": 0.01967,
-                    "min": 1,
-                    "max": 1
-                },
-                {
                     "name": "candlestick",
                     "probability": 0.01573,
                     "min": 1,
                     "max": 1
                 },
                 {
-                    "name": "blue robe",
-                    "probability": 0.01561,
+                    "name": "mind stone",
+                    "probability": 0.01064,
                     "min": 1,
                     "max": 1
                 },
                 {
-                    "name": "small sapphire",
-                    "probability": 0.01283,
-                    "min": 1,
-                    "max": 1
-                },
-                {
-                    "name": "talon",
-                    "probability": 0.01051,
+                    "name": "energy ring",
+                    "probability": 0.009835,
                     "min": 1,
                     "max": 1
                 },
@@ -23188,38 +23177,56 @@
                     "max": 1
                 },
                 {
+                    "name": "blue robe",
+                    "probability": 0.007805,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "small sapphire",
+                    "probability": 0.006415,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "talon",
+                    "probability": 0.005255,
+                    "min": 1,
+                    "max": 1
+                },
+                {
                     "name": "crystal ring",
-                    "probability": 0.00742,
+                    "probability": 0.00371,
                     "min": 1,
                     "max": 1
                 },
                 {
                     "name": "tempest rod",
-                    "probability": 0.005,
+                    "probability": 0.0025,
                     "min": 1,
                     "max": 1
                 },
                 {
                     "name": "ring of the sky",
-                    "probability": 0.00406,
+                    "probability": 0.00203,
                     "min": 1,
                     "max": 1
                 },
                 {
                     "name": "stone skin amulet",
-                    "probability": 0.00355,
+                    "probability": 0.001775,
                     "min": 1,
                     "max": 1
                 },
                 {
                     "name": "red tome",
-                    "probability": 0.00239,
+                    "probability": 0.001195,
                     "min": 1,
                     "max": 1
                 },
                 {
                     "name": "golden armor",
-                    "probability": 0.00206,
+                    "probability": 0.00103,
                     "min": 1,
                     "max": 1
                 },
@@ -23593,8 +23600,8 @@
                 },
                 {
                     "name": "firefield",
-                    "min": 0,
-                    "max": 0,
+                    "min": 240,
+                    "max": 440,
                     "element": null
                 }
             ],
@@ -24215,13 +24222,13 @@
                 },
                 {
                     "name": "steel boots",
-                    "probability": 0.0025,
+                    "probability": 0.001667,
                     "min": 1,
                     "max": 1
                 },
                 {
                     "name": "golden legs",
-                    "probability": 0.00125,
+                    "probability": 0.000833,
                     "min": 1,
                     "max": 1
                 }
@@ -24383,6 +24390,133 @@
                 {
                     "name": "boots of haste",
                     "probability": 0.00135,
+                    "min": 1,
+                    "max": 1
+                }
+            ]
+        },
+        {
+            "name": "Storm Dragon",
+            "health": 2900,
+            "experience": 5000,
+            "speed": 140,
+            "armor": 20,
+            "attacks": [
+                {
+                    "name": "melee",
+                    "min": 0,
+                    "max": 850,
+                    "element": null
+                },
+                {
+                    "name": "energy",
+                    "min": 260,
+                    "max": 460,
+                    "element": null
+                },
+                {
+                    "name": "lifedrain",
+                    "min": 280,
+                    "max": 560,
+                    "element": null
+                },
+                {
+                    "name": "physical",
+                    "min": 350,
+                    "max": 700,
+                    "element": null
+                },
+                {
+                    "name": "speed",
+                    "min": 0,
+                    "max": 0,
+                    "element": null
+                },
+                {
+                    "name": "energy",
+                    "min": 320,
+                    "max": 560,
+                    "element": null
+                },
+                {
+                    "name": "energyfield",
+                    "min": 0,
+                    "max": 0,
+                    "element": null
+                }
+            ],
+            "elements": {
+                "fire": 10,
+                "ice": 50,
+                "physical": -10,
+                "holy": -15
+            },
+            "immunities": {
+                "paralyze": true,
+                "invisible": true,
+                "death": true,
+                "earth": true,
+                "poison": true,
+                "energy": true
+            },
+            "loot": [
+                {
+                    "name": "bag",
+                    "probability": 1,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "gold coin",
+                    "probability": 0.96,
+                    "min": 1,
+                    "max": 136
+                },
+                {
+                    "name": "platinum coin",
+                    "probability": 0.25,
+                    "min": 1,
+                    "max": 2
+                },
+                {
+                    "name": "small sapphire",
+                    "probability": 0.1,
+                    "min": 1,
+                    "max": 3
+                },
+                {
+                    "name": "small emerald",
+                    "probability": 0.05,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "wand of cosmic energy",
+                    "probability": 0.03,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "energy ring",
+                    "probability": 0.025,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "blue robe",
+                    "probability": 0.004,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "golden armor",
+                    "probability": 0.0015,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "golden legs",
+                    "probability": 0.001,
                     "min": 1,
                     "max": 1
                 }
@@ -27411,6 +27545,203 @@
                     "max": 92
                 }
             ]
+        },
+        {
+            "name": "Gydron",
+            "health": 1000000,
+            "experience": 500000,
+            "speed": 400,
+            "armor": 60,
+            "attacks": [
+                {
+                    "name": "melee",
+                    "min": 0,
+                    "max": 2410,
+                    "element": null
+                },
+                {
+                    "name": "fire",
+                    "min": 275,
+                    "max": 550,
+                    "element": null
+                },
+                {
+                    "name": "physical",
+                    "min": 132,
+                    "max": 550,
+                    "element": null
+                },
+                {
+                    "name": "fire",
+                    "min": 110,
+                    "max": 880,
+                    "element": null
+                },
+                {
+                    "name": "lifedrain",
+                    "min": 110,
+                    "max": 880,
+                    "element": null
+                },
+                {
+                    "name": "fire",
+                    "min": 110,
+                    "max": 880,
+                    "element": null
+                },
+                {
+                    "name": "physical",
+                    "min": 220,
+                    "max": 528,
+                    "element": null
+                },
+                {
+                    "name": "physical",
+                    "min": 110,
+                    "max": 715,
+                    "element": null
+                },
+                {
+                    "name": "physical",
+                    "min": 220,
+                    "max": 660,
+                    "element": null
+                },
+                {
+                    "name": "fire",
+                    "min": 220,
+                    "max": 825,
+                    "element": null
+                }
+            ],
+            "elements": {
+                "physical": 30,
+                "ice": -10,
+                "holy": -5
+            },
+            "immunities": {
+                "paralyze": true,
+                "invisible": true,
+                "fire": true,
+                "earth": true,
+                "poison": true
+            },
+            "loot": [
+                {
+                    "name": "eclipse axe",
+                    "probability": 1,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "bag",
+                    "probability": 1,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "gold coin",
+                    "probability": 0.95258,
+                    "min": 1,
+                    "max": 246
+                },
+                {
+                    "name": "dragon ham",
+                    "probability": 0.79757,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "green mushroom",
+                    "probability": 0.1212,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "red dragon scale",
+                    "probability": 0.1,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "book (gemmed)",
+                    "probability": 0.0909,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "power bolt",
+                    "probability": 0.06565,
+                    "min": 1,
+                    "max": 7
+                },
+                {
+                    "name": "energy ring",
+                    "probability": 0.05072,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "small sapphire",
+                    "probability": 0.04968,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "golden mug",
+                    "probability": 0.03072,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "life crystal",
+                    "probability": 0.00629,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "wand of inferno",
+                    "probability": 0.005,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "strange helmet",
+                    "probability": 0.00382,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "dragon slayer",
+                    "probability": 0.0034,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "fire sword",
+                    "probability": 0.00286,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "tower shield",
+                    "probability": 0.00268,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "royal helmet",
+                    "probability": 0.0015611,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "dragon scale mail",
+                    "probability": 0.0009514,
+                    "min": 1,
+                    "max": 1
+                }
+            ]
         }
     ],
     "npcs": [
@@ -27886,7 +28217,8 @@
                 "shield",
                 "equipment",
                 "do you sell",
-                "worm"
+                "worm",
+                "pick"
             ],
             "sells": [
                 {
@@ -30897,7 +31229,20 @@
                 "z": 6
             },
             "keywords": [],
-            "sells": [],
+            "sells": [
+                {
+                    "name": "Whetstone",
+                    "price": 500
+                },
+                {
+                    "name": "Sandpaper",
+                    "price": 500
+                },
+                {
+                    "name": "Empty Flask",
+                    "price": 100
+                }
+            ],
             "buys": []
         },
         {
@@ -32020,7 +32365,22 @@
                 "idiot",
                 "stupid",
                 "tyrant",
-                "lunatic"
+                "lunatic",
+                "job",
+                "quest",
+                "mission",
+                "report",
+                "guard",
+                "tactics",
+                "sister",
+                "blossom",
+                "busty",
+                "family",
+                "barbara",
+                "armor",
+                "weapon",
+                "cemetary",
+                "crypt"
             ],
             "sells": [],
             "buys": []
@@ -32060,6 +32420,10 @@
                 {
                     "name": "Magma Dragon Scale",
                     "price": 400
+                },
+                {
+                    "name": "Assassin Dagger",
+                    "price": 7500
                 },
                 {
                     "name": "Giant Fire Sword",
@@ -35286,6 +35650,23 @@
                     "price": 40
                 }
             ],
+            "buys": []
+        },
+        {
+            "name": "Edwyn",
+            "position": {
+                "x": 31611,
+                "y": 32740,
+                "z": 7
+            },
+            "keywords": [
+                "job",
+                "name",
+                "aldren",
+                "magic",
+                "practice"
+            ],
+            "sells": [],
             "buys": []
         },
         {
@@ -38664,7 +39045,7 @@
             "name": "Hedda",
             "position": {
                 "x": 31652,
-                "y": 32775,
+                "y": 32774,
                 "z": 7
             },
             "keywords": [
@@ -40844,6 +41225,31 @@
             "buys": []
         },
         {
+            "name": "Kadir",
+            "position": {
+                "x": 31081,
+                "y": 32225,
+                "z": 7
+            },
+            "keywords": [
+                "name",
+                "job",
+                "flame",
+                "fire",
+                "rahkemun",
+                "sun triad",
+                "three boats",
+                "zerath",
+                "westhaven",
+                "desert",
+                "temple",
+                "tower",
+                "orien"
+            ],
+            "sells": [],
+            "buys": []
+        },
+        {
             "name": "Karl",
             "position": {
                 "x": 32318,
@@ -41537,6 +41943,8 @@
                 "tibia",
                 "thais",
                 "mission",
+                "quest",
+                "reward",
                 "honey flower",
                 "wares",
                 "weapon",
@@ -42501,7 +42909,6 @@
                 "urgith",
                 "archdemons",
                 "ruthless seven",
-                "marriage",
                 "amulet of loss",
                 "full blessing"
             ],
@@ -50423,6 +50830,23 @@
             ]
         },
         {
+            "name": "Thalgrim",
+            "position": {
+                "x": 32516,
+                "y": 32248,
+                "z": 8
+            },
+            "keywords": [
+                "name",
+                "job",
+                "business",
+                "waldo",
+                "trolls"
+            ],
+            "sells": [],
+            "buys": []
+        },
+        {
             "name": "Thanita",
             "position": {
                 "x": 32535,
@@ -50760,7 +51184,6 @@
                 "how are you",
                 "sell",
                 "sin",
-                "marriage ceremony",
                 "god",
                 "life",
                 "citizen",
@@ -54279,7 +54702,7 @@
                 {
                     "name": "Rashid",
                     "price": 8000,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -54345,7 +54768,7 @@
                 {
                     "name": "Rashid",
                     "price": 200,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -54644,7 +55067,14 @@
             "weaponType": "sword",
             "slotType": null,
             "description": "",
-            "category": "melee"
+            "category": "melee",
+            "sellTo": [
+                {
+                    "name": "Caldris",
+                    "price": 7500,
+                    "region": "main"
+                }
+            ]
         },
         {
             "cid": 2386,
@@ -54708,7 +55138,7 @@
                 {
                     "name": "Bruna",
                     "price": 7,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Cedrik",
@@ -54718,7 +55148,7 @@
                 {
                     "name": "Darrow",
                     "price": 7,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Dixi",
@@ -54728,7 +55158,7 @@
                 {
                     "name": "Hobbe",
                     "price": 7,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Lee'Delle",
@@ -54748,7 +55178,7 @@
                 {
                     "name": "Rennik",
                     "price": 7,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Robert",
@@ -54768,17 +55198,17 @@
                 {
                     "name": "Selka",
                     "price": 7,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Tolen",
                     "price": 7,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Torren",
                     "price": 7,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Turvy",
@@ -55353,6 +55783,10 @@
                     "p": 1
                 },
                 {
+                    "name": "Gydron",
+                    "p": 1
+                },
+                {
                     "name": "Cave Dragon",
                     "p": 1
                 },
@@ -55366,6 +55800,10 @@
                 },
                 {
                     "name": "Magma Dragon",
+                    "p": 1
+                },
+                {
+                    "name": "Storm Dragon",
                     "p": 1
                 },
                 {
@@ -55746,7 +56184,7 @@
                 {
                     "name": "Bruknar",
                     "price": 120,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Cedrik",
@@ -56436,7 +56874,7 @@
                 {
                     "name": "Rashid",
                     "price": 2000,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -56606,7 +57044,7 @@
                 },
                 {
                     "name": "Warlock",
-                    "p": 0.01561
+                    "p": 0.007805
                 },
                 {
                     "name": "Banshee",
@@ -56618,6 +57056,10 @@
                 },
                 {
                     "name": "Sea Serpent",
+                    "p": 0.004
+                },
+                {
+                    "name": "Storm Dragon",
                     "p": 0.004
                 },
                 {
@@ -56685,12 +57127,12 @@
                 {
                     "name": "Alvara",
                     "price": 1,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Ivetta",
                     "price": 1,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Lily",
@@ -56700,17 +57142,17 @@
                 {
                     "name": "Mira",
                     "price": 1,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Nerida",
                     "price": 1,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Selene",
                     "price": 1,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -56868,7 +57310,7 @@
                 {
                     "name": "Rashid",
                     "price": 80,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -57190,7 +57632,7 @@
                 {
                     "name": "Bruna",
                     "price": 150,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Cedrik",
@@ -57200,7 +57642,7 @@
                 {
                     "name": "Darrow",
                     "price": 150,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Dixi",
@@ -57210,7 +57652,7 @@
                 {
                     "name": "Hobbe",
                     "price": 150,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Memech",
@@ -57225,7 +57667,7 @@
                 {
                     "name": "Rennik",
                     "price": 150,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Robert",
@@ -57240,7 +57682,7 @@
                 {
                     "name": "Selka",
                     "price": 150,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Shanar",
@@ -57250,12 +57692,12 @@
                 {
                     "name": "Tolen",
                     "price": 150,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Torren",
                     "price": 150,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Turvy",
@@ -57483,12 +57925,12 @@
                 {
                     "name": "Bruna",
                     "price": 25,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Darrow",
                     "price": 25,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Dixi",
@@ -57498,7 +57940,7 @@
                 {
                     "name": "Hobbe",
                     "price": 25,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Lee'Delle",
@@ -57513,22 +57955,22 @@
                 {
                     "name": "Rennik",
                     "price": 25,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Selka",
                     "price": 25,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Tolen",
                     "price": 25,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Torren",
                     "price": 25,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Azil",
@@ -57610,27 +58052,27 @@
                 {
                     "name": "Brinley",
                     "price": 1,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Gerda",
                     "price": 1,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Hedda",
                     "price": 1,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Marla",
                     "price": 1,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Odette",
                     "price": 1,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Willie",
@@ -57970,7 +58412,7 @@
                 {
                     "name": "Rashid",
                     "price": 1500,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -58361,7 +58803,7 @@
                 {
                     "name": "Rashid",
                     "price": 5000,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -58516,7 +58958,7 @@
                 {
                     "name": "Bruna",
                     "price": 40,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Cornelia",
@@ -58526,7 +58968,7 @@
                 {
                     "name": "Darrow",
                     "price": 40,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Dixi",
@@ -58536,7 +58978,7 @@
                 {
                     "name": "Hobbe",
                     "price": 40,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Kroox",
@@ -58556,22 +58998,22 @@
                 {
                     "name": "Rennik",
                     "price": 40,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Selka",
                     "price": 40,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Tolen",
                     "price": 40,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Torren",
                     "price": 40,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "H.L.",
@@ -58671,7 +59113,7 @@
                 {
                     "name": "Bruna",
                     "price": 12,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Cornelia",
@@ -58681,7 +59123,7 @@
                 {
                     "name": "Darrow",
                     "price": 12,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Dixi",
@@ -58691,7 +59133,7 @@
                 {
                     "name": "Hobbe",
                     "price": 12,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Kroox",
@@ -58711,22 +59153,22 @@
                 {
                     "name": "Rennik",
                     "price": 12,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Selka",
                     "price": 12,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Tolen",
                     "price": 12,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Torren",
                     "price": 12,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "H.L.",
@@ -58850,7 +59292,7 @@
                 {
                     "name": "Rashid",
                     "price": 9000,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -58890,27 +59332,27 @@
                 {
                     "name": "Brinley",
                     "price": 2,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Gerda",
                     "price": 2,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Hedda",
                     "price": 2,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Marla",
                     "price": 2,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Odette",
                     "price": 2,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Willie",
@@ -58951,27 +59393,27 @@
                 {
                     "name": "Brinley",
                     "price": 1,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Gerda",
                     "price": 1,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Hedda",
                     "price": 1,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Marla",
                     "price": 1,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Odette",
                     "price": 1,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Willie",
@@ -59468,12 +59910,12 @@
                 {
                     "name": "Bruna",
                     "price": 50,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Darrow",
                     "price": 50,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Dixi",
@@ -59483,7 +59925,7 @@
                 {
                     "name": "Hobbe",
                     "price": 50,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Lee'Delle",
@@ -59498,22 +59940,22 @@
                 {
                     "name": "Rennik",
                     "price": 50,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Selka",
                     "price": 50,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Tolen",
                     "price": 50,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Torren",
                     "price": 50,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "H.L.",
@@ -59646,7 +60088,7 @@
                 {
                     "name": "Rashid",
                     "price": 1000,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -60099,7 +60541,7 @@
                 {
                     "name": "Rashid",
                     "price": 400,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -60140,12 +60582,12 @@
                     "p": 0.0103
                 },
                 {
-                    "name": "Warlock",
-                    "p": 0.00742
-                },
-                {
                     "name": "Fury",
                     "p": 0.0041
+                },
+                {
+                    "name": "Warlock",
+                    "p": 0.00371
                 },
                 {
                     "name": "Stone Golem",
@@ -60198,7 +60640,7 @@
                 {
                     "name": "Rashid",
                     "price": 300,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -60306,7 +60748,7 @@
                 {
                     "name": "Bruna",
                     "price": 2,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Cedrik",
@@ -60316,7 +60758,7 @@
                 {
                     "name": "Darrow",
                     "price": 2,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Dixi",
@@ -60326,7 +60768,7 @@
                 {
                     "name": "Hobbe",
                     "price": 2,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Lee'Delle",
@@ -60346,7 +60788,7 @@
                 {
                     "name": "Rennik",
                     "price": 2,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Robert",
@@ -60366,7 +60808,7 @@
                 {
                     "name": "Selka",
                     "price": 2,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Shanar",
@@ -60376,12 +60818,12 @@
                 {
                     "name": "Tolen",
                     "price": 2,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Torren",
                     "price": 2,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Turvy",
@@ -60443,7 +60885,7 @@
                 {
                     "name": "Rashid",
                     "price": 1000,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -60618,7 +61060,7 @@
                 {
                     "name": "Rashid",
                     "price": 400,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "H.L.",
@@ -60803,7 +61245,7 @@
                 {
                     "name": "Rashid",
                     "price": 30000,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "H.L.",
@@ -60851,7 +61293,7 @@
                 {
                     "name": "Rashid",
                     "price": 32000,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -61013,7 +61455,7 @@
                 {
                     "name": "Rashid",
                     "price": 36000,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -61056,7 +61498,7 @@
                 {
                     "name": "Rashid",
                     "price": 1000,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Hardek",
@@ -61166,7 +61608,7 @@
                 {
                     "name": "Rashid",
                     "price": 200,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -61307,12 +61749,12 @@
                 {
                     "name": "Bruna",
                     "price": 3,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Darrow",
                     "price": 3,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Dixi",
@@ -61322,7 +61764,7 @@
                 {
                     "name": "Hobbe",
                     "price": 3,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Lee'Delle",
@@ -61337,22 +61779,22 @@
                 {
                     "name": "Rennik",
                     "price": 3,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Selka",
                     "price": 3,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Tolen",
                     "price": 3,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Torren",
                     "price": 3,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "H.L.",
@@ -61407,6 +61849,10 @@
                 },
                 {
                     "name": "Dragon Lord",
+                    "p": 0.79757
+                },
+                {
+                    "name": "Gydron",
                     "p": 0.79757
                 },
                 {
@@ -61606,6 +62052,10 @@
                     "p": 0.0009514
                 },
                 {
+                    "name": "Gydron",
+                    "p": 0.0009514
+                },
+                {
                     "name": "Frost Dragon",
                     "p": 0.0007437
                 },
@@ -61628,7 +62078,7 @@
                 {
                     "name": "Rashid",
                     "price": 40000,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "H.L.",
@@ -61704,6 +62154,10 @@
                     "p": 0.0034
                 },
                 {
+                    "name": "Gydron",
+                    "p": 0.0034
+                },
+                {
                     "name": "Frost Dragon",
                     "p": 0.001
                 }
@@ -61722,7 +62176,7 @@
                 {
                     "name": "Rashid",
                     "price": 15000,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -61761,7 +62215,7 @@
                 {
                     "name": "Rashid",
                     "price": 3000,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -61840,7 +62294,7 @@
             "armor": 0,
             "weaponType": null,
             "slotType": null,
-            "description": "",
+            "description": "It bears the marks of an alpha kill.",
             "category": "other"
         },
         {
@@ -62057,6 +62511,26 @@
             "category": "shield"
         },
         {
+            "cid": 22152,
+            "sid": 30064,
+            "droppedBy": [
+                {
+                    "name": "Gydron",
+                    "p": 1
+                }
+            ],
+            "name": "eclipse axe",
+            "article": "an",
+            "weight": 6800,
+            "attack": 53,
+            "defense": 38,
+            "armor": 0,
+            "weaponType": "axe",
+            "slotType": "two-handed",
+            "description": "",
+            "category": "melee"
+        },
+        {
             "cid": 2695,
             "sid": 3606,
             "droppedBy": [
@@ -62093,6 +62567,7 @@
             "weaponType": null,
             "slotType": "head",
             "description": "",
+            "vocations": "paladin",
             "bonuses": [
                 "Distance +1"
             ],
@@ -62203,7 +62678,7 @@
                 {
                     "name": "Rashid",
                     "price": 2000,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -62238,7 +62713,7 @@
                 {
                     "name": "Rashid",
                     "price": 800,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -62325,20 +62800,28 @@
                     "p": 0.05072
                 },
                 {
+                    "name": "Gydron",
+                    "p": 0.05072
+                },
+                {
                     "name": "Frost Dragon",
                     "p": 0.04952
+                },
+                {
+                    "name": "Storm Dragon",
+                    "p": 0.025
                 },
                 {
                     "name": "Hand Of Cursed Fate",
                     "p": 0.02177
                 },
                 {
-                    "name": "Warlock",
-                    "p": 0.01967
-                },
-                {
                     "name": "Mutated Bat",
                     "p": 0.01029
+                },
+                {
+                    "name": "Warlock",
+                    "p": 0.009835
                 },
                 {
                     "name": "Water Elemental",
@@ -62623,6 +63106,10 @@
                 },
                 {
                     "name": "Dragon Lord",
+                    "p": 0.00286
+                },
+                {
+                    "name": "Gydron",
                     "p": 0.00286
                 }
             ],
@@ -62943,7 +63430,7 @@
                 {
                     "name": "Lailene",
                     "price": 6000,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -63030,7 +63517,7 @@
                 {
                     "name": "Rashid",
                     "price": 2000,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -63089,6 +63576,10 @@
                 },
                 {
                     "name": "Dragon Lord",
+                    "p": 0.0909
+                },
+                {
+                    "name": "Gydron",
                     "p": 0.0909
                 },
                 {
@@ -63157,7 +63648,7 @@
                 {
                     "name": "Caldris",
                     "price": 21000,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -63478,6 +63969,10 @@
                     "p": 0.96
                 },
                 {
+                    "name": "Storm Dragon",
+                    "p": 0.96
+                },
+                {
                     "name": "Stone Golem",
                     "p": 0.95794
                 },
@@ -63487,6 +63982,10 @@
                 },
                 {
                     "name": "Dragon Lord",
+                    "p": 0.95258
+                },
+                {
+                    "name": "Gydron",
                     "p": 0.95258
                 },
                 {
@@ -64276,7 +64775,7 @@
                 {
                     "name": "Rashid",
                     "price": 8000,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -64325,8 +64824,12 @@
                     "p": 0.00326
                 },
                 {
+                    "name": "Storm Dragon",
+                    "p": 0.0015
+                },
+                {
                     "name": "Warlock",
-                    "p": 0.00206
+                    "p": 0.00103
                 }
             ],
             "name": "golden armor",
@@ -64343,7 +64846,7 @@
                 {
                     "name": "Rashid",
                     "price": 20000,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Hardek",
@@ -64395,12 +64898,16 @@
                     "p": 0.0013
                 },
                 {
-                    "name": "Dark Torturer",
-                    "p": 0.00125
-                },
-                {
                     "name": "Demon",
                     "p": 0.001
+                },
+                {
+                    "name": "Storm Dragon",
+                    "p": 0.001
+                },
+                {
+                    "name": "Dark Torturer",
+                    "p": 0.000833
                 }
             ],
             "name": "golden legs",
@@ -64417,7 +64924,7 @@
                 {
                     "name": "Rashid",
                     "price": 30000,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "H.L.",
@@ -64452,6 +64959,10 @@
                 },
                 {
                     "name": "Dragon Lord",
+                    "p": 0.03072
+                },
+                {
+                    "name": "Gydron",
                     "p": 0.03072
                 },
                 {
@@ -64753,6 +65264,10 @@
                     "p": 0.1212
                 },
                 {
+                    "name": "Gydron",
+                    "p": 0.1212
+                },
+                {
                     "name": "Wailing Widow",
                     "p": 0.02986
                 },
@@ -64931,7 +65446,7 @@
                 {
                     "name": "Rashid",
                     "price": 11000,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "H.L.",
@@ -65269,17 +65784,17 @@
                 {
                     "name": "Brinley",
                     "price": 4,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Gerda",
                     "price": 4,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Hedda",
                     "price": 4,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Humgolf",
@@ -65289,12 +65804,12 @@
                 {
                     "name": "Marla",
                     "price": 4,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Odette",
                     "price": 4,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Willie",
@@ -65326,7 +65841,7 @@
                 {
                     "name": "Rashid",
                     "price": 30000,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -65377,7 +65892,7 @@
                 {
                     "name": "Bruna",
                     "price": 4,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Cedrik",
@@ -65387,7 +65902,7 @@
                 {
                     "name": "Darrow",
                     "price": 4,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Dixi",
@@ -65397,7 +65912,7 @@
                 {
                     "name": "Hobbe",
                     "price": 4,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Lee'Delle",
@@ -65417,7 +65932,7 @@
                 {
                     "name": "Rennik",
                     "price": 4,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Robert",
@@ -65437,17 +65952,17 @@
                 {
                     "name": "Selka",
                     "price": 4,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Tolen",
                     "price": 4,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Torren",
                     "price": 4,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Turvy",
@@ -65535,12 +66050,12 @@
                 {
                     "name": "Bruna",
                     "price": 25,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Darrow",
                     "price": 25,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Dixi",
@@ -65550,7 +66065,7 @@
                 {
                     "name": "Hobbe",
                     "price": 25,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Lee'Delle",
@@ -65565,12 +66080,12 @@
                 {
                     "name": "Rennik",
                     "price": 25,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Selka",
                     "price": 25,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Timur",
@@ -65580,12 +66095,12 @@
                 {
                     "name": "Tolen",
                     "price": 25,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Torren",
                     "price": 25,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "H.L.",
@@ -65732,7 +66247,7 @@
                 {
                     "name": "Rashid",
                     "price": 3000,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -66231,7 +66746,7 @@
                 {
                     "name": "Bruknar",
                     "price": 100,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -66285,7 +66800,7 @@
                 {
                     "name": "Lailene",
                     "price": 9000,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -66555,7 +67070,7 @@
                 {
                     "name": "Caldris",
                     "price": 30000,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -66669,7 +67184,7 @@
                 {
                     "name": "Rashid",
                     "price": 200,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -66885,7 +67400,7 @@
                 {
                     "name": "Bruna",
                     "price": 5,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Cornelia",
@@ -66895,7 +67410,7 @@
                 {
                     "name": "Darrow",
                     "price": 5,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Dixi",
@@ -66905,7 +67420,7 @@
                 {
                     "name": "Hobbe",
                     "price": 5,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Lee'Delle",
@@ -66920,22 +67435,22 @@
                 {
                     "name": "Rennik",
                     "price": 5,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Selka",
                     "price": 5,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Tolen",
                     "price": 5,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Torren",
                     "price": 5,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "H.L.",
@@ -66992,12 +67507,12 @@
                 {
                     "name": "Bruna",
                     "price": 2,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Darrow",
                     "price": 2,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Dixi",
@@ -67007,7 +67522,7 @@
                 {
                     "name": "Hobbe",
                     "price": 2,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Lee'Delle",
@@ -67022,22 +67537,22 @@
                 {
                     "name": "Rennik",
                     "price": 2,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Selka",
                     "price": 2,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Tolen",
                     "price": 2,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Torren",
                     "price": 2,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -67144,7 +67659,7 @@
                 {
                     "name": "Bruna",
                     "price": 3,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Cornelia",
@@ -67154,7 +67669,7 @@
                 {
                     "name": "Darrow",
                     "price": 3,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Dixi",
@@ -67164,7 +67679,7 @@
                 {
                     "name": "Hobbe",
                     "price": 3,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Lee'Delle",
@@ -67179,22 +67694,22 @@
                 {
                     "name": "Rennik",
                     "price": 3,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Selka",
                     "price": 3,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Tolen",
                     "price": 3,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Torren",
                     "price": 3,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "H.L.",
@@ -67328,7 +67843,7 @@
                 {
                     "name": "Rashid",
                     "price": 1000,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -67390,6 +67905,10 @@
                 },
                 {
                     "name": "Dragon Lord",
+                    "p": 0.00629
+                },
+                {
+                    "name": "Gydron",
                     "p": 0.00629
                 },
                 {
@@ -67737,7 +68256,7 @@
                 {
                     "name": "Rashid",
                     "price": 5000,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -67863,7 +68382,7 @@
                 {
                     "name": "Bruna",
                     "price": 30,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Cedrik",
@@ -67873,7 +68392,7 @@
                 {
                     "name": "Darrow",
                     "price": 30,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Dixi",
@@ -67883,7 +68402,7 @@
                 {
                     "name": "Hobbe",
                     "price": 30,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Lee'Delle",
@@ -67903,7 +68422,7 @@
                 {
                     "name": "Rennik",
                     "price": 30,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Robert",
@@ -67923,7 +68442,7 @@
                 {
                     "name": "Selka",
                     "price": 30,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Timur",
@@ -67933,12 +68452,12 @@
                 {
                     "name": "Tolen",
                     "price": 30,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Torren",
                     "price": 30,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Turvy",
@@ -68198,7 +68717,7 @@
                 {
                     "name": "Caldris",
                     "price": 400,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -68229,7 +68748,7 @@
                 {
                     "name": "Rashid",
                     "price": 6000,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -68256,7 +68775,7 @@
                 {
                     "name": "Rashid",
                     "price": 850,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -68283,7 +68802,7 @@
                 {
                     "name": "Rashid",
                     "price": 600,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -68388,7 +68907,7 @@
                 {
                     "name": "Rashid",
                     "price": 50000,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "H.L.",
@@ -68637,17 +69156,17 @@
                 {
                     "name": "Brinley",
                     "price": 2,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Gerda",
                     "price": 2,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Hedda",
                     "price": 2,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Humgolf",
@@ -68657,12 +69176,12 @@
                 {
                     "name": "Marla",
                     "price": 2,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Odette",
                     "price": 2,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Willie",
@@ -68702,7 +69221,7 @@
                 {
                     "name": "Rashid",
                     "price": 9000,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -68821,16 +69340,16 @@
                     "p": 0.02791
                 },
                 {
-                    "name": "Warlock",
-                    "p": 0.02128
-                },
-                {
                     "name": "Dipthrah",
                     "p": 0.02
                 },
                 {
                     "name": "Efreet",
                     "p": 0.02
+                },
+                {
+                    "name": "Warlock",
+                    "p": 0.01064
                 },
                 {
                     "name": "Demon Skeleton",
@@ -68964,7 +69483,7 @@
             "droppedBy": [
                 {
                     "name": "Volcanic Dragon",
-                    "p": 0.00143
+                    "p": 0.0003
                 }
             ],
             "name": "molten axe",
@@ -68981,7 +69500,7 @@
                 {
                     "name": "Caldris",
                     "price": 25000,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -69008,7 +69527,7 @@
                 {
                     "name": "Caldris",
                     "price": 33000,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -69035,7 +69554,7 @@
                 {
                     "name": "Caldris",
                     "price": 44000,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -69309,7 +69828,7 @@
                 {
                     "name": "Rashid",
                     "price": 2000,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "H.L.",
@@ -69372,7 +69891,7 @@
                 {
                     "name": "Rashid",
                     "price": 10000,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -69403,7 +69922,7 @@
                 {
                     "name": "Rashid",
                     "price": 1500,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -69528,27 +70047,6 @@
             "slotType": null,
             "description": "",
             "category": "melee"
-        },
-        {
-            "cid": 3960,
-            "sid": 3244,
-            "droppedBy": [
-                {
-                    "name": "Raid Orc",
-                    "p": 0.33
-                }
-            ],
-            "name": "old and used backpack",
-            "article": "an",
-            "weight": 1800,
-            "attack": 0,
-            "defense": 0,
-            "armor": 0,
-            "weaponType": null,
-            "slotType": "backpack",
-            "description": "A label on the backpack reads: Property of Sam, Thais.",
-            "containerSize": "20",
-            "category": "other"
         },
         {
             "cid": 14050,
@@ -70381,7 +70879,7 @@
                 {
                     "name": "Bruknar",
                     "price": 400,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Cedrik",
@@ -70605,12 +71103,12 @@
                 {
                     "name": "Bruna",
                     "price": 40,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Darrow",
                     "price": 40,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Dixi",
@@ -70620,7 +71118,7 @@
                 {
                     "name": "Hobbe",
                     "price": 40,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Lee'Delle",
@@ -70635,22 +71133,22 @@
                 {
                     "name": "Rennik",
                     "price": 40,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Selka",
                     "price": 40,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Tolen",
                     "price": 40,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Torren",
                     "price": 40,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Hardek",
@@ -70740,7 +71238,7 @@
                 {
                     "name": "Rashid",
                     "price": 2500,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -70849,10 +71347,6 @@
                     "p": 0.49665
                 },
                 {
-                    "name": "Souleater",
-                    "p": 0.4961
-                },
-                {
                     "name": "Hydra",
                     "p": 0.49522
                 },
@@ -70877,6 +71371,10 @@
                     "p": 0.40655
                 },
                 {
+                    "name": "Souleater",
+                    "p": 0.3969
+                },
+                {
                     "name": "Giant",
                     "p": 0.33
                 },
@@ -70890,6 +71388,10 @@
                 },
                 {
                     "name": "Ghastly Dragon",
+                    "p": 0.25
+                },
+                {
+                    "name": "Storm Dragon",
                     "p": 0.25
                 },
                 {
@@ -71152,6 +71654,10 @@
                     "p": 0.06565
                 },
                 {
+                    "name": "Gydron",
+                    "p": 0.06565
+                },
+                {
                     "name": "Venomous Dragon",
                     "p": 0.065
                 },
@@ -71395,7 +71901,7 @@
                 {
                     "name": "Rashid",
                     "price": 400,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -71496,7 +72002,7 @@
                 {
                     "name": "Bruna",
                     "price": 5,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Cedrik",
@@ -71506,7 +72012,7 @@
                 {
                     "name": "Darrow",
                     "price": 5,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Dixi",
@@ -71521,7 +72027,7 @@
                 {
                     "name": "Hobbe",
                     "price": 5,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Lee'Delle",
@@ -71541,7 +72047,7 @@
                 {
                     "name": "Rennik",
                     "price": 5,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Robert",
@@ -71561,7 +72067,7 @@
                 {
                     "name": "Selka",
                     "price": 5,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Shanar",
@@ -71571,12 +72077,12 @@
                 {
                     "name": "Tolen",
                     "price": 5,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Torren",
                     "price": 5,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Turvy",
@@ -71670,6 +72176,10 @@
             "droppedBy": [
                 {
                     "name": "Dragon Lord",
+                    "p": 0.1
+                },
+                {
+                    "name": "Gydron",
                     "p": 0.1
                 },
                 {
@@ -71922,7 +72432,7 @@
                 },
                 {
                     "name": "Warlock",
-                    "p": 0.00239
+                    "p": 0.001195
                 }
             ],
             "name": "red tome",
@@ -72044,12 +72554,12 @@
             "sid": 3006,
             "droppedBy": [
                 {
-                    "name": "Warlock",
-                    "p": 0.00406
-                },
-                {
                     "name": "Draken Spellweaver",
                     "p": 0.0037
+                },
+                {
+                    "name": "Warlock",
+                    "p": 0.00203
                 },
                 {
                     "name": "Draken Warmaster",
@@ -72070,7 +72580,7 @@
                 {
                     "name": "Rashid",
                     "price": 30000,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -72167,6 +72677,26 @@
                 "Physical 10%"
             ],
             "category": "armor"
+        },
+        {
+            "cid": 2366,
+            "sid": 3254,
+            "droppedBy": [
+                {
+                    "name": "Terror Bird",
+                    "p": 0.0001
+                }
+            ],
+            "name": "roc feather",
+            "article": "a",
+            "weight": 100,
+            "attack": 0,
+            "defense": 0,
+            "armor": 0,
+            "weaponType": null,
+            "slotType": null,
+            "description": "A huge, stiff feather. Lubo, north-east of Thais, could stitch it into a fine hat.",
+            "category": "other"
         },
         {
             "cid": 9938,
@@ -72301,12 +72831,12 @@
                 {
                     "name": "Bruna",
                     "price": 8,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Darrow",
                     "price": 8,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Dixi",
@@ -72316,7 +72846,7 @@
                 {
                     "name": "Doran",
                     "price": 8,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Halif",
@@ -72326,7 +72856,7 @@
                 {
                     "name": "Hobbe",
                     "price": 8,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Lee'Delle",
@@ -72351,22 +72881,22 @@
                 {
                     "name": "Rennik",
                     "price": 8,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Selka",
                     "price": 8,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Tolen",
                     "price": 8,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Torren",
                     "price": 8,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -72454,6 +72984,7 @@
             "weaponType": null,
             "slotType": "body",
             "description": "",
+            "vocations": "knight,paladin",
             "bonuses": [
                 "Shielding +1"
             ],
@@ -72476,6 +73007,10 @@
                 },
                 {
                     "name": "Dragon Lord",
+                    "p": 0.0015611
+                },
+                {
+                    "name": "Gydron",
                     "p": 0.0015611
                 },
                 {
@@ -72530,6 +73065,7 @@
             "weaponType": null,
             "slotType": "body",
             "description": "",
+            "vocations": "sorcerer,druid",
             "bonuses": [
                 "Magic Level +1"
             ],
@@ -72566,7 +73102,7 @@
                 {
                     "name": "Rashid",
                     "price": 2000,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -72653,12 +73189,12 @@
                 {
                     "name": "Bruna",
                     "price": 12,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Darrow",
                     "price": 12,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Dixi",
@@ -72668,7 +73204,7 @@
                 {
                     "name": "Hobbe",
                     "price": 12,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Lee'Delle",
@@ -72688,7 +73224,7 @@
                 {
                     "name": "Rennik",
                     "price": 12,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Robert",
@@ -72708,7 +73244,7 @@
                 {
                     "name": "Selka",
                     "price": 12,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Shanar",
@@ -72718,12 +73254,12 @@
                 {
                     "name": "Tolen",
                     "price": 12,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Torren",
                     "price": 12,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Turvy",
@@ -72780,27 +73316,27 @@
                 {
                     "name": "Brinley",
                     "price": 2,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Gerda",
                     "price": 2,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Hedda",
                     "price": 2,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Marla",
                     "price": 2,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Odette",
                     "price": 2,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Willie",
@@ -72808,6 +73344,26 @@
                     "region": "rook"
                 }
             ]
+        },
+        {
+            "cid": 22147,
+            "sid": 3244,
+            "droppedBy": [
+                {
+                    "name": "Orc Warlord",
+                    "p": 0.0002
+                }
+            ],
+            "name": "Sam's old backpack",
+            "article": "",
+            "weight": 1800,
+            "attack": 0,
+            "defense": 0,
+            "armor": 0,
+            "weaponType": null,
+            "slotType": null,
+            "description": "A label on the backpack reads: Property of Sam, Thais. He would surely like it back.",
+            "category": "other"
         },
         {
             "cid": 2642,
@@ -72867,7 +73423,7 @@
                 {
                     "name": "Rashid",
                     "price": 7000,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -73004,7 +73560,7 @@
                 {
                     "name": "Rashid",
                     "price": 200,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -73058,7 +73614,7 @@
                 {
                     "name": "Rashid",
                     "price": 2000,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -73520,7 +74076,7 @@
                 {
                     "name": "Bruna",
                     "price": 10,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Cedrik",
@@ -73530,7 +74086,7 @@
                 {
                     "name": "Darrow",
                     "price": 10,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Dixi",
@@ -73540,7 +74096,7 @@
                 {
                     "name": "Hobbe",
                     "price": 10,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Lee'Delle",
@@ -73560,7 +74116,7 @@
                 {
                     "name": "Rennik",
                     "price": 10,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Robert",
@@ -73580,7 +74136,7 @@
                 {
                     "name": "Selka",
                     "price": 10,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Shanar",
@@ -73590,12 +74146,12 @@
                 {
                     "name": "Tolen",
                     "price": 10,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Torren",
                     "price": 10,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Turvy",
@@ -73656,7 +74212,7 @@
                 {
                     "name": "Doran",
                     "price": 8,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Obi",
@@ -73836,7 +74392,7 @@
                 {
                     "name": "Rashid",
                     "price": 150,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -73871,7 +74427,7 @@
                 {
                     "name": "Rashid",
                     "price": 500,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "H.L.",
@@ -74033,7 +74589,7 @@
                 {
                     "name": "Rashid",
                     "price": 25000,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -74046,12 +74602,12 @@
                     "p": 0.44
                 },
                 {
-                    "name": "Warlock",
-                    "p": 0.06088
-                },
-                {
                     "name": "Latrivan",
                     "p": 0.03256
+                },
+                {
+                    "name": "Warlock",
+                    "p": 0.03044
                 },
                 {
                     "name": "Blightwalker",
@@ -74593,6 +75149,10 @@
                     "p": 0.05
                 },
                 {
+                    "name": "Storm Dragon",
+                    "p": 0.05
+                },
+                {
                     "name": "Lizard Zaogun",
                     "p": 0.04993
                 },
@@ -74944,6 +75504,10 @@
                     "p": 0.11576
                 },
                 {
+                    "name": "Storm Dragon",
+                    "p": 0.1
+                },
+                {
                     "name": "Marid",
                     "p": 0.062
                 },
@@ -74957,6 +75521,10 @@
                 },
                 {
                     "name": "Dragon Lord",
+                    "p": 0.04968
+                },
+                {
+                    "name": "Gydron",
                     "p": 0.04968
                 },
                 {
@@ -74976,10 +75544,6 @@
                     "p": 0.0256
                 },
                 {
-                    "name": "Warlock",
-                    "p": 0.01283
-                },
-                {
                     "name": "Quara Mantassin",
                     "p": 0.01092
                 },
@@ -74990,6 +75554,10 @@
                 {
                     "name": "Quara Mantassin Scout",
                     "p": 0.00996
+                },
+                {
+                    "name": "Warlock",
+                    "p": 0.006415
                 },
                 {
                     "name": "Dwarf Geomancer",
@@ -75419,7 +75987,7 @@
                 {
                     "name": "Bruna",
                     "price": 3,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Cedrik",
@@ -75429,7 +75997,7 @@
                 {
                     "name": "Darrow",
                     "price": 3,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Dixi",
@@ -75444,7 +76012,7 @@
                 {
                     "name": "Hobbe",
                     "price": 3,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Lee'Delle",
@@ -75469,7 +76037,7 @@
                 {
                     "name": "Rennik",
                     "price": 3,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Robert",
@@ -75489,7 +76057,7 @@
                 {
                     "name": "Selka",
                     "price": 3,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Shanar",
@@ -75499,12 +76067,12 @@
                 {
                     "name": "Tolen",
                     "price": 3,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Torren",
                     "price": 3,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Turvy",
@@ -75651,7 +76219,7 @@
                 {
                     "name": "Lailene",
                     "price": 12000,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -75814,7 +76382,7 @@
                 },
                 {
                     "name": "Souleater",
-                    "p": 0.002
+                    "p": 0.00143
                 }
             ],
             "name": "spirit container",
@@ -76115,12 +76683,12 @@
                     "p": 0.00294
                 },
                 {
-                    "name": "Dark Torturer",
-                    "p": 0.0025
-                },
-                {
                     "name": "Plaguesmith",
                     "p": 0.00167
+                },
+                {
+                    "name": "Dark Torturer",
+                    "p": 0.001667
                 },
                 {
                     "name": "Morguthis",
@@ -76141,7 +76709,7 @@
                 {
                     "name": "Rashid",
                     "price": 30000,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -76285,7 +76853,7 @@
                 {
                     "name": "Bruknar",
                     "price": 155,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "H.L.",
@@ -76476,7 +77044,7 @@
                 },
                 {
                     "name": "Warlock",
-                    "p": 0.00355
+                    "p": 0.001775
                 },
                 {
                     "name": "Spectre",
@@ -76553,6 +77121,10 @@
                 },
                 {
                     "name": "Dragon Lord",
+                    "p": 0.00382
+                },
+                {
+                    "name": "Gydron",
                     "p": 0.00382
                 },
                 {
@@ -76770,12 +77342,12 @@
                 {
                     "name": "Bruna",
                     "price": 20,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Darrow",
                     "price": 20,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Dixi",
@@ -76785,7 +77357,7 @@
                 {
                     "name": "Hobbe",
                     "price": 20,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Lee'Delle",
@@ -76800,22 +77372,22 @@
                 {
                     "name": "Rennik",
                     "price": 20,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Selka",
                     "price": 20,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Tolen",
                     "price": 20,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Torren",
                     "price": 20,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "H.L.",
@@ -76883,12 +77455,12 @@
                 {
                     "name": "Bruna",
                     "price": 16,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Darrow",
                     "price": 16,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Dixi",
@@ -76898,7 +77470,7 @@
                 {
                     "name": "Hobbe",
                     "price": 16,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Lee'Delle",
@@ -76913,22 +77485,22 @@
                 {
                     "name": "Rennik",
                     "price": 16,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Selka",
                     "price": 16,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Tolen",
                     "price": 16,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Torren",
                     "price": 16,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "H.L.",
@@ -77071,7 +77643,7 @@
                 {
                     "name": "Bruna",
                     "price": 25,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Cedrik",
@@ -77081,7 +77653,7 @@
                 {
                     "name": "Darrow",
                     "price": 25,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Dixi",
@@ -77091,7 +77663,7 @@
                 {
                     "name": "Hobbe",
                     "price": 25,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Lee'Delle",
@@ -77111,7 +77683,7 @@
                 {
                     "name": "Rennik",
                     "price": 25,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Robert",
@@ -77131,7 +77703,7 @@
                 {
                     "name": "Selka",
                     "price": 25,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Shanar",
@@ -77141,12 +77713,12 @@
                 {
                     "name": "Tolen",
                     "price": 25,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Torren",
                     "price": 25,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Turvy",
@@ -77291,12 +77863,12 @@
                     "p": 0.02
                 },
                 {
-                    "name": "Warlock",
-                    "p": 0.01051
-                },
-                {
                     "name": "Priestess",
                     "p": 0.00717
+                },
+                {
+                    "name": "Warlock",
+                    "p": 0.005255
                 }
             ],
             "name": "talon",
@@ -77340,7 +77912,7 @@
                 {
                     "name": "Rashid",
                     "price": 500,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -77374,7 +77946,7 @@
             "droppedBy": [
                 {
                     "name": "Warlock",
-                    "p": 0.005
+                    "p": 0.0025
                 }
             ],
             "name": "tempest rod",
@@ -77856,6 +78428,10 @@
                 },
                 {
                     "name": "Dragon Lord",
+                    "p": 0.00268
+                },
+                {
+                    "name": "Gydron",
                     "p": 0.00268
                 },
                 {
@@ -78556,6 +79132,10 @@
                     "p": 0.04
                 },
                 {
+                    "name": "Storm Dragon",
+                    "p": 0.03
+                },
+                {
                     "name": "Wyrm",
                     "p": 0.005
                 },
@@ -78647,6 +79227,10 @@
                 },
                 {
                     "name": "Dragon Lord",
+                    "p": 0.005
+                },
+                {
+                    "name": "Gydron",
                     "p": 0.005
                 },
                 {
@@ -78787,7 +79371,7 @@
                 {
                     "name": "Rashid",
                     "price": 12000,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -78842,7 +79426,7 @@
                 {
                     "name": "Bruknar",
                     "price": 1200,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Nah'bob",
@@ -79518,7 +80102,7 @@
                 {
                     "name": "Bruna",
                     "price": 3,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Cornelia",
@@ -79528,7 +80112,7 @@
                 {
                     "name": "Darrow",
                     "price": 3,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Dixi",
@@ -79538,7 +80122,7 @@
                 {
                     "name": "Hobbe",
                     "price": 3,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Kroox",
@@ -79558,22 +80142,22 @@
                 {
                     "name": "Rennik",
                     "price": 3,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Selka",
                     "price": 3,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Tolen",
                     "price": 3,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "Torren",
                     "price": 3,
-                    "region": "unknown"
+                    "region": "main"
                 },
                 {
                     "name": "H.L.",
@@ -79675,7 +80259,7 @@
                 {
                     "name": "Rashid",
                     "price": 1500,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -80000,7 +80584,7 @@
                 {
                     "name": "Lailene",
                     "price": 12000,
-                    "region": "unknown"
+                    "region": "main"
                 }
             ]
         },
@@ -80617,6 +81201,13 @@
             "name": "Dogon's Sample",
             "monster": "Unknown",
             "required": 150,
+            "alpha": false
+        },
+        {
+            "id": 68,
+            "name": "Dedicated Courier",
+            "monster": "Unknown",
+            "required": 1,
             "alpha": false
         }
     ],
