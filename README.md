@@ -10,7 +10,8 @@
    - `minimap.bin.gz` — the client's minimap, kept gzipped as served; used for the Spawn Map terrain, stairs and pathfinding.
    - `python scripts/fetch-live.py` can download all but `library.json` in one go, if automated access is OK with the site.
    Hand-made inputs (e.g. `floor-connection-labels.json`) live in `data/manual/`, not here.
-2. Regenerate the derived data, in this order:
+2. See what changed since the last scrape (and whether a download was missed): `python scripts/diff-raw.py` compares `data/raw/` with `origin/main` and writes a report to `data/changes/<date>.md` - files updated/unchanged/missing, added/removed/changed monsters, items, NPCs, spawns, trades, and where the map changed.
+3. Regenerate the derived data, in this order:
    ```
    python scripts/gen-minimap.py            # minimap.bin.gz -> data/derived/minimap-z*.png + minimap.meta.json
    python scripts/build-data.py             # data/raw/*  -> data/derived/compendium.json (+ merchant.json, CHANGELOG.md)
@@ -18,7 +19,7 @@
    python scripts/gen-floor-connections.py  # detects stairs/ladders/holes and guesses which floor(s) each connects to (needs the two above)
    python scripts/gen-known-floors.py path/to/tibia-export.json  # optional: known spawn floors from a real-Tibia spawn export (see below)
    ```
-3. Commit `data/raw/` and `data/derived/` (and the updated `CHANGELOG.md`). GitHub Pages picks it up — no other build step.
+4. Commit `data/raw/`, `data/derived/`, `data/changes/` and the updated `CHANGELOG.md`. GitHub Pages picks it up — no other build step.
 
 `build-data.py` also writes `data/derived/merchant.json` (for a merchant-ledger page this repo doesn't have yet) and `.js` twins of both (`window.__MINIBIA_COMPENDIUM__ = ...` etc., for loading via `<script src>` instead of `fetch()` when a page needs to work over `file://`). `data/raw/npc-trades.json` and `data/raw/definitions.json` are currently empty placeholders (`{}`) — `build-data.py` requires them to exist, but nothing here reads `merchant.json` yet.
 

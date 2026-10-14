@@ -1,1 +1,1 @@
-window.__MINIBIA_META__={"generatedAt": "2026-09-24"};
+window.__MINIBIA_META__={"generatedAt": "2026-10-14"};

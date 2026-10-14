@@ -13,8 +13,7 @@ axes). A handful of far-flung chunks near the NW world corner are dropped -
 including them would stretch every image to the full 32k-tile world extent for
 ~10 chunks of content. Writes minimap-z<z>.png for every floor that has data,
 plus minimap.meta.json mapping z -> {worldOriginX, worldOriginY, imageWidth,
-imageHeight}. minimap-z7.png / minimap-z7.meta.json are also kept (surface, the
-default) for anything still referencing the old single-floor names.
+imageHeight}.
 """
 import struct, json, os
 from collections import defaultdict
@@ -94,10 +93,6 @@ for z in sorted(by_z):
     print(f"z={z:>2}: {out_png}  {W}x{H}  {kb:6.1f} KB  fill {fill:4.0%}  ({dropped} scatter chunks dropped)")
 
 open(os.path.join(META_DIR, "minimap.meta.json"), "w").write(json.dumps(meta_all))
-# keep the legacy single-floor name for the surface too
-if 7 in meta_all:
-    m7 = dict(meta_all[7]); m7["z"] = 7
-    open(os.path.join(META_DIR, "minimap-z7.meta.json"), "w").write(json.dumps(m7))
 
 total = sum(os.path.getsize(os.path.join(PNG_DIR, f"minimap-z{z}.png")) for z in meta_all)
 print(f"\n{len(meta_all)} floors, {total/1024/1024:.1f} MB total")
