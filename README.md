@@ -49,6 +49,10 @@ The Spawn Map tab is one workspace: the map with a mode switch above it - **Spaw
 
 `scripts/build-bundle.py` packages multiple tool pages (`site/index.html`, `merchant-ledger.html`, `compendium.html`, `accounts.html`) plus the minimap PNGs into a single self-contained `dist/minibia-tools.html`. It's kept here for reference but isn't wired up — this repo only has the one compendium page, served directly via GitHub Pages rather than bundled.
 
-`data/icons.json` (item icon images, keyed by item id) isn't part of this pipeline and is updated separately.
+`data/icons.json` (item icon images, base64 PNG keyed by the library item's `cid`) is rendered from the game client's sprite files, which are too big to keep in the repo (`Minibia.spr` is ~50MB). When new items show up without an icon, get `Minibia.spr`, `Minibia.patch.spr` and `Minibia.dat` (from `https://minibia.com/data/760/<name>`, or the browser cache after playing) and run:
+```
+python scripts/gen-icons.py --spr path/Minibia.spr --patch path/Minibia.patch.spr --dat path/Minibia.dat --virtual-items path/virtual-items.js
+```
+It only adds icons for items that don't have one, leaving existing icons as they are (`--all` re-renders everything). Each item's `sid` is its `.dat` object id. Items whose `sid` is 30000+ are recolors the client makes itself, defined in its `src/data/virtual-items.js`. Pass that file with `--virtual-items` to render them; only exact color-map recipes are supported. See the script's docstring for the file formats.
 
 Because the page fetches JSON at runtime, it needs to be served over HTTP (e.g. GitHub Pages, or `python3 -m http.server` locally) rather than opened directly as a `file://` URL.
