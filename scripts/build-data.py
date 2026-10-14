@@ -140,10 +140,14 @@ def build_compendium(lib, spawns, minimap_meta):
         "sells": n.get("sells") or [], "buys": n.get("buys") or [],
     } for n in lib["npcs"]]
 
-    # spawn map: group monster-spawns clusters by name
+    # spawn map: group monster-spawns clusters by name. The spawn file's
+    # capitalisation drifts between exports ("Crypt shambler", "spider"), so
+    # names are matched case-insensitively and spelled as in the library.
+    lib_spelling = {norm(m["name"]): m["name"] for m in lib["monsters"]}
     by_name = {}
     for c in spawns["clusters"]:
-        by_name.setdefault(c["n"], []).append([c["x"], c["y"], c["c"]])
+        name = lib_spelling.get(norm(c["n"]), c["n"])
+        by_name.setdefault(name, []).append([c["x"], c["y"], c["c"]])
     spawn_monsters = []
     xs, ys = [], []
     for name in sorted(by_name):

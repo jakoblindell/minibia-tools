@@ -10,7 +10,7 @@
    - `minimap.bin.gz` — the client's minimap, kept gzipped as served; used for the Spawn Map terrain, stairs and pathfinding.
    - `python scripts/fetch-live.py` can download all but `library.json` in one go, if automated access is OK with the site.
    Hand-made inputs (e.g. `floor-connection-labels.json`) live in `data/manual/`, not here.
-2. See what changed since the last scrape (and whether a download was missed): `python scripts/diff-raw.py` compares `data/raw/` with `origin/main` and writes a report to `data/changes/<date>.md` - files updated/unchanged/missing, added/removed/changed monsters, items, NPCs, spawns, trades, and where the map changed.
+2. See what changed since the last scrape (and whether a download was missed): `python scripts/diff-raw.py` compares `data/raw/` with `origin/main` - which files are updated/unchanged/missing; monsters (loot per item, attacks/damage, stats), items, NPCs, spells, runes, achievements field by field; spawn points per monster; and where the map changed. It adds the update to `data/derived/changes.json`, shown on the site's hidden **Data versions** page (the link at the bottom of the page, or `#versions`; every update is kept and selectable, and each changed map area has a button that shows it on the map), plus a Markdown copy in `data/changes/<date>.md`.
 3. Regenerate the derived data, in this order:
    ```
    python scripts/gen-minimap.py            # minimap.bin.gz -> data/derived/minimap-z*.png + minimap.meta.json

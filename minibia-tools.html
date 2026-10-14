@@ -489,6 +489,44 @@
 
   footer { margin-top: 44px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 12.5px; }
 
+  /* Data versions (hidden page: footer link / #versions) */
+  #versions-wrap { display: none; }
+  #versions-wrap.active { display: block; }
+  .vx-link { color: var(--text-muted); margin-left: 6px; }
+  .vx-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .vx-sub { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+  #vx-select { font: inherit; font-size: 13px; background: var(--surface-2); color: var(--text-primary); border: 1px solid var(--border); border-radius: 8px; padding: 6px 8px; max-width: 100%; }
+  .vx-files { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 6px 14px; font-size: 13px; }
+  .vx-file { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .vx-file code { overflow-wrap: anywhere; }
+  .vx-badge { flex: none; font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--border); color: var(--text-secondary); }
+  .vx-badge.updated, .vx-badge.new { color: var(--good, #16a34a); border-color: currentColor; }
+  .vx-badge.unchanged { color: #ca8a04; border-color: currentColor; }
+  .vx-badge.missing { color: var(--bad, #dc2626); border-color: currentColor; }
+  .vx details { border: 1px solid var(--border); border-radius: 8px; background: var(--surface-1); }
+  .vx details > summary { cursor: pointer; padding: 10px 12px; font-size: 14px; font-weight: 600; color: var(--text-primary); list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .vx details > summary::-webkit-details-marker { display: none; }
+  .vx details > summary::after { content: "▸"; color: var(--text-muted); }
+  .vx details[open] > summary::after { content: "▾"; }
+  .vx-count { font-size: 12.5px; font-weight: 500; color: var(--text-secondary); margin-left: auto; text-align: right; }
+  .vx-sec { padding: 0 12px 12px; display: flex; flex-direction: column; gap: 10px; }
+  .vx-group-title { font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--text-muted); }
+  .vx-names { font-size: 13.5px; line-height: 1.7; }
+  .vx-names a, .vx-entry-name a { color: var(--accent); cursor: pointer; text-decoration: none; }
+  .vx-names a:hover, .vx-entry-name a:hover { text-decoration: underline; }
+  .vx-entry { border-top: 1px solid var(--border); padding-top: 8px; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+  .vx-entry-name { font-size: 13.5px; font-weight: 600; color: var(--text-primary); }
+  .vx-line { font-size: 13px; color: var(--text-secondary); overflow-wrap: anywhere; }
+  .vx-line b { color: var(--text-primary); font-weight: 600; }
+  .vx-add { color: var(--good, #16a34a); }
+  .vx-del { color: var(--bad, #dc2626); }
+  .vx-minor { opacity: .6; }
+  .vx-floor { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-top: 4px; }
+  .vx-area { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 12.5px; color: var(--text-secondary); font-family: 'SF Mono', Consolas, monospace; }
+  .vx-area span { min-width: 0; overflow-wrap: anywhere; }
+  .vx-area .map-btn { flex: none; padding: 4px 12px; font-family: inherit; }
+  .vx-empty { font-size: 13px; color: var(--text-muted); }
+
   /* Hunt Analyzer tab */
   #hunt-wrap { display: none; }
   #hunt-wrap.active { display: block; }
@@ -806,7 +844,20 @@
     </div>
   </div>
 
-  <footer>Static snapshot from <code>library.json.txt</code> and <code>spawns.json.txt</code>. Loot/drop probabilities, sell prices and spawn points are the design database's values, not verified against the live server.</footer>
+  <div id="versions-wrap">
+    <div class="rc-card vx">
+      <div class="vx-head">
+        <div>
+          <div class="row-label">Data versions</div>
+          <div class="vx-sub" id="vx-sub">What changed between data updates.</div>
+        </div>
+        <select id="vx-select" aria-label="Data update"></select>
+      </div>
+      <div id="vx-body"></div>
+    </div>
+  </div>
+
+  <footer>Built from the game's own data (library, spawns, trades, minimap). Loot/drop probabilities, sell prices and spawn points are the design database's values, not verified against the live server. <a href="#versions" id="vx-link" class="vx-link">Data versions</a></footer>
 
 </div>
 
@@ -1173,6 +1224,258 @@ function goToMonsterOnMap(name) {
   setMapFloor(state.mapFloor);
   mapFitToMonsterPoints(spawn);
   drawMap();
+}
+
+// --- Data versions: a hidden page (footer link, or #versions in the URL)
+// showing what changed between data updates - files, monsters (loot,
+// attacks, stats), items, NPCs, spells, runes, achievements, spawns and the
+// map. Read from data/derived/changes.json, written by scripts/diff-raw.py.
+const vx = { data: null, index: 0, mark: null };
+const VX_LABELS = {
+  health: "Health", experience: "Experience", speed: "Speed", armor: "Armor", elements: "Elements", immunities: "Immunities",
+  loot: "Loot", attacks: "Attacks", sellTo: "Sold to NPCs", droppedBy: "Dropped by", sells: "Sells", buys: "Buys",
+  keywords: "Keywords", position: "Position", weight: "Weight", attack: "Attack", defense: "Defense", description: "Description",
+  vocations: "Vocations", name: "Name", probability: "chance", p: "chance", price: "price", min: "min", max: "max",
+  region: "region", element: "element", mana: "Mana", level: "Level", magicLevel: "Magic level", words: "Words", required: "Required"
+};
+function vxLabel(f) { return VX_LABELS[f] || f; }
+function vxEsc(v) {
+  return String(v == null ? "" : v).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; });
+}
+function vxVal(field, v) {
+  if (v === null || v === undefined || v === "") return "–";
+  if ((field === "probability" || field === "p") && typeof v === "number") {
+    const pct = v * 100;
+    return (pct >= 1 ? +pct.toFixed(2) : +pct.toPrecision(2)) + "%";
+  }
+  if (typeof v === "number") return fmt(v);
+  if (typeof v === "object") return Array.isArray(v) ? v.join(", ") : Object.keys(v).map(function (k) { return k + " " + v[k]; }).join(", ");
+  return String(v);
+}
+// One sub-entry (a loot drop, an attack, an NPC price...) as text.
+function vxEntry(field, e) {
+  if (!e || typeof e !== "object") return vxVal(field, e);
+  let t = e.name || "?";
+  if (field === "loot") {
+    t += " " + vxVal("probability", e.probability);
+    if (e.max > 1) t += " ×" + (e.min === e.max ? e.max : e.min + "–" + e.max);
+  } else if (field === "attacks") {
+    t += " " + (e.min || 0) + "–" + (e.max || 0) + (e.element ? " " + e.element : "");
+  } else if (field === "droppedBy") {
+    if (e.p !== undefined) t += " " + vxVal("p", e.p);
+  } else if (e.price !== undefined) {
+    t += " " + fmt(e.price) + " gp";
+  }
+  return t;
+}
+function vxPair(f, a, b) { return vxLabel(f) + " " + vxVal(f, a) + " → " + vxVal(f, b); }
+// A sub-entry's own changes; damage min/max read as one range.
+function vxSubChanges(field, list) {
+  const byF = {};
+  list.forEach(function (c) { byF[c.field] = c; });
+  const out = [];
+  if (byF.min && byF.max) {
+    out.push((field === "attacks" ? "damage " : "amount ") + byF.min.old + "–" + byF.max.old + " → " + byF.min.new + "–" + byF.max.new);
+    delete byF.min; delete byF.max;
+  }
+  Object.keys(byF).forEach(function (f) { out.push(vxPair(f, byF[f].old, byF[f].new)); });
+  return out.join(", ");
+}
+// One field's change -> line elements (text with +/- colouring).
+function vxChangeLines(c) {
+  const lines = [];
+  const line = function (html, minor) {
+    const d = document.createElement("div"); d.className = "vx-line" + (minor ? " vx-minor" : ""); d.innerHTML = html; lines.push(d);
+  };
+  const lab = "<b>" + vxEsc(vxLabel(c.field)) + "</b> ";
+  if ("old" in c || "new" in c) { line(lab + vxEsc(vxVal(c.field, c.old)) + " → " + vxEsc(vxVal(c.field, c.new))); return lines; }
+  if (c.parts) { line(lab + vxEsc(c.parts.map(function (p) { return vxPair(p.field, p.old, p.new); }).join(", "))); return lines; }
+  const bits = [];
+  (c.added || []).forEach(function (e) { bits.push('<span class="vx-add">+ ' + vxEsc(vxEntry(c.field, e)) + "</span>"); });
+  (c.removed || []).forEach(function (e) { bits.push('<span class="vx-del">− ' + vxEsc(vxEntry(c.field, e)) + "</span>"); });
+  if (bits.length) line(lab + bits.join(", "));
+  (c.changed || []).forEach(function (e) {
+    const onlyRegion = e.changes.length === 1 && e.changes[0].field === "region";
+    line(lab + vxEsc(e.name + ": " + vxSubChanges(c.field, e.changes)), onlyRegion);
+  });
+  return lines;
+}
+function vxLink(key, name) {
+  const a = document.createElement("a");
+  a.textContent = name;
+  const go = key === "monsters" ? goToMonster : key === "items" ? goToItem : key === "npcs" ? goToNpc : null;
+  if (go) a.addEventListener("click", function () { go(name); });
+  return a;
+}
+function vxDetails(title, count, open) {
+  const d = document.createElement("details"); if (open) d.open = true;
+  const sm = document.createElement("summary");
+  sm.appendChild(document.createTextNode(title));
+  const n = document.createElement("span"); n.className = "vx-count"; n.textContent = count; sm.appendChild(n);
+  d.appendChild(sm);
+  const sec = document.createElement("div"); sec.className = "vx-sec"; d.appendChild(sec);
+  return { el: d, body: sec };
+}
+function vxNames(body, title, key, entries, linkable, cls) {
+  if (!entries.length) return;
+  const t = document.createElement("div"); t.className = "vx-group-title"; t.textContent = title + " (" + entries.length + ")"; body.appendChild(t);
+  const p = document.createElement("div"); p.className = "vx-names" + (cls ? " " + cls : "");
+  entries.forEach(function (e, i) {
+    if (i) p.appendChild(document.createTextNode(", "));
+    const nm = (e && e.name) || "?";
+    p.appendChild(linkable ? vxLink(key, nm) : document.createTextNode(nm));
+  });
+  body.appendChild(p);
+}
+function renderVersions() {
+  const body = document.getElementById("vx-body"), sel = document.getElementById("vx-select");
+  body.textContent = "";
+  const ups = vx.data && vx.data.updates || [];
+  if (!ups.length) {
+    sel.hidden = true;
+    body.innerHTML = '<div class="vx-empty">' + (vx.data ? "No data updates recorded yet." : "Loading…") + "</div>";
+    return;
+  }
+  sel.hidden = false;
+  if (sel.options.length !== ups.length) {
+    sel.textContent = "";
+    ups.forEach(function (u, i) {
+      const o = document.createElement("option"); o.value = i;
+      o.textContent = u.date;
+      sel.appendChild(o);
+    });
+  }
+  sel.value = String(vx.index);
+  const u = ups[vx.index];
+  document.getElementById("vx-sub").textContent = "Update of " + u.date + ", compared with the data from " + (u.previousDate || "before") + ".";
+
+  // Files
+  const fsec = vxDetails("Files", u.files.filter(function (f) { return f.kind === "updated" || f.kind === "new"; }).length + " of " + u.files.length + " updated",
+    u.files.some(function (f) { return f.needed && (f.kind === "unchanged" || f.kind === "missing"); }));
+  const grid = document.createElement("div"); grid.className = "vx-files";
+  u.files.forEach(function (f) {
+    const r = document.createElement("div"); r.className = "vx-file";
+    r.innerHTML = '<span class="vx-badge ' + vxEsc(f.kind) + '">' + vxEsc(f.kind) + "</span><code>" + vxEsc(f.name) + "</code>";
+    r.title = f.status;
+    grid.appendChild(r);
+  });
+  fsec.body.appendChild(grid);
+  (u.unexpectedFiles || []).forEach(function (n) {
+    const r = document.createElement("div"); r.className = "vx-line"; r.textContent = n + " isn't a download (hand-made inputs go in data/manual/)"; fsec.body.appendChild(r);
+  });
+  (u.other || []).forEach(function (o) {
+    const r = document.createElement("div"); r.className = "vx-line";
+    r.textContent = o.title + ": " + (o.before === null ? "none" : fmt(o.before)) + " → " + fmt(o.after) + " entries"; fsec.body.appendChild(r);
+  });
+  body.appendChild(fsec.el);
+
+  // Library sections
+  u.library.forEach(function (s) {
+    const total = s.added.length + s.removed.length + s.changed.length;
+    if (!total) return;
+    const parts = [];
+    if (s.added.length) parts.push("+" + s.added.length);
+    if (s.removed.length) parts.push("−" + s.removed.length);
+    if (s.changed.length) parts.push(s.changed.length + " changed");
+    const sec = vxDetails(s.title, parts.join(" · "), s.key === "monsters");
+    vxNames(sec.body, "Added", s.key, s.added, true, "vx-add");
+    vxNames(sec.body, "Removed", s.key, s.removed, false, "vx-del");
+    if (s.changed.length) {
+      const t = document.createElement("div"); t.className = "vx-group-title"; t.textContent = "Changed (" + s.changed.length + ")"; sec.body.appendChild(t);
+      s.changed.forEach(function (e) {
+        const row = document.createElement("div"); row.className = "vx-entry";
+        const nm = document.createElement("div"); nm.className = "vx-entry-name"; nm.appendChild(vxLink(s.key, e.name || "?")); row.appendChild(nm);
+        e.changes.forEach(function (c) { vxChangeLines(c).forEach(function (l) { row.appendChild(l); }); });
+        sec.body.appendChild(row);
+      });
+    }
+    body.appendChild(sec.el);
+  });
+
+  // Spawns
+  if (u.spawns && (u.spawns.changed.length || u.spawns.respelled.length)) {
+    const sp = u.spawns;
+    const sec = vxDetails("Monster spawns", sp.changed.length + " monster" + (sp.changed.length === 1 ? "" : "s"), false);
+    sp.changed.forEach(function (r) {
+      const row = document.createElement("div"); row.className = "vx-line";
+      const d = r.after - r.before;
+      row.appendChild(vxLink("monsters", r.name));
+      row.appendChild(document.createTextNode(": " + r.before + " → " + r.after + " "));
+      const s2 = document.createElement("span"); s2.className = d > 0 ? "vx-add" : "vx-del"; s2.textContent = "(" + (d > 0 ? "+" : "") + d + ")"; row.appendChild(s2);
+      sec.body.appendChild(row);
+    });
+    if (sp.respelled.length) {
+      const r = document.createElement("div"); r.className = "vx-line vx-minor";
+      r.textContent = "Spelled differently in this export (same monsters, matched anyway): " + sp.respelled.map(function (x) { return x.old + " → " + x.new; }).join(", ");
+      sec.body.appendChild(r);
+    }
+    body.appendChild(sec.el);
+  }
+
+  // Map
+  if (u.map && u.map.floors && u.map.floors.length) {
+    const sec = vxDetails("Map", fmt(u.map.changed) + " tiles", false);
+    const tot = document.createElement("div"); tot.className = "vx-line";
+    tot.textContent = fmt(u.map.changed) + " tiles changed, " + fmt(u.map.newly) + " of them newly mapped.";
+    sec.body.appendChild(tot);
+    u.map.floors.forEach(function (f) {
+      const t = document.createElement("div"); t.className = "vx-floor";
+      t.textContent = mapFloorLabel(f.z) + ": " + fmt(f.changed) + " tiles" + (f.newly ? " (" + fmt(f.newly) + " new)" : "");
+      sec.body.appendChild(t);
+      f.areas.slice(0, 5).forEach(function (a) {
+        const r = document.createElement("div"); r.className = "vx-area";
+        const lbl = document.createElement("span");
+        lbl.textContent = "x" + a.x0 + "–" + a.x1 + " y" + a.y0 + "–" + a.y1 + " · " + fmt(a.changed);
+        lbl.title = fmt(a.changed) + " tiles changed" + (a.newly ? ", " + fmt(a.newly) + " newly mapped" : "");
+        const b = document.createElement("button"); b.type = "button"; b.className = "map-btn"; b.textContent = "Map"; b.title = "Show this area on the map";
+        b.addEventListener("click", function () { vxShowOnMap(f.z, a); });
+        r.appendChild(lbl); r.appendChild(b);
+        sec.body.appendChild(r);
+      });
+      if (f.areaCount > 5) {
+        const m = document.createElement("div"); m.className = "vx-line vx-minor"; m.textContent = "+ " + (f.areaCount - 5) + " smaller area" + (f.areaCount - 5 === 1 ? "" : "s"); sec.body.appendChild(m);
+      }
+    });
+    body.appendChild(sec.el);
+  }
+}
+function openVersions() {
+  state.tab = "versions";
+  state.query = "";
+  const sb = document.getElementById("search"); if (sb) sb.value = "";
+  refreshTabChrome();
+  renderVersions();
+  document.getElementById("versions-wrap").scrollIntoView({ block: "start" });
+  if (vx.data) return;
+  fetch("data/derived/changes.json").then(function (r) { return r.ok ? r.json() : { updates: [] }; })
+    .catch(function () { return { updates: [] }; })
+    .then(function (d) { vx.data = d; vx.index = 0; if (state.tab === "versions") renderVersions(); });
+}
+// "Show on map": that floor, fitted to the area, outlined until Reset view.
+function vxShowOnMap(z, a) {
+  vx.mark = { z: z, x0: a.x0, y0: a.y0, x1: a.x1 + 1, y1: a.y1 + 1 };
+  mapView.pinnedNpc = null;
+  state.tab = "map";
+  refreshTabChrome();
+  resizeMapCanvas();
+  buildMapLegend();
+  setMapFloor(z);
+  const w = mapCanvas.width, h = mapCanvas.height, pad = 40;
+  const scale = Math.min(6, w / (a.x1 - a.x0 + pad * 2), h / (a.y1 - a.y0 + pad * 2));
+  mapView.scale = scale;
+  mapView.offX = w / 2 - ((a.x0 + a.x1 + 1) / 2) * scale;
+  mapView.offY = h / 2 - ((a.y0 + a.y1 + 1) / 2) * scale;
+  drawMap();
+  document.getElementById("map-wrap").scrollIntoView({ block: "start" });
+}
+function drawVersionMark() {
+  const m = vx.mark;
+  if (!m || m.z !== state.mapFloor) return;
+  const [ax, ay] = worldToScreen(m.x0, m.y0), [bx, by] = worldToScreen(m.x1, m.y1);
+  mapCtx.save();
+  mapCtx.lineWidth = 5; mapCtx.strokeStyle = "rgba(0,0,0,0.55)"; mapCtx.strokeRect(ax, ay, bx - ax, by - ay);
+  mapCtx.lineWidth = 2.5; mapCtx.setLineDash([8, 5]); mapCtx.strokeStyle = "#fff"; mapCtx.strokeRect(ax, ay, bx - ax, by - ay);
+  mapCtx.restore();
 }
 
 function goToNpcOnMap(name) {
@@ -1810,6 +2113,7 @@ function renderControlsVisibility() {
   const mapWrap = document.getElementById("map-wrap");
   const runeWrap = document.getElementById("rune-wrap");
   const huntWrap = document.getElementById("hunt-wrap");
+  document.getElementById("versions-wrap").classList.toggle("active", state.tab === "versions");
   const resultsEl = document.getElementById("results");
   const pag = document.getElementById("pagination");
   const countEl = document.getElementById("result-count");
@@ -1818,7 +2122,7 @@ function renderControlsVisibility() {
   runeWrap.classList.toggle("active", state.tab === "runecalc");
   huntWrap.classList.toggle("active", state.tab === "hunt");
 
-  if (state.tab === "runecalc" || state.tab === "hunt") {
+  if (state.tab === "runecalc" || state.tab === "hunt" || state.tab === "versions") {
     controlsRow.style.display = "none";
     resultsEl.style.display = "none";
     pag.style.display = "none";
@@ -2248,7 +2552,7 @@ function render() {
   const q = state.query.trim().toLowerCase();
   const results = document.getElementById("results");
 
-  if (state.tab === "map") return;
+  if (state.tab === "map" || !Array.isArray(DATA[state.tab])) return; // map / tool pages have no list
 
   let list = DATA[state.tab].slice();
 
@@ -2525,6 +2829,7 @@ function drawMap() {
   if (routeState.mode !== "off") drawRouteOverlay();
   if (pathState.active) drawPathOverlay(w, h);
   drawUpqHighlight();
+  drawVersionMark();
 
   if (stairsLabeling.active && stairsLabeling.list.length) {
     const pt = stairsLabeling.list[stairsLabeling.index];
@@ -5155,7 +5460,11 @@ function initMap() {
     }
   });
 
+  document.getElementById("vx-link").addEventListener("click", function (e) { e.preventDefault(); openVersions(); });
+  document.getElementById("vx-select").addEventListener("change", function () { vx.index = Number(this.value) || 0; renderVersions(); });
+  if (/(^#|&)versions(&|$)/.test(location.hash.toLowerCase())) openVersions();
   document.getElementById("map-reset").addEventListener("click", function () {
+    vx.mark = null;
     mapFitToBounds();
     drawMap();
   });
