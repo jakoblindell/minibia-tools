@@ -79,7 +79,7 @@ from PIL import Image
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DERIVED = os.path.join(ROOT, "data", "derived")
 RAW = os.path.join(ROOT, "data", "raw")
-LABELS_PATH = os.path.join(RAW, "floor-connection-labels.json")
+LABELS_PATH = os.path.join(ROOT, "data", "manual", "floor-connection-labels.json")
 
 YELLOW_RGB = (255, 255, 0)
 # Same table gen-floor-plausibility.py uses - see that script for how it was derived.
@@ -399,7 +399,7 @@ def terrain_state(floors, z, wx, wy, radius):
 
 
 def load_manual_labels():
-    """Optional data/raw/floor-connection-labels.json - the JSON exported by
+    """Optional data/manual/floor-connection-labels.json - the JSON exported by
     the hidden "Label unknowns" map tool once a human has stepped through
     the unresolved markers. A flat list of {"x":,"y":,"z":,"dir":"up"|
     "down"|"both"}; missing/absent entries are left as unknown, same as

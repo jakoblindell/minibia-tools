@@ -22,8 +22,11 @@ import numpy as np
 from PIL import Image
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# The client's minimap exactly as served (gzipped); an unpacked
+# data/raw/minimap.bin is used instead if that's what's there.
+SRC_GZ = os.path.join(ROOT, "data", "raw", "minimap.bin.gz")
 SRC = os.path.join(ROOT, "data", "raw", "minimap.bin")
-PNG_DIR = os.path.join(ROOT, "site")            # compendium.html loads minimap-z*.png from beside itself
+PNG_DIR = os.path.join(ROOT, "data", "derived")  # minimap-tools.html loads data/derived/minimap-z*.png
 META_DIR = os.path.join(ROOT, "data", "derived")  # generated meta sits with the other build outputs
 CH = 128 * 128
 DENSE_MIN_CHUNK = 240  # crop to chunk coords >= this on both axes
@@ -40,7 +43,11 @@ pal[0] = (0, 0, 0, 0)  # index 0 -> transparent
 os.makedirs(PNG_DIR, exist_ok=True)
 os.makedirs(META_DIR, exist_ok=True)
 
-d = open(SRC, "rb").read()
+if os.path.exists(SRC_GZ):
+    import gzip
+    d = gzip.decompress(open(SRC_GZ, "rb").read())
+else:
+    d = open(SRC, "rb").read()
 assert d[:4] == b"MMAP", "bad magic"
 version = struct.unpack_from("<H", d, 4)[0]
 off = 6

@@ -28,7 +28,7 @@ TARGETS = [
     (f"{BASE}/play/definitions.json",    "definitions.json",     False),
     (f"{BASE}/play/npc-poi.json",        "npc-poi.json",         False),
     (f"{BASE}/data/{SERVER_VERSION}/constants.json", "constants.json", False),
-    (f"{BASE}/data/{SERVER_VERSION}/minimap.bin.gz", "minimap.bin",    True),
+    (f"{BASE}/data/{SERVER_VERSION}/minimap.bin.gz", "minimap.bin.gz", True),
 ]
 
 
@@ -47,7 +47,7 @@ def main():
             t0 = time.time()
             blob = fetch(url)
             if is_gz:
-                blob = gzip.decompress(blob)
+                gzip.decompress(blob)  # validate; kept gzipped, as served
             else:
                 json.loads(blob)  # validate
             tmp = dest + ".tmp"
