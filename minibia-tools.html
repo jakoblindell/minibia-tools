@@ -526,6 +526,8 @@
   .vx-area span { min-width: 0; overflow-wrap: anywhere; }
   .vx-area .map-btn { flex: none; padding: 4px 12px; font-family: inherit; }
   .vx-empty { font-size: 13px; color: var(--text-muted); }
+  .vx-note { font-size: 12px; color: var(--text-muted); overflow-wrap: anywhere; cursor: pointer; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .vx-note.open { display: block; -webkit-line-clamp: unset; }
 
   /* Hunt Analyzer tab */
   #hunt-wrap { display: none; }
@@ -1391,6 +1393,68 @@ function renderVersions() {
     }
     body.appendChild(sec.el);
   });
+
+  // Item definitions (definitions.json): the server's item list, notes included
+  const dd = u.definitions;
+  if (dd && (dd.baseline || dd.added.length || dd.removed.length || dd.changed.length)) {
+    const parts = [];
+    if (dd.added.length) parts.push("+" + dd.added.length);
+    if (dd.removed.length) parts.push("−" + dd.removed.length);
+    if (dd.changed.length) parts.push(dd.changed.length + " changed");
+    const sec = vxDetails("Item definitions", dd.baseline ? "first copy" : parts.join(" · "), !dd.baseline && dd.added.length > 0);
+    if (dd.baseline) {
+      const r = document.createElement("div"); r.className = "vx-line";
+      r.textContent = "First copy of the game's item definitions (" + fmt(dd.after) + " items) - changes are listed from the next update on.";
+      sec.body.appendChild(r);
+    }
+    const defRow = function (r, cls, prefix) {
+      const row = document.createElement("div"); row.className = "vx-entry";
+      const nm = document.createElement("div"); nm.className = "vx-entry-name " + cls; nm.textContent = prefix + (r.name || "?");
+      const id = document.createElement("span"); id.className = "vx-minor"; id.style.fontWeight = "400"; id.textContent = "  #" + r.sid;
+      nm.appendChild(id); row.appendChild(nm);
+      const st = r.stats || {}, bits = [];
+      if (st.slotType) bits.push(st.slotType);
+      else if (st.type) bits.push(st.type);
+      ["attack", "defense", "armor"].forEach(function (k) { if (st[k] !== undefined) bits.push(k + " " + st[k]); });
+      if (st.containerSize) bits.push(st.containerSize + " slots");
+      if (st.weight) bits.push((st.weight / 100).toFixed(2) + " oz");
+      if (bits.length) { const b = document.createElement("div"); b.className = "vx-line"; b.textContent = bits.join(" · "); row.appendChild(b); }
+      if (r.note) {
+        const n = document.createElement("div"); n.className = "vx-note"; n.textContent = r.note; n.title = "Tap to show all";
+        n.addEventListener("click", function () { n.classList.toggle("open"); });
+        row.appendChild(n);
+      }
+      return row;
+    };
+    dd.added.forEach(function (r) { sec.body.appendChild(defRow(r, "vx-add", "+ ")); });
+    dd.removed.forEach(function (r) { sec.body.appendChild(defRow(r, "vx-del", "− ")); });
+    dd.changed.forEach(function (r) {
+      const row = defRow(r, "", "");
+      r.changes.forEach(function (c) { vxChangeLines(c).forEach(function (l) { row.appendChild(l); }); });
+      sec.body.appendChild(row);
+    });
+    body.appendChild(sec.el);
+  }
+
+  // Creatures the game files have corpses for, not in the library/spawns yet
+  const uc = u.unplacedCreatures || [];
+  if (uc.length) {
+    const fresh = uc.filter(function (c) { return c.new; }).length;
+    const sec = vxDetails("Creatures waiting in the game files", uc.length + (fresh ? " · " + fresh + " new" : ""), fresh > 0);
+    const r = document.createElement("div"); r.className = "vx-line";
+    r.textContent = "The server's own item additions include corpses for these creatures, but they aren't in the library or the spawns yet - creatures waiting for their place in the world. Only the corpses are known; stats and loot come once they're released.";
+    sec.body.appendChild(r);
+    const p = document.createElement("div"); p.className = "vx-names";
+    uc.forEach(function (c, i) {
+      if (i) p.appendChild(document.createTextNode(", "));
+      const sp = document.createElement("span");
+      sp.textContent = c.name.replace(/\b\w/g, function (ch) { return ch.toUpperCase(); }) + (c.new ? " (new)" : "");
+      if (c.new) sp.className = "vx-add";
+      p.appendChild(sp);
+    });
+    sec.body.appendChild(p);
+    body.appendChild(sec.el);
+  }
 
   // Spawns
   if (u.spawns && (u.spawns.changed.length || u.spawns.respelled.length)) {
