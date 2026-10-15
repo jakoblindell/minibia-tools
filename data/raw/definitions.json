@@ -131726,5 +131726,60 @@
    "duration": 60,
    "corpseType": "venom"
   }
+ },
+ "22193": {
+  "__note": "Blood moon hat (owner 2026-10-14): a Halloween item, DORMANT (owner: \"make both the backpacks and hat dormant for now\"): nothing gives it out, it is not in the shop (data/760/shop/catalog.json) until the owner says so. The batwing hat recoloured by the owner in the Sprite Recolor tool (night-blue hat, blood-red wings). Armor 3 (owner: \"give it 3 armor\"), 6.00 oz like the batwing hat, and no magic level, so it is a look item and never a hat of the mad for points. Its look is virtual CID 30071 (client/src/data/virtual-items.js).",
+  "id": 30071,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "blood moon hat",
+   "weight": 600,
+   "armor": 3,
+   "slotType": "head"
+  }
+ },
+ "22194": {
+  "__note": "Beholder backpack (owner 2026-10-14, the owner's art, bps.rar beholder_bp.png): set up 1:1 as the backpack (SID 1988): group 2, type container, 20 slots, back slot, 18.00 oz; its own sprite, client id 12871 (tools/dat-spr/add-item-sprite.js, donor CID 2854, so the dat carries the backpack's Container and Pickupable flags). DORMANT (owner: \"make both the backpacks and hat dormant for now\"): nothing gives it out, not in the shop or any loot, until the owner says so.",
+  "id": 12871,
+  "flags": 96,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "beholder backpack",
+   "weight": 1800,
+   "containerSize": 20,
+   "slotType": "backpack",
+   "type": "container"
+  }
+ },
+ "22195": {
+  "__note": "Ghost backpack (owner 2026-10-14, the owner's art, bps.rar ghost_bp.png): set up 1:1 as the backpack (SID 1988): group 2, type container, 20 slots, back slot, 18.00 oz; its own sprite, client id 12872 (tools/dat-spr/add-item-sprite.js, donor CID 2854, so the dat carries the backpack's Container and Pickupable flags). DORMANT (owner: \"make both the backpacks and hat dormant for now\"): nothing gives it out, not in the shop or any loot, until the owner says so.",
+  "id": 12872,
+  "flags": 96,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "ghost backpack",
+   "weight": 1800,
+   "containerSize": 20,
+   "slotType": "backpack",
+   "type": "container"
+  }
+ },
+ "22196": {
+  "__note": "Pumpkin backpack (owner 2026-10-14, the owner's art, bps.rar pumpkim.png): set up 1:1 as the backpack (SID 1988): group 2, type container, 20 slots, back slot, 18.00 oz; its own sprite, client id 12873 (tools/dat-spr/add-item-sprite.js, donor CID 2854, so the dat carries the backpack's Container and Pickupable flags). DORMANT (owner: \"make both the backpacks and hat dormant for now\"): nothing gives it out, not in the shop or any loot, until the owner says so.",
+  "id": 12873,
+  "flags": 96,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "pumpkin backpack",
+   "weight": 1800,
+   "containerSize": 20,
+   "slotType": "backpack",
+   "type": "container"
+  }
  }
 }
