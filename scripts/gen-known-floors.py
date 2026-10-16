@@ -13,16 +13,31 @@ nearest. Monsters are matched by name (case/punctuation-insensitive, plus
 ALIASES for the few Minibia renames); clusters with no real spawn nearby
 (Minibia-only areas) are simply left out.
 
+Where the match is unambiguous the cluster also gets the real spawns' own
+tiles (each with its floor), so the map can show the monsters where they
+spawn instead of one "cluster of N" dot. Minibia's clusters are its spawns
+grouped, at the (rounded) average of their tiles, so a cluster takes the
+real spawns of the same monster within RADIUS when `count` of them average
+to exactly the cluster's tile - the nearest `count`, or else the only such
+set - every one of their floors is allowed by the terrain, and no real
+spawn is claimed by two clusters. Where the average is off, Minibia moved
+those spawns, so the cluster keeps just its floor.
+
 Input: the export as JSON - anything containing {"monster": {"name"},
 "spots": [{"spawns": [{"x", "y", "z"}]}]} blocks (a list of them, one, or
 nested). It isn't kept in the repo; only the small result is:
 
   {"radius": 8, "monsters": {"<our name>": [[x, y, floorMask], ...]}}
 
+with a 4th element on rows that got spawn tiles: [dx, dy, z, dx, dy, z, ...]
+(offsets from the cluster's x/y); their floorMask is then those floors.
+
 Run:  python scripts/gen-known-floors.py path/to/export.json
       (after gen-floor-plausibility.py - it reads compendium.json's masks)
 """
+import itertools
 import json
+import math
 import os
 import re
 import sys
@@ -30,6 +45,7 @@ import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DERIVED = os.path.join(ROOT, "data", "derived")
 RADIUS = 8
+COMBO_LIMIT = 5000   # subsets tried when there are more real spawns than the count
 # Minibia name -> real-Tibia name, where they differ.
 ALIASES = {
     "beholder": "bonelord",
@@ -91,6 +107,43 @@ def known_mask(x, y, terrain, grid):
     return mask
 
 
+def near_spawns(x, y, grid):
+    out = []
+    for gx in range((x - RADIUS) >> 4, ((x + RADIUS) >> 4) + 1):
+        for gy in range((y - RADIUS) >> 4, ((y + RADIUS) >> 4) + 1):
+            for t in grid.get((gx, gy), ()):
+                d = max(abs(t[0] - x), abs(t[1] - y))
+                if d <= RADIUS:
+                    out.append((d, t))
+    out.sort()
+    return [t for _, t in out]
+
+
+def averages_to(sub, x, y):
+    n = len(sub)
+    return (math.floor(sum(t[0] for t in sub) / n + 0.5) == x and
+            math.floor(sum(t[1] for t in sub) / n + 0.5) == y)
+
+
+def spawn_tiles(x, y, count, terrain, grid):
+    """The real spawns this cluster is made of (see the module doc), or None."""
+    near = near_spawns(x, y, grid)
+    if count < 1 or len(near) < count:
+        return None
+    if averages_to(near[:count], x, y):
+        sel = near[:count]
+    else:
+        if math.comb(len(near), count) > COMBO_LIMIT:
+            return None
+        sols = [s for s in itertools.combinations(near, count) if averages_to(s, x, y)]
+        if len(sols) != 1:
+            return None
+        sel = list(sols[0])
+    if terrain is not None and terrain & 0xFFFF != 0xFFFF and any(not (terrain >> t[2]) & 1 for t in sel):
+        return None
+    return sel
+
+
 def main():
     if len(sys.argv) != 2:
         raise SystemExit(__doc__)
@@ -99,7 +152,7 @@ def main():
         comp = json.load(f)
 
     out = {}
-    n_mon = n_pts = n_known = n_single = 0
+    n_mon = n_pts = n_known = n_single = n_tiled = n_spawns = 0
     for mo in comp["spawnMap"]["monsters"]:
         key = norm(mo["name"])
         pts = tibia.get(ALIASES.get(key, key))
@@ -109,13 +162,30 @@ def main():
         grid = {}
         for t in pts:
             grid.setdefault((t[0] >> 4, t[1] >> 4), []).append(t)
-        rows = []
+        rows, claims = [], {}
         for p in mo["points"]:
             n_pts += 1
-            mask = known_mask(p[0], p[1], p[3] if len(p) > 3 else None, grid)
+            terrain = p[3] if len(p) > 3 else None
+            mask = known_mask(p[0], p[1], terrain, grid)
             if mask:
-                rows.append([p[0], p[1], mask])
-                n_single += (mask & (mask - 1)) == 0
+                row = [p[0], p[1], mask]
+                tiles = spawn_tiles(p[0], p[1], p[2], terrain, grid)
+                if tiles:
+                    row.append(tiles)
+                    for t in tiles:
+                        claims[t] = claims.get(t, 0) + 1
+                rows.append(row)
+        for row in rows:
+            if len(row) > 3:
+                tiles = row.pop()
+                if all(claims[t] == 1 for t in tiles):
+                    row[2] = 0
+                    for t in tiles:
+                        row[2] |= 1 << t[2]
+                    row.append([v for t in tiles for v in (t[0] - row[0], t[1] - row[1], t[2])])
+                    n_tiled += 1
+                    n_spawns += len(tiles)
+            n_single += (row[2] & (row[2] - 1)) == 0
         if rows:
             out[mo["name"]] = rows
             n_known += len(rows)
@@ -123,7 +193,8 @@ def main():
     with open(os.path.join(DERIVED, "known-floors.json"), "w", encoding="utf-8") as f:
         json.dump({"radius": RADIUS, "monsters": out}, f, separators=(",", ":"))
     print("known floors: %d of our monsters have real-Tibia spawn data; %d of their %d spawn clusters got a known floor "
-          "(%d single-floor), written to known-floors.json" % (n_mon, n_known, n_pts, n_single))
+          "(%d single-floor); %d of those got their real spawn tiles (%d spawns), written to known-floors.json"
+          % (n_mon, n_known, n_pts, n_single, n_tiled, n_spawns))
 
 
 if __name__ == "__main__":
