@@ -738,7 +738,8 @@
             <ol class="route-points" id="route-points"></ol>
             <div class="route-actions">
               <label class="map-floor-filter-toggle edit-only"><input type="checkbox" id="route-loop"> Loop back to start</label>
-              <button class="map-btn edit-only" id="route-undo" type="button" title="Undo the last change (add, insert, move, delete, clear)">Undo</button>
+              <label class="map-floor-filter-toggle edit-only" title="When the next point you click is on another floor, the stairs/hole/ladder waypoints the walk takes are put in for you"><input type="checkbox" id="route-autofloor" checked> Add floor changes automatically</label>
+              <button class="map-btn edit-only" id="route-undo" type="button" title="Undo the last change (add, insert, move, delete, clear) - a click's automatic floor changes go with it">Undo</button>
               <button class="map-btn edit-only" id="route-clear" type="button">Clear</button>
               <button class="map-btn edit-only" id="route-copy" type="button">Copy share link</button>
               <button class="map-btn view-only" id="route-edit" type="button" style="display:none;">Edit a copy</button>
@@ -4448,7 +4449,7 @@ function drawPathOverlay(w, h) {
 // a shared link opens it read-only, with "Edit a copy".
 const ROUTE_MAX_POINTS = 500, ROUTE_NOTE_MAX = 120, ROUTE_TITLE_MAX = 120;
 const routeState = { mode: "off", title: "", loop: false, points: [], legs: [], gen: 0, prepText: "", fromLink: false, open: new Set(), undoFill: null, dragIndex: null, dragMoved: false,
-  history: [], insertAt: null, handles: [], dragInserted: false };
+  history: [], insertAt: null, handles: [], dragInserted: false, autoFloor: [] };
 
 // --- Bot waypoints: every route point is also a waypoint for the user's
 // cave bot (its Cave -> Route "Import JSON" format). A point carries the
@@ -4717,6 +4718,7 @@ function routeRecompute() {
   const gen = ++routeState.gen;
   const pairs = routePairs();
   routeState.legs = pairs.map(function (pr) { return routeLegCache.get(routeLegKey(pr[0], pr[1])) || null; });
+  if (routeState.autoFloor.length && routeApplyAutoFloor()) { routeAutoFloorDone(); return; }
   routeRenderStatus();
   drawMap();
   const missing = [];
@@ -4730,10 +4732,17 @@ function routeRecompute() {
       routeLegCache.set(routeLegKey(a, b), leg);
       if (gen !== routeState.gen) return;
       routeState.legs[i] = leg;
+      if (routeState.autoFloor.length && routeApplyAutoFloor()) { routeAutoFloorDone(); return; }
       routeRenderStatus();
       drawMap();
     }
   })();
+}
+
+function routeAutoFloorDone() {
+  routeState.open.clear();
+  routeChanged();
+  if (routeState.autoNote) botRenderMessages(routeState.autoNote);
 }
 
 function routeRenderStatus() {
@@ -4741,7 +4750,7 @@ function routeRenderStatus() {
   if (!el) return;
   const n = routeState.points.length;
   if (routeState.prepText) { el.textContent = routeState.prepText; return; }
-  if (!n) { el.textContent = routeState.mode === "edit" ? "Click the map to add the first point. Change floors with ▲/▼ between clicks if the route goes up or down." : ""; return; }
+  if (!n) { el.textContent = routeState.mode === "edit" ? "Click the map to add the first point. Change floors with ▲/▼ between clicks if the route goes up or down" + (routeAutoFloorOn() ? " - the stairs/holes on the way go in as waypoints by themselves." : ".") : ""; return; }
   let steps = 0, changes = 0, pending = 0, failed = 0, doors = 0;
   routeState.legs.forEach(function (leg) {
     if (!leg) { pending++; return; }
@@ -5218,6 +5227,7 @@ function routeUndo() {
   const prev = routeState.history.pop();
   if (prev === undefined) return;
   routeState.points = JSON.parse(prev);
+  routeState.autoFloor = [];
   routeState.open.clear();
   routeSetInsert(null);
   routeChanged();
@@ -5333,7 +5343,63 @@ function routeAddPoint(sx, sy) {
     routeState.points.push(pt);
     if (routeState.insertAt !== null) routeSetInsert(null);
   }
+  routeMarkAutoFloor(pt);
   routeChanged();
+}
+
+// "Add floor changes automatically": a clicked point on another floor than
+// its neighbour marks that leg; once the pathfinder has walked it, the
+// floor-change waypoints it takes (see botLegFill, no walk samples) go in
+// between, so "go here, change floor, go there" needs no type editing.
+// Covered by the click's own Undo snapshot.
+const ROUTE_AUTOFLOOR_KEY = "minibia.route.autoFloor";
+function routeAutoFloorOn() {
+  const cb = document.getElementById("route-autofloor");
+  return !cb || cb.checked;
+}
+function routeMarkAutoFloor(pt) {
+  if (!routeAutoFloorOn()) return;
+  const pts = routeState.points, i = pts.indexOf(pt);
+  if (i > 0 && pts[i - 1].z !== pt.z) routeState.autoFloor.push({ a: pts[i - 1], b: pt });
+  if (i >= 0 && i < pts.length - 1 && pts[i + 1].z !== pt.z) routeState.autoFloor.push({ a: pt, b: pts[i + 1] });
+}
+function routePlainWalk(p) {
+  return p.t === "walk" && !p.id && !p.label && p.en && !Object.keys(p.params).length;
+}
+// Applies one marked leg whose path is in; returns true when the points
+// changed (the caller then recomputes, which comes back here for the rest).
+function routeApplyAutoFloor() {
+  const pts = routeState.points, pairs = routePairs();
+  for (let k = 0; k < routeState.autoFloor.length; k++) {
+    const m = routeState.autoFloor[k], i = pts.indexOf(m.a);
+    if (i < 0 || pts[i + 1] !== m.b) { routeState.autoFloor.splice(k--, 1); continue; }
+    const leg = routeState.legs[i];
+    if (!leg || pairs[i][0] !== m.a) continue;
+    routeState.autoFloor.splice(k--, 1);
+    if (!leg.ok) continue;
+    const add = [];
+    botLegFill(add, leg.nodes, 0);
+    add.forEach(function (w) { delete w.fill; });
+    // You clicked the stairs/hole (or the tile before it) yourself: that
+    // point becomes the floor change instead of getting a twin.
+    let n = add.length;
+    if (add.length && add[0].z === m.a.z && add[0].x === m.a.x && add[0].y === m.a.y && routePlainWalk(m.a)) {
+      m.a.t = add[0].t; m.a.params = add[0].params;
+      add.shift();
+    } else if (add.length && add[0].z === m.a.z && Math.max(Math.abs(add[0].x - m.a.x), Math.abs(add[0].y - m.a.y)) <= 1 && routePlainWalk(m.a) && !m.a.note &&
+        botMarkers().known[m.a.z] && botMarkers().known[m.a.z].has(m.a.x + "," + m.a.y)) {
+      // Clicked right on the hole/stairs tile: move the point onto the
+      // tile you step in from.
+      m.a.x = add[0].x; m.a.y = add[0].y; m.a.t = add[0].t; m.a.params = add[0].params;
+      add.shift();
+    }
+    if (pts.length + add.length > ROUTE_MAX_POINTS) { const keep = Math.max(0, ROUTE_MAX_POINTS - pts.length); n -= add.length - keep; add.length = keep; }
+    pts.splice.apply(pts, [i + 1, 0].concat(add));
+    routeState.autoNote = n ? "Added " + n + " floor change" + (n === 1 ? "" : "s") + " for the walk to #" + (pts.indexOf(m.b) + 1) + "." +
+      (botUnpicked(pts).length && !BOT_UP_EXPORT ? " Ways up need a type - pick them on the map (button below)." : "") : "";
+    return true;
+  }
+  return false;
 }
 
 // Opens a route from the URL hash (a shared link), if there is one.
@@ -5749,6 +5815,13 @@ function initMap() {
   mapSyncMode();
   document.getElementById("route-title").addEventListener("input", function (e) { routeState.title = e.target.value.slice(0, ROUTE_TITLE_MAX); routeUpdateLink(); });
   document.getElementById("route-loop").addEventListener("change", function (e) { routeState.loop = e.target.checked; routeChanged(); });
+  const autoFloorCb = document.getElementById("route-autofloor");
+  try { if (localStorage.getItem(ROUTE_AUTOFLOOR_KEY) === "0") autoFloorCb.checked = false; } catch (e) { /* ignore */ }
+  autoFloorCb.addEventListener("change", function () {
+    try { localStorage.setItem(ROUTE_AUTOFLOOR_KEY, autoFloorCb.checked ? "1" : "0"); } catch (e) { /* ignore */ }
+    if (!autoFloorCb.checked) routeState.autoFloor = [];
+    routeRenderStatus();
+  });
   document.getElementById("route-undo").addEventListener("click", routeUndo);
   document.getElementById("route-clear").addEventListener("click", function () {
     if (!routeState.points.length) return;
