@@ -526,6 +526,12 @@
   .vx-area span { min-width: 0; overflow-wrap: anywhere; }
   .vx-area .map-btn { flex: none; padding: 4px 12px; font-family: inherit; }
   .vx-empty { font-size: 13px; color: var(--text-muted); }
+  .route-insert[hidden] { display: none; }
+  .route-insert { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 10px; border: 1px solid var(--accent); border-radius: 8px; font-size: 13px; color: var(--text-primary); background: var(--surface-2); }
+  .route-insert .map-btn { flex: none; }
+  .rb-actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; }
+  .rb-actions .map-btn { padding: 4px 10px; }
+  @media (pointer: coarse) { .rb-actions .map-btn { min-height: 36px; padding: 6px 14px; } }
   .vx-note { font-size: 12px; color: var(--text-muted); overflow-wrap: anywhere; cursor: pointer; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
   .vx-note.open { display: block; -webkit-line-clamp: unset; }
 
@@ -725,10 +731,14 @@
             <h3 class="route-title view-only" id="route-title-view"></h3>
             <div class="route-status" id="route-status"></div>
             <div class="route-legend" id="route-legend"></div>
+            <div class="route-insert edit-only" id="route-insert" hidden>
+              <span id="route-insert-text"></span>
+              <button class="map-btn" id="route-insert-done" type="button">Done</button>
+            </div>
             <ol class="route-points" id="route-points"></ol>
             <div class="route-actions">
               <label class="map-floor-filter-toggle edit-only"><input type="checkbox" id="route-loop"> Loop back to start</label>
-              <button class="map-btn edit-only" id="route-undo" type="button">Undo last point</button>
+              <button class="map-btn edit-only" id="route-undo" type="button" title="Undo the last change (add, insert, move, delete, clear)">Undo</button>
               <button class="map-btn edit-only" id="route-clear" type="button">Clear</button>
               <button class="map-btn edit-only" id="route-copy" type="button">Copy share link</button>
               <button class="map-btn view-only" id="route-edit" type="button" style="display:none;">Edit a copy</button>
@@ -4437,7 +4447,8 @@ function drawPathOverlay(w, h) {
 // (#route=...) - no server, nothing stored. The map's "Route builder" mode;
 // a shared link opens it read-only, with "Edit a copy".
 const ROUTE_MAX_POINTS = 500, ROUTE_NOTE_MAX = 120, ROUTE_TITLE_MAX = 120;
-const routeState = { mode: "off", title: "", loop: false, points: [], legs: [], gen: 0, prepText: "", fromLink: false, open: new Set(), undoFill: null, dragIndex: null, dragMoved: false };
+const routeState = { mode: "off", title: "", loop: false, points: [], legs: [], gen: 0, prepText: "", fromLink: false, open: new Set(), undoFill: null, dragIndex: null, dragMoved: false,
+  history: [], insertAt: null, handles: [], dragInserted: false };
 
 // --- Bot waypoints: every route point is also a waypoint for the user's
 // cave bot (its Cave -> Route "Import JSON" format). A point carries the
@@ -4776,7 +4787,7 @@ function routeRenderList() {
         const o = document.createElement("option"); o.value = t; o.textContent = BOT_TYPES[t].label; sel.appendChild(o);
       });
       sel.value = p.t;
-      sel.addEventListener("change", function () { botSetType(p, sel.value); routeState.open.add(i); routeChanged(); });
+      sel.addEventListener("change", function () { routeSnapshot(); botSetType(p, sel.value); routeState.open.add(i); routeChanged(); });
       row.appendChild(sel);
     } else {
       const ty = document.createElement("span"); ty.className = "route-type-view";
@@ -4794,7 +4805,7 @@ function routeRenderList() {
       gear.addEventListener("click", function () { if (routeState.open.has(i)) routeState.open.delete(i); else routeState.open.add(i); routeRenderList(); });
       row.appendChild(gear);
       const del = document.createElement("button"); del.className = "map-btn icon"; del.type = "button"; del.textContent = "✕"; del.title = "Remove point";
-      del.addEventListener("click", function () { routeState.points.splice(i, 1); routeState.open.clear(); routeChanged(); });
+      del.addEventListener("click", function () { routeSnapshot(); routeState.points.splice(i, 1); routeState.open.clear(); routeSetInsert(null); routeChanged(); });
       row.appendChild(del);
     }
     li.appendChild(row);
@@ -4820,6 +4831,20 @@ function botSetType(p, t) {
 
 function botSettingsEl(p, i) {
   const box = document.createElement("div"); box.className = "route-bot-settings";
+  // Order: move this point up/down, or insert new points right after it.
+  const acts = document.createElement("div"); acts.className = "rb-actions";
+  const act = function (label, title, disabled, fn) {
+    const b = document.createElement("button"); b.type = "button"; b.className = "map-btn"; b.textContent = label; b.title = title;
+    b.disabled = disabled; b.addEventListener("click", fn); acts.appendChild(b);
+  };
+  const n = routeState.points.length;
+  act("↑ Up", "Move this point one up the route", i === 0, function () { routeMovePoint(i, -1); });
+  act("↓ Down", "Move this point one down the route", i === n - 1, function () { routeMovePoint(i, 1); });
+  act("+ Insert after", "Next clicks on the map add points right after this one", false, function () {
+    routeSetInsert(i + 1);
+    document.getElementById("route-insert").scrollIntoView({ block: "nearest" });
+  });
+  box.appendChild(acts);
   const field = function (labelText, input) {
     const l = document.createElement("label"); l.className = "rb-field";
     const span = document.createElement("span"); span.textContent = labelText;
@@ -5116,6 +5141,7 @@ function routeUpdateLink() {
   box.value = routeState.points.length ? routeLink() : "";
 }
 function routeChanged() {
+  routeUndoButton();
   routeRenderList();
   botRenderMessages();
   routeUpdateLink();
@@ -5137,6 +5163,7 @@ function routeShowPanel() {
   routeRenderList();
   routeUpdateLink();
   routeRenderStatus();
+  routeUndoButton();
   botRenderMessages("");
 }
 
@@ -5163,6 +5190,7 @@ function routeStartEdit() {
 }
 function routeClose() {
   if (upq.kind === "route") upqClose();
+  routeSetInsert(null);
   routeState.mode = "off";
   routeState.gen++;
   routeState.legs = [];
@@ -5172,6 +5200,85 @@ function routeClose() {
   routeState.fromLink = false;
   routeShowPanel();
   drawMap();
+}
+
+// Undo: a snapshot of the points before every change (add, insert, move,
+// drag, delete, type, import, clear); Undo puts the last one back.
+const ROUTE_HISTORY_MAX = 60;
+function routeSnapshot() {
+  routeState.history.push(JSON.stringify(routeState.points));
+  if (routeState.history.length > ROUTE_HISTORY_MAX) routeState.history.shift();
+  routeUndoButton();
+}
+function routeUndoButton() {
+  const b = document.getElementById("route-undo");
+  if (b) b.disabled = !routeState.history.length;
+}
+function routeUndo() {
+  const prev = routeState.history.pop();
+  if (prev === undefined) return;
+  routeState.points = JSON.parse(prev);
+  routeState.open.clear();
+  routeSetInsert(null);
+  routeChanged();
+  routeUndoButton();
+}
+// "Insert after #n": the next map clicks add points from that spot on
+// instead of at the end (each one after the previous); Done ends it.
+function routeSetInsert(at) {
+  routeState.insertAt = at;
+  const box = document.getElementById("route-insert");
+  if (!box) return;
+  box.hidden = at === null;
+  if (at !== null) document.getElementById("route-insert-text").textContent =
+    "Click the map to insert " + (at === 0 ? "before #1" : "after #" + at) + (at < routeState.points.length ? " (before #" + (at + 1) + ")" : "");
+}
+function routeMovePoint(i, d) {
+  const j = i + d, pts = routeState.points;
+  if (j < 0 || j >= pts.length) return;
+  routeSnapshot();
+  const p = pts.splice(i, 1)[0];
+  pts.splice(j, 0, p);
+  routeState.open.clear(); routeState.open.add(j);
+  routeSetInsert(null);
+  routeChanged();
+}
+// The "+" handles in the middle of each leg (edit mode): drag or click one to
+// add a point there, between the two it joins. Positions are worked out when
+// the route is drawn, in screen space, for hit testing.
+function routeLegMidTile(i, a, b) {
+  const leg = routeState.legs[i];
+  if (leg && leg.ok && leg.nodes && leg.nodes.length > 1) {
+    const tiles = botLegTiles(leg.nodes);
+    const t = tiles[Math.floor(tiles.length / 2)];
+    if (t) return { z: t.z, x: t.x, y: t.y };
+  }
+  if (a.z !== b.z) return null;
+  return { z: a.z, x: Math.round((a.x + b.x) / 2), y: Math.round((a.y + b.y) / 2) };
+}
+function routeHandleAt(sx, sy) {
+  if (routeState.mode !== "edit") return -1;
+  for (let k = 0; k < routeState.handles.length; k++) {
+    const h = routeState.handles[k];
+    if ((h.sx - sx) * (h.sx - sx) + (h.sy - sy) * (h.sy - sy) <= 11 * 11) return k;
+  }
+  return -1;
+}
+// What a press in edit mode grabs: an existing point, or a new one made
+// from a leg's "+" handle (inserted between the two points it joins).
+function routeGrabAt(sx, sy) {
+  const hit = routePointAt(sx, sy);
+  if (hit >= 0) return hit;
+  const k = routeHandleAt(sx, sy);
+  if (k < 0 || routeState.points.length >= ROUTE_MAX_POINTS) return -1;
+  const h = routeState.handles[k];
+  routeSnapshot();
+  const at = h.pair + 1;
+  routeState.points.splice(at, 0, routeMakePoint(h.tile.z, h.tile.x, h.tile.y, ""));
+  routeState.open.clear();
+  routeSetInsert(null);
+  routeState.dragInserted = true;
+  return at;
 }
 
 // Dragging waypoints (edit mode): the point nearest the cursor on this
@@ -5196,14 +5303,15 @@ function routeDragTo(sx, sy) {
   const [wx, wy] = screenToWorld(sx, sy);
   const nx = Math.floor(wx), ny = Math.floor(wy);
   if (nx === p.x && ny === p.y) return;
+  if (!routeState.dragMoved && !routeState.dragInserted) routeSnapshot();
   p.x = nx; p.y = ny; routeState.dragMoved = true;
   routeState.legs = routePairs().map(function (pr) { return routeLegCache.get(routeLegKey(pr[0], pr[1])) || null; });
   drawMap();
 }
 function routeDragEnd() {
-  const i = routeState.dragIndex, moved = routeState.dragMoved;
-  routeState.dragIndex = null; routeState.dragMoved = false;
-  if (moved) { routeChanged(); return; }
+  const i = routeState.dragIndex, moved = routeState.dragMoved, inserted = routeState.dragInserted;
+  routeState.dragIndex = null; routeState.dragMoved = false; routeState.dragInserted = false;
+  if (moved || inserted) { routeChanged(); return; }
   // A click on a point without moving it: open its settings in the list.
   routeState.open.add(i);
   routeRenderList();
@@ -5215,7 +5323,16 @@ function routeDragEnd() {
 function routeAddPoint(sx, sy) {
   if (routeState.points.length >= ROUTE_MAX_POINTS) return;
   const [wx, wy] = screenToWorld(sx, sy);
-  routeState.points.push(routeMakePoint(state.mapFloor, Math.floor(wx), Math.floor(wy), ""));
+  const pt = routeMakePoint(state.mapFloor, Math.floor(wx), Math.floor(wy), "");
+  routeSnapshot();
+  if (routeState.insertAt !== null && routeState.insertAt < routeState.points.length) {
+    routeState.points.splice(routeState.insertAt, 0, pt);
+    routeState.open.clear();
+    routeSetInsert(routeState.insertAt + 1);
+  } else {
+    routeState.points.push(pt);
+    if (routeState.insertAt !== null) routeSetInsert(null);
+  }
   routeChanged();
 }
 
@@ -5277,6 +5394,24 @@ function drawRouteOverlay() {
       mapCtx.beginPath(); mapCtx.moveTo(ax, ay); mapCtx.lineTo(bx, by); mapCtx.stroke();
       mapCtx.setLineDash([]);
     }
+  }
+  // "+" handles mid-leg (edit mode): drag or click one to add a point there.
+  routeState.handles = [];
+  if (routeState.mode === "edit" && routeState.dragIndex === null && routeState.points.length < ROUTE_MAX_POINTS) {
+    pairs.forEach(function (pr, i) {
+      const t = routeLegMidTile(i, pr[0], pr[1]);
+      if (!t || t.z !== z) return;
+      const [hx, hy] = worldToScreen(t.x + 0.5, t.y + 0.5);
+      // only where the leg is long enough on screen to tell the handle apart
+      const ends = [pr[0], pr[1]].filter(function (q) { return q.z === z; }).map(function (q) { return worldToScreen(q.x + 0.5, q.y + 0.5); });
+      if (ends.some(function (e) { return Math.hypot(e[0] - hx, e[1] - hy) < 28; })) return;
+      routeState.handles.push({ pair: i, tile: t, sx: hx, sy: hy });
+      mapCtx.beginPath(); mapCtx.arc(hx, hy, 7, 0, Math.PI * 2);
+      mapCtx.fillStyle = "rgba(255,255,255,0.92)"; mapCtx.fill();
+      mapCtx.lineWidth = 2; mapCtx.strokeStyle = "#ff8c00"; mapCtx.stroke();
+      mapCtx.beginPath(); mapCtx.moveTo(hx - 3.5, hy); mapCtx.lineTo(hx + 3.5, hy); mapCtx.moveTo(hx, hy - 3.5); mapCtx.lineTo(hx, hy + 3.5);
+      mapCtx.lineWidth = 2; mapCtx.strokeStyle = "#c2410c"; mapCtx.stroke();
+    });
   }
   routeState.points.forEach(function (p, i) {
     if (p.z !== z || upqHides(p.z, p.x, p.y)) return;
@@ -5383,7 +5518,7 @@ function initMap() {
       mapTooltip.style.display = "none";
     } else if (e.touches.length === 1) {
       touchState.pinching = false;
-      const hit = routePointAt(e.touches[0].clientX - rect.left, e.touches[0].clientY - rect.top);
+      const hit = routeGrabAt(e.touches[0].clientX - rect.left, e.touches[0].clientY - rect.top);
       if (hit >= 0) { routeDragStart(hit); mapView.dragging = false; mapTooltip.style.display = "none"; return; }
       mapView.dragging = true;
       mapView.lastX = e.touches[0].clientX; mapView.lastY = e.touches[0].clientY;
@@ -5458,7 +5593,7 @@ function initMap() {
 
   mapCanvas.addEventListener("mousedown", function (e) {
     if (routeState.mode === "edit") {
-      const r0 = mapCanvas.getBoundingClientRect(), hit = routePointAt(e.clientX - r0.left, e.clientY - r0.top);
+      const r0 = mapCanvas.getBoundingClientRect(), hit = routeGrabAt(e.clientX - r0.left, e.clientY - r0.top);
       if (hit >= 0) { e.preventDefault(); routeDragStart(hit); mapCanvas.style.cursor = "grabbing"; mapTooltip.style.display = "none"; return; }
     }
     mapView.dragging = true;
@@ -5520,7 +5655,7 @@ function initMap() {
       mapCanvas.style.cursor = "pointer";
     } else {
       mapTooltip.style.display = "none";
-      mapCanvas.style.cursor = routePointAt(sx, sy) >= 0 ? "move" : "grab";
+      mapCanvas.style.cursor = routePointAt(sx, sy) >= 0 ? "move" : (routeHandleAt(sx, sy) >= 0 ? "copy" : "grab");
     }
   });
 
@@ -5614,8 +5749,12 @@ function initMap() {
   mapSyncMode();
   document.getElementById("route-title").addEventListener("input", function (e) { routeState.title = e.target.value.slice(0, ROUTE_TITLE_MAX); routeUpdateLink(); });
   document.getElementById("route-loop").addEventListener("change", function (e) { routeState.loop = e.target.checked; routeChanged(); });
-  document.getElementById("route-undo").addEventListener("click", function () { routeState.points.pop(); routeChanged(); });
-  document.getElementById("route-clear").addEventListener("click", function () { routeState.points = []; routeChanged(); });
+  document.getElementById("route-undo").addEventListener("click", routeUndo);
+  document.getElementById("route-clear").addEventListener("click", function () {
+    if (!routeState.points.length) return;
+    routeSnapshot(); routeState.points = []; routeState.open.clear(); routeSetInsert(null); routeChanged();
+  });
+  document.getElementById("route-insert-done").addEventListener("click", function () { routeSetInsert(null); });
   const botCopyText = function (text, btn, label) {
     const done = function () { btn.textContent = "Copied!"; setTimeout(function () { btn.textContent = label; }, 1500); };
     const fallback = function () {
@@ -5627,6 +5766,7 @@ function initMap() {
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, fallback); else fallback();
   };
   document.getElementById("route-bot-fill").addEventListener("click", function () {
+    if (routeState.points.length > 1) routeSnapshot();
     const msg = botFillIn(Number(document.getElementById("route-bot-spacing").value));
     document.getElementById("route-bot-unfill").style.display = routeState.undoFill ? "" : "none";
     routeChanged();
@@ -5706,6 +5846,7 @@ function initMap() {
     const pts = pb.points.map(function (p) {
       return routeMakePoint(p.z, p.x, p.y, "", { t: p.t, params: botClone(p.params) });
     });
+    if (routeState.points.length) routeSnapshot();
     routeState.points = pts; routeState.loop = false; routeState.undoFill = null; routeState.open.clear(); routeState.fromLink = false;
     document.getElementById("route-loop").checked = false;
     document.getElementById("route-bot-unfill").style.display = "none";
@@ -5724,6 +5865,7 @@ function initMap() {
     const ta = document.getElementById("route-bot-import-text");
     const r = botImport(ta.value);
     if (r.error) { botRenderMessages(r.error); return; }
+    if (routeState.points.length) routeSnapshot();
     routeState.points = r.points; routeState.loop = r.loop; routeState.undoFill = null; routeState.open.clear();
     document.getElementById("route-loop").checked = r.loop;
     document.getElementById("route-bot-unfill").style.display = "none";
