@@ -556,6 +556,23 @@
   .hunt-history-diff.bad { color: var(--bad); }
   .hunt-history-actions { display: flex; gap: 6px; flex-shrink: 0; }
 
+  /* Back: floating at the bottom centre (the map keeps its own overlays in
+     the corners), shown once there's somewhere to go back to */
+  .nav-back[hidden] { display: none; }
+  .nav-back { position: fixed; left: 50%; transform: translateX(-50%); bottom: max(12px, env(safe-area-inset-bottom)); z-index: 55;
+    display: flex; align-items: stretch; background: var(--surface-1); border: 1px solid var(--border); border-radius: 999px; box-shadow: var(--shadow); }
+  .nav-back button { font: inherit; font-size: 13px; font-weight: 600; color: var(--text-primary); background: none; border: 0; cursor: pointer; padding: 8px 12px; min-height: 36px; }
+  .nav-back .nav-back-btn { padding-left: 14px; border-radius: 999px 0 0 999px; }
+  .nav-back .nav-back-more { border-left: 1px solid var(--border); padding: 8px 12px 8px 10px; border-radius: 0 999px 999px 0; }
+  .nav-back button:hover { color: var(--accent); }
+  .nav-back-menu[hidden] { display: none; }
+  .nav-back-menu { position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(100% + 6px); min-width: 220px; max-width: min(340px, calc(100vw - 24px));
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow); padding: 6px; display: flex; flex-direction: column; gap: 2px; }
+  .nav-back-menu .nav-back-title { font-size: 11.5px; color: var(--text-muted); padding: 4px 8px 2px; }
+  .nav-back-menu button { text-align: left; border-radius: 6px; padding: 8px 10px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .nav-back-menu button:hover { background: var(--surface-2); }
+  @media (pointer: coarse) { .nav-back button { min-height: 40px; } }
+
   /* stairs unknown-labeling tool - floating over the map, any tab */
   #stairs-label-panel {
     position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); z-index: 60;
@@ -583,6 +600,12 @@
 </style>
 
 <div class="page">
+
+  <div class="nav-back" id="nav-back" hidden>
+    <button class="nav-back-btn" id="nav-back-btn" type="button">← Back</button>
+    <button class="nav-back-more" id="nav-back-more" type="button" aria-label="Earlier views" aria-expanded="false" title="Earlier views">▾</button>
+    <div class="nav-back-menu" id="nav-back-menu" hidden></div>
+  </div>
 
   <div class="topnav"><span>Minibia reference tools</span></div>
 
@@ -1103,6 +1126,7 @@ function maskFloor(f) {
 function goToSpotOnMap(name) {
   const m = findMonsterByName(name);
   if (!m || !m.bestSpotAt) return goToMonsterOnMap(name);
+  navRecord();
   goToMonsterOnMap(name);
   const z = maskFloor(m.bestSpotAt.f);
   if (z !== null) setMapFloor(z);
@@ -1124,6 +1148,7 @@ function refreshTabChrome() {
 function goToItem(name) {
   const it = findItemByName(name);
   if (!it) return;
+  navRecord();
   state.tab = "items";
   state.category = "all";
   state.tier = "all";
@@ -1147,6 +1172,7 @@ function goToItem(name) {
 function goToNpc(name) {
   const n = findNpcByName(name);
   if (!n) return;
+  navRecord();
   state.tab = "npcs";
   state.category = "all";
   state.tier = "all";
@@ -1170,6 +1196,7 @@ function goToNpc(name) {
 function goToMonster(name) {
   const m = findMonsterByName(name);
   if (!m) return;
+  navRecord();
   state.tab = "monsters";
   state.category = "all";
   state.tier = "all";
@@ -1223,6 +1250,7 @@ function mapFitToPoint(x, y) {
 function goToMonsterOnMap(name) {
   const spawn = findSpawnByName(name);
   if (!spawn) return;
+  navRecord();
   mapView.pinnedNpc = null;
   state.tab = "map";
   state.query = "";
@@ -1516,6 +1544,7 @@ function renderVersions() {
   }
 }
 function openVersions() {
+  navRecord();
   state.tab = "versions";
   state.query = "";
   const sb = document.getElementById("search"); if (sb) sb.value = "";
@@ -1529,6 +1558,7 @@ function openVersions() {
 }
 // "Show on map": that floor, fitted to the area, outlined until Reset view.
 function vxShowOnMap(z, a) {
+  navRecord();
   vx.mark = { z: z, x0: a.x0, y0: a.y0, x1: a.x1 + 1, y1: a.y1 + 1 };
   mapView.pinnedNpc = null;
   state.tab = "map";
@@ -1557,6 +1587,7 @@ function drawVersionMark() {
 function goToNpcOnMap(name) {
   const npc = findNpcByName(name);
   if (!npc || !npc.position) return;
+  navRecord();
   mapView.pinnedNpc = npc.name;
   state.tab = "map";
   state.query = "";
@@ -2145,6 +2176,197 @@ const NOT_BOSSES = { "raid orc": 1 };
   (DATA.monsters || []).forEach(function (m) { m.tier = eff(m.name, m.tier); });
 })();
 
+// --- Back: before each jump to another view (a tab, a cross-link to an
+// item/NPC/monster, "show on map", Data versions...) the view you're
+// leaving is remembered - tab, search, sort and filters, open cards, scroll
+// position, and on the map the floor, view and monster chips. Back (or a
+// pick from its list) puts the last NAV_MAX of them back. Kept in
+// localStorage, so it survives a reload on this device.
+const NAV_KEY = "minibia.nav.v1", NAV_MAX = 5;
+let navRestoring = false;
+const navStack = (function () {
+  try {
+    const v = JSON.parse(localStorage.getItem(NAV_KEY) || "[]");
+    return Array.isArray(v) ? v.filter(navValid).slice(-NAV_MAX) : [];
+  } catch (e) { return []; }
+})();
+function navValid(s) {
+  if (!s || typeof s !== "object") return false;
+  if (s.tab !== "versions" && !TABS.some(function (t) { return t.key === s.tab; })) return false;
+  if (typeof s.query !== "string" || typeof s.label !== "string") return false;
+  if (s.map && !(Number.isFinite(s.map.z) && Number.isFinite(s.map.scale) && s.map.scale > 0 && Number.isFinite(s.map.cx) && Number.isFinite(s.map.cy) && Array.isArray(s.map.filters))) return false;
+  return true;
+}
+function navSave() { try { localStorage.setItem(NAV_KEY, JSON.stringify(navStack)); } catch (e) { /* ignore */ } }
+function navSnapshot() {
+  const s = { tab: state.tab, query: state.query || "", sort: state.sort, category: state.category, tier: state.tier, page: state.page,
+    scrollY: Math.round(window.scrollY || 0), open: [] };
+  document.querySelectorAll("#results details.card[open]").forEach(function (d) { if (d.id && s.open.length < 8) s.open.push(d.id); });
+  if (state.tab === "map" && mapCanvas && mapView.scale > 0) {
+    s.map = { z: state.mapFloor, scale: mapView.scale,
+      cx: (mapCanvas.width / 2 - mapView.offX) / mapView.scale, cy: (mapCanvas.height / 2 - mapView.offY) / mapView.scale,
+      filters: JSON.parse(JSON.stringify(state.mapFilters || [])), npc: mapView.pinnedNpc || null };
+  }
+  s.label = navLabel(s);
+  return s;
+}
+function navLabel(s) {
+  const tab = s.tab === "versions" ? "Data versions" : (TABS.find(function (t) { return t.key === s.tab; }) || {}).label || s.tab;
+  let what = "";
+  if (s.map) {
+    if (s.map.npc) what = s.map.npc;
+    else {
+      const on = s.map.filters.filter(function (f) { return f.on; }).map(function (f) {
+        const m = f.exact && DATA.spawnMap.monsters.find(function (x) { return x.name.toLowerCase() === f.q; });
+        return m ? m.name : "“" + f.q + "”";
+      });
+      what = on.length ? on.slice(0, 2).join(", ") + (on.length > 2 ? " +" + (on.length - 2) : "") : "";
+    }
+    what = (what ? what + " · " : "") + "z" + s.map.z;
+  } else if (s.open.length) {
+    const el = document.getElementById(s.open[0]), nm = el && el.querySelector("summary .name");
+    what = nm ? nm.textContent : "";
+    if (what && s.open.length > 1) what += " +" + (s.open.length - 1);
+  }
+  if (!what && s.query) what = "“" + s.query + "”";
+  return tab + (what ? " · " + what : "");
+}
+// The part of a snapshot that makes it a different place (not scroll).
+function navKey(s) {
+  return JSON.stringify([s.tab, s.query, s.sort, s.category, s.tier, s.page, s.open,
+    s.map ? [s.map.z, Math.round(s.map.cx / 8), Math.round(s.map.cy / 8), Math.round(Math.log2(s.map.scale) * 2), s.map.npc, s.map.filters] : null]);
+}
+// Call before changing the view: remembers the one being left.
+function navRecord() {
+  if (navRestoring || !DATA) return;
+  const s = navSnapshot(), top = navStack[navStack.length - 1];
+  if (top && navKey(top) === navKey(s)) navStack[navStack.length - 1] = s;
+  else navStack.push(s);
+  while (navStack.length > NAV_MAX) navStack.shift();
+  navSave();
+  navRender();
+}
+function navShowTab() {
+  refreshTabChrome();
+  mapRenderFilterChips();
+  if (state.tab === "map") {
+    resizeMapCanvas();
+    buildMapLegend();
+  } else if (state.tab === "runecalc") renderRuneCalcOutput();
+  else if (state.tab === "hunt") renderHuntHistory();
+  else if (state.tab !== "versions") render();
+}
+function navRestore(s) {
+  navRestoring = true;
+  try {
+    state.tab = s.tab; state.query = s.query;
+    if (typeof s.sort === "string" && (SORTS[s.tab] || []).some(function (o) { return o[0] === s.sort; })) state.sort = s.sort;
+    else if (SORTS[s.tab]) state.sort = SORTS[s.tab][0][0];
+    state.category = typeof s.category === "string" ? s.category : "all";
+    state.tier = typeof s.tier === "string" ? s.tier : "all";
+    state.page = Number.isInteger(s.page) && s.page > 0 ? s.page : 1;
+    const sb = document.getElementById("search"); if (sb) sb.value = state.tab === "map" ? "" : s.query;
+    if (s.map) {
+      state.mapFilters = s.map.filters.filter(function (f) { return f && typeof f.q === "string" && f.q; })
+        .slice(0, 40).map(function (f) { return { q: f.q.slice(0, 60).toLowerCase(), exact: !!f.exact, on: f.on !== false }; });
+      mapFiltersSave();
+      mapView.pinnedNpc = typeof s.map.npc === "string" ? s.map.npc : null;
+    }
+    if (s.tab === "versions") { openVersions(); return; }
+    navShowTab();
+    if (s.map) {
+      setMapFloor(Math.max(MAP_FLOOR_MIN, Math.min(MAP_FLOOR_MAX, Math.round(s.map.z))));
+      mapView.scale = Math.max(0.02, Math.min(20, s.map.scale));
+      mapView.offX = mapCanvas.width / 2 - s.map.cx * mapView.scale;
+      mapView.offY = mapCanvas.height / 2 - s.map.cy * mapView.scale;
+      drawMap();
+    }
+    (s.open || []).forEach(function (id) { const el = typeof id === "string" && document.getElementById(id); if (el && el.tagName === "DETAILS") el.open = true; });
+    const y = Number.isFinite(s.scrollY) ? s.scrollY : 0;
+    requestAnimationFrame(function () { window.scrollTo(0, y); });
+  } finally { navRestoring = false; }
+}
+// Goes back to navStack[i] (default: the latest); it and anything newer
+// leave the list.
+function navBack(i) {
+  if (!navStack.length) return;
+  if (i === undefined) i = navStack.length - 1;
+  const s = navStack[i];
+  navStack.length = i;
+  navSave();
+  navMenu(false);
+  navRender();
+  navRestore(s);
+}
+function navMenu(open) {
+  const menu = document.getElementById("nav-back-menu"), more = document.getElementById("nav-back-more");
+  if (!menu) return;
+  menu.hidden = !open;
+  more.setAttribute("aria-expanded", open ? "true" : "false");
+  if (!open) return;
+  menu.textContent = "";
+  const t = document.createElement("div"); t.className = "nav-back-title"; t.textContent = "Go back to"; menu.appendChild(t);
+  for (let i = navStack.length - 1; i >= 0; i--) {
+    const b = document.createElement("button"); b.type = "button";
+    b.textContent = navStack[i].label;
+    b.title = navStack[i].label;
+    b.addEventListener("click", function () { navBack(i); });
+    menu.appendChild(b);
+  }
+}
+function navRender() {
+  const box = document.getElementById("nav-back");
+  if (!box) return;
+  const labeling = document.getElementById("stairs-label-panel");
+  box.hidden = !navStack.length || (labeling && labeling.style.display === "flex");
+  const top = navStack[navStack.length - 1];
+  document.getElementById("nav-back-btn").title = top ? "Back to " + top.label : "";
+  document.getElementById("nav-back-more").hidden = navStack.length < 2;
+  if (!navStack.length) navMenu(false);
+  navPlace();
+}
+// Keeps the floating Back clear of the map's own overlay controls (floor,
+// coordinates, layers/reset): when it would sit on one, it moves up above it.
+function navPlace() {
+  const box = document.getElementById("nav-back");
+  if (!box || box.hidden) return;
+  box.style.bottom = "";
+  if (state.tab !== "map") return;
+  const r = box.getBoundingClientRect();
+  const rects = [];
+  document.querySelectorAll("#map-wrap .map-ovl").forEach(function (o) {
+    const q = o.getBoundingClientRect();
+    if (q.width && q.height && q.left < r.right && r.left < q.right) rects.push(q);
+  });
+  let lift = 0;
+  for (let pass = 0; pass < rects.length; pass++) {
+    let moved = false;
+    rects.forEach(function (q) {
+      if (q.top < r.bottom - lift && r.top - lift < q.bottom) { lift = r.bottom - q.top + 8; moved = true; }
+    });
+    if (!moved) break;
+  }
+  if (lift > 0) box.style.bottom = "calc(max(12px, env(safe-area-inset-bottom)) + " + Math.ceil(lift) + "px)";
+}
+(function () {
+  document.getElementById("nav-back-btn").addEventListener("click", function () { navBack(); });
+  document.getElementById("nav-back-more").addEventListener("click", function (e) {
+    e.stopPropagation();
+    navMenu(document.getElementById("nav-back-menu").hidden);
+  });
+  document.addEventListener("click", function (e) {
+    const box = document.getElementById("nav-back");
+    if (box && !box.contains(e.target)) navMenu(false);
+  });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") navMenu(false); });
+  let placing = false;
+  const schedule = function () { if (placing) return; placing = true; requestAnimationFrame(function () { placing = false; navPlace(); }); };
+  window.addEventListener("scroll", schedule, { passive: true });
+  window.addEventListener("resize", schedule);
+  document.addEventListener("click", schedule);
+  navRender();
+})();
+
 function renderStatTabs() {
   const wrap = document.getElementById("stat-tabs");
   wrap.innerHTML = "";
@@ -2153,6 +2375,7 @@ function renderStatTabs() {
     el.className = "stat-tile" + (t.key === state.tab ? " active" : "");
     el.innerHTML = '<div class="value num">' + fmt(t.count) + '</div><div class="label">' + t.label + '</div>';
     el.addEventListener("click", () => {
+      navRecord();
       state.tab = t.key;
       state.query = "";
       state.category = "all";
@@ -3400,6 +3623,7 @@ function floorConnectionLabel(c) {
 function jumpFloorConnection(c) {
   const up = (c[2] & 1) !== 0, down = (c[2] & 2) !== 0;
   if (up === down) return;
+  navRecord();
   setMapFloor(state.mapFloor + (up ? -1 : 1));
   mapFitToPoint(c[0], c[1]);
   drawMap();
@@ -3487,6 +3711,7 @@ function stairsLabelEnter() {
   if (!stairsLabeling.list.length) return;
   stairsLabeling.active = true;
   document.getElementById("stairs-label-panel").style.display = "flex";
+  navRender();
   state.tab = "map";
   refreshTabChrome();
   resizeMapCanvas();
@@ -3496,6 +3721,7 @@ function stairsLabelEnter() {
 function stairsLabelExit() {
   stairsLabeling.active = false;
   document.getElementById("stairs-label-panel").style.display = "none";
+  navRender();
   drawMap();
 }
 
