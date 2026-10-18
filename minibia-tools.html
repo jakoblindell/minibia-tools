@@ -441,6 +441,21 @@
   .pb-choice button:hover { border-color: var(--accent); }
   .pb-choice button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
   .upq[hidden] { display: none; }
+  .cc-glyph { background: #c026d3; color: #fff; }
+  .cc-choices { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  @media (max-width: 480px) { .cc-choices { grid-template-columns: repeat(2, 1fr); } .cc-choices button { white-space: nowrap; } }
+  .cc-choices[hidden] { display: none; }
+  .cc-box { display: flex; flex-direction: column; gap: 6px; margin: 4px 0 10px; padding: 8px 10px; border: 1px dashed var(--border); border-radius: 8px; }
+  .cc-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .cc-head b { font-size: 12.5px; color: var(--text-primary); }
+  .cc-help { font-size: 12px; color: var(--text-muted); margin: 0; }
+  .cc-list { display: flex; flex-direction: column; gap: 4px; margin: 0; padding: 0; list-style: none; }
+  .cc-item { display: flex; align-items: center; gap: 8px; font-size: 12.5px; min-width: 0; }
+  .cc-item .cc-dot { flex: none; width: 20px; height: 20px; border-radius: 50%; background: #c026d3; color: #fff; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }
+  .cc-item .cc-text { flex: 1 1 auto; min-width: 0; cursor: pointer; overflow-wrap: anywhere; }
+  .cc-item .cc-text:hover { text-decoration: underline; }
+  .cc-item .cc-text small { color: var(--text-muted); font-family: 'SF Mono', Consolas, monospace; }
+  .cc-item .map-btn { flex: none; min-width: 32px; padding: 4px 8px; }
   .upq { left: 50%; transform: translateX(-50%); bottom: 10px; width: min(420px, calc(100% - 20px)); box-sizing: border-box; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; background: var(--surface-1); z-index: 6; }
   .upq-head { display: flex; align-items: center; gap: 10px; min-width: 0; }
   .upq-title { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; line-height: 1.3; }
@@ -672,6 +687,15 @@
               <button class="map-btn" id="upq-skip" type="button">Skip ›</button>
             </div>
           </div>
+          <div class="map-ovl upq cc-card" id="cc-card" hidden role="dialog" aria-label="Add your own stairs or hole">
+            <div class="upq-head">
+              <span class="route-num cc-glyph" aria-hidden="true">+</span>
+              <div class="upq-title"><b>Add your own stairs or hole</b><small id="cc-where"></small></div>
+              <button class="map-btn upq-x" id="cc-close" type="button" aria-label="Cancel" title="Cancel (Esc)">✕</button>
+            </div>
+            <div class="upq-q" id="cc-q"></div>
+            <div class="pb-choice cc-choices" id="cc-choices" hidden></div>
+          </div>
           <div class="map-ovl map-layers-pop" id="map-layers" hidden>
             <div class="mapx-h">Layers</div>
             <label class="layer-opt"><input type="checkbox" id="map-known-floors" checked><span>Real-Tibia floors</span>
@@ -718,6 +742,7 @@
         <section class="mapx-panel" data-panel="path" hidden>
           <div class="mapx-h">Find path</div>
           <p class="mapx-p">Click a start point, then an end point (change floor in between if needed). Routes only walk walkable ground and change floor at stairs, ladders and holes.</p>
+          <div class="cc-box" data-cc></div>
           <div class="map-path-bar" id="map-path-bar" style="display:none;">
             <span id="map-path-status"></span>
             <span class="map-path-floors" id="map-path-floors"></span>
@@ -768,6 +793,7 @@
               <button class="map-btn view-only" id="route-edit" type="button" style="display:none;">Edit a copy</button>
             </div>
             <input type="text" class="route-link edit-only" id="route-link" readonly aria-label="Share link" style="display:none;">
+            <div class="cc-box edit-only" data-cc></div>
             <div class="route-bot">
               <div class="route-bot-title">Cave bot route</div>
               <div class="route-actions">
@@ -3145,6 +3171,7 @@ function drawMap() {
     }
   }
 
+  drawCustomConns(w, h);
   if (routeState.mode !== "off") drawRouteOverlay();
   if (pathState.active) drawPathOverlay(w, h);
   drawUpqHighlight();
@@ -4100,39 +4127,12 @@ const PATH_WORKER_SRC = function () {
       W = m.W; H = m.H; WH = W * H;
       for (const z in m.floors) floors[+z] = new Uint8Array(m.floors[z]);
       if (m.swamp) for (const z in m.swamp) sbits[+z] = new Uint8Array(m.swamp[z]);
-      const pr = m.portals; // Int32Array [src, dst, kind, src, dst, kind, ...]
-      const bitLen = Math.ceil(WH / 8);
-      for (let i = 0; i < pr.length; i += 3) {
-        const src = pr[i], dst = pr[i + 1];
-        let list = portals.get(src); if (!list) { list = []; portals.set(src, list); }
-        list.push(dst, pr[i + 2]);
-        if (pr[i + 2] === 0) { let back = rstairs.get(dst); if (!back) { back = []; rstairs.set(dst, back); } back.push(src); }
-        const z = Math.floor(src / WH), local = src - z * WH;
-        if (!pbits[z]) pbits[z] = new Uint8Array(bitLen);
-        pbits[z][local >> 3] |= 1 << (local & 7);
-        if (pr[i + 2] === 0) {
-          if (!tbits[z]) tbits[z] = new Uint8Array(bitLen);
-          tbits[z][local >> 3] |= 1 << (local & 7);
-        }
-      }
-      tbits.forEach(function (tb, z) {
-        if (!tb) return;
-        const nb = nbits[z] = new Uint8Array(bitLen);
-        for (let i = 0; i < tb.length; i++) {
-          if (!tb[i]) continue;
-          for (let k = 0; k < 8; k++) {
-            if (!((tb[i] >> k) & 1)) continue;
-            const t = i * 8 + k, x = t % W, y = (t - x) / W;
-            for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
-              if ((dx || dy) && walkRaw(z, x + dx, y + dy) && !isT(z, x + dx, y + dy)) {
-                const n = t + dy * W + dx;
-                nb[n >> 3] |= 1 << (n & 7);
-              }
-            }
-          }
-        }
-      });
+      basePortals = m.portals;
+      buildPortals(basePortals);
       self.postMessage({ type: "ready" });
+    } else if (m.type === "custom") {
+      setCustom(m.list);
+      self.postMessage({ type: "custom-ready", id: m.id });
     } else if (m.type === "find") {
       const t0 = performance.now();
       const r = findRoute(m.s[0], m.s[1], m.s[2], m.g[0], m.g[1], m.g[2]);
@@ -4141,6 +4141,77 @@ const PATH_WORKER_SRC = function () {
       self.postMessage(r);
     }
   };
+
+  // The map's own portals (from init) plus the user's own stairs/holes
+  // (setCustom), rebuilt together whenever the latter change.
+  let basePortals = new Int32Array(0), forced = [];
+  function setBit(arr, z, i, on) {
+    if (!arr[z]) { if (!on) return; arr[z] = new Uint8Array(Math.ceil(WH / 8)); }
+    if (on) arr[z][i >> 3] |= 1 << (i & 7); else arr[z][i >> 3] &= ~(1 << (i & 7));
+  }
+  // list: Int32Array [z, x, y, tz, tx, ty, ...] in grid coordinates - a
+  // one-way stairs edge from (z, x, y) to the walkable tile nearest
+  // (tz, tx, ty) within 2 tiles. Both ends are the user's word, so a tile
+  // the minimap draws as blocked is made walkable for them (undone when the
+  // connection goes).
+  function setCustom(list) {
+    forced.forEach(function (f) { setBit(floors, f[0], f[1], false); });
+    forced = [];
+    const extra = [];
+    for (let i = 0; i + 5 < list.length; i += 6) {
+      const z = list[i], x = list[i + 1], y = list[i + 2], tz = list[i + 3], tx = list[i + 4], ty = list[i + 5];
+      if (x < 0 || y < 0 || x >= W || y >= H || tx < 0 || ty < 0 || tx >= W || ty >= H || !floors[z] || !floors[tz]) continue;
+      if (!bit(floors, z, x, y)) { forced.push([z, y * W + x]); setBit(floors, z, y * W + x, true); }
+      let best = -1, bestD = Infinity;
+      for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) {
+        if (!bit(floors, tz, tx + dx, ty + dy)) continue;
+        const d = dx * dx + dy * dy;
+        if (d < bestD) { bestD = d; best = (tz * H + ty + dy) * W + tx + dx; }
+      }
+      if (best < 0) { forced.push([tz, ty * W + tx]); setBit(floors, tz, ty * W + tx, true); best = (tz * H + ty) * W + tx; }
+      extra.push((z * H + y) * W + x, best, 0);
+    }
+    const all = new Int32Array(basePortals.length + extra.length);
+    all.set(basePortals); all.set(extra, basePortals.length);
+    buildPortals(all);
+  }
+  function buildPortals(pr) {   // Int32Array [src, dst, kind, src, dst, kind, ...]
+    portals.clear(); rstairs.clear();
+    const swampWas = swampOk; swampOk = true;
+    pbits.length = 0; tbits.length = 0; nbits.length = 0;
+    const bitLen = Math.ceil(WH / 8);
+    for (let i = 0; i < pr.length; i += 3) {
+      const src = pr[i], dst = pr[i + 1];
+      let list = portals.get(src); if (!list) { list = []; portals.set(src, list); }
+      list.push(dst, pr[i + 2]);
+      if (pr[i + 2] === 0) { let back = rstairs.get(dst); if (!back) { back = []; rstairs.set(dst, back); } back.push(src); }
+      const z = Math.floor(src / WH), local = src - z * WH;
+      if (!pbits[z]) pbits[z] = new Uint8Array(bitLen);
+      pbits[z][local >> 3] |= 1 << (local & 7);
+      if (pr[i + 2] === 0) {
+        if (!tbits[z]) tbits[z] = new Uint8Array(bitLen);
+        tbits[z][local >> 3] |= 1 << (local & 7);
+      }
+    }
+    tbits.forEach(function (tb, z) {
+      if (!tb) return;
+      const nb = nbits[z] = new Uint8Array(bitLen);
+      for (let i = 0; i < tb.length; i++) {
+        if (!tb[i]) continue;
+        for (let k = 0; k < 8; k++) {
+          if (!((tb[i] >> k) & 1)) continue;
+          const t = i * 8 + k, x = t % W, y = (t - x) / W;
+          for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+            if ((dx || dy) && walkRaw(z, x + dx, y + dy) && !isT(z, x + dx, y + dy)) {
+              const n = t + dy * W + dx;
+              nb[n >> 3] |= 1 << (n & 7);
+            }
+          }
+        }
+      }
+    });
+    swampOk = swampWas;
+  }
 }.toString();
 
 const pathState = { active: false, start: null, goal: null, result: null, busy: false, worker: null, ready: null, grid: null, reqId: 0, hint: "" };
@@ -4565,6 +4636,7 @@ function pathPrepare() {
       worker.postMessage({ type: "init", W: W, H: H, floors: floorsMsg, swamp: swampMsg, portals: portalArr }, transfer);
     });
     worker.onmessage = pathWorkerMessage;
+    ccPost();   // before any search, so the first one already uses them
     worker.onerror = function (e) {
       const reason = "pathfinding worker error: " + (e.message || "unknown");
       pathPending.forEach(function (resolve) { resolve({ ok: false, reason: reason }); });
@@ -4577,6 +4649,189 @@ function pathPrepare() {
     pathReportPrep("Couldn't prepare pathfinding: " + err.message);
   });
   return pathState.ready;
+}
+
+// --- Your own stairs & holes: connections the minimap doesn't show (a hole
+// you open with a shovel, holes you fall through, a rope spot...). Each is
+// one way, from the tile you mark to the same spot one floor down or up
+// (the nearest walkable tile within 2, as for the map's own). The
+// pathfinder takes them like any stairs, the bot fill-in writes the right
+// waypoint type for them, and the floor-change checks count them as
+// markers. Kept in localStorage; a shared route link carries them too.
+const CC_KEY = "minibia.customConns.v1", CC_MAX = 60;
+const CC_KINDS = {
+  "shovel": { label: "Shovel hole", dz: 1, glyph: "⛏" },
+  "hole": { label: "Hole", dz: 1, glyph: "↓" },
+  "stairs-down": { label: "Stairs down", dz: 1, glyph: "↓" },
+  "rope": { label: "Rope spot", dz: -1, glyph: "↑" },
+  "ladder": { label: "Ladder", dz: -1, glyph: "↑" },
+  "stairs-up": { label: "Stairs up", dz: -1, glyph: "↑" }
+};
+function ccValid(c) {
+  return c && CC_KINDS[c.k] && [c.z, c.x, c.y].every(Number.isInteger) && c.z >= MAP_FLOOR_MIN && c.z <= MAP_FLOOR_MAX &&
+    c.z + CC_KINDS[c.k].dz >= MAP_FLOOR_MIN && c.z + CC_KINDS[c.k].dz <= MAP_FLOOR_MAX;
+}
+let ccList = (function () {
+  try {
+    const v = JSON.parse(localStorage.getItem(CC_KEY) || "[]");
+    return Array.isArray(v) ? v.map(function (c) { return c && { z: c.z, x: c.x, y: c.y, k: c.k }; }).filter(ccValid).slice(0, CC_MAX) : [];
+  } catch (e) { return []; }
+})();
+const cc = { active: false, tile: null };
+function ccAt(z, x, y) {
+  for (let i = 0; i < ccList.length; i++) { const c = ccList[i]; if (c.z === z && c.x === x && c.y === y) return c; }
+  return null;
+}
+function ccPost() {
+  if (!pathState.worker || !pathState.grid) return;
+  const gr = pathState.grid, arr = new Int32Array(ccList.length * 6);
+  ccList.forEach(function (c, i) {
+    arr.set([c.z, c.x - gr.minX, c.y - gr.minY, c.z + CC_KINDS[c.k].dz, c.x - gr.minX, c.y - gr.minY], i * 6);
+  });
+  pathState.worker.postMessage({ type: "custom", list: arr });
+}
+// Adds the ones not there yet (e.g. from a shared route); returns how many.
+function ccMerge(list) {
+  let n = 0;
+  (list || []).forEach(function (c) {
+    if (!ccValid(c) || ccList.length >= CC_MAX) return;
+    const old = ccAt(c.z, c.x, c.y);
+    if (old) { if (old.k !== c.k) { old.k = c.k; n++; } return; }
+    ccList.push({ z: c.z, x: c.x, y: c.y, k: c.k }); n++;
+  });
+  if (n) ccChanged();
+  return n;
+}
+function ccChanged() {
+  try { localStorage.setItem(CC_KEY, JSON.stringify(ccList)); } catch (e) { /* ignore */ }
+  botMarkerIndex = null;
+  routeLegCache.clear();
+  ccPost();
+  ccRender();
+  if (routeState.mode !== "off") { routeRecompute(); routeRenderList(); botRenderMessages(); }
+  if (pathState.active && pathState.start && pathState.goal) pathRun();
+  else drawMap();
+}
+function ccRender() {
+  document.querySelectorAll("[data-cc]").forEach(function (box) {
+    box.textContent = "";
+    const head = document.createElement("div"); head.className = "cc-head";
+    const t = document.createElement("b"); t.textContent = "Your stairs & holes" + (ccList.length ? " (" + ccList.length + ")" : "");
+    const add = document.createElement("button"); add.type = "button"; add.className = "map-btn"; add.textContent = "+ Add";
+    add.title = "Mark a hole, shovel hole, rope spot, ladder or stairs the map doesn't know, so routes can use it";
+    add.addEventListener("click", ccStart);
+    head.appendChild(t); head.appendChild(add); box.appendChild(head);
+    if (!ccList.length) {
+      const p = document.createElement("p"); p.className = "cc-help";
+      p.textContent = "Missing a way down or up (a hole you open with a shovel, holes you fall through)? Add it and routes will use it.";
+      box.appendChild(p);
+      return;
+    }
+    const ul = document.createElement("ul"); ul.className = "cc-list";
+    ccList.forEach(function (c, i) {
+      const k = CC_KINDS[c.k];
+      const li = document.createElement("li"); li.className = "cc-item";
+      const dot = document.createElement("span"); dot.className = "cc-dot"; dot.textContent = k.glyph;
+      const tx = document.createElement("span"); tx.className = "cc-text"; tx.title = "Show on the map";
+      tx.appendChild(document.createTextNode(k.label + " "));
+      const sm = document.createElement("small"); sm.textContent = "x" + c.x + " y" + c.y + " z" + c.z + " → z" + (c.z + k.dz); tx.appendChild(sm);
+      tx.addEventListener("click", function () { ccShow(c); });
+      const del = document.createElement("button"); del.type = "button"; del.className = "map-btn"; del.textContent = "×";
+      del.title = "Remove"; del.setAttribute("aria-label", "Remove " + k.label + " at x" + c.x + " y" + c.y + " z" + c.z);
+      del.addEventListener("click", function () { ccList.splice(i, 1); ccChanged(); });
+      li.appendChild(dot); li.appendChild(tx); li.appendChild(del); ul.appendChild(li);
+    });
+    box.appendChild(ul);
+  });
+}
+function ccShow(c) {
+  setMapFloor(c.z);
+  mapView.scale = Math.max(mapView.scale, 8);
+  mapView.offX = mapCanvas.width / 2 - (c.x + 0.5) * mapView.scale;
+  mapView.offY = mapCanvas.height / 2 - (c.y + 0.5) * mapView.scale;
+  drawMap();
+  document.getElementById("map-canvas").scrollIntoView({ block: "nearest" });
+}
+function ccStart() {
+  if (upq.active) upqClose();
+  if (routeState.insertAt !== null) routeSetInsert(null);
+  cc.active = true; cc.tile = null;
+  document.querySelector(".map-canvas-wrap").classList.add("upq-on");
+  document.getElementById("cc-card").hidden = false;
+  ccShowCard();
+  document.getElementById("map-canvas").scrollIntoView({ block: "nearest" });
+  drawMap();
+}
+function ccEnd() {
+  cc.active = false; cc.tile = null;
+  document.getElementById("cc-card").hidden = true;
+  document.querySelector(".map-canvas-wrap").classList.remove("upq-on");
+  drawMap();
+}
+function ccShowCard() {
+  const where = document.getElementById("cc-where"), q = document.getElementById("cc-q"), ch = document.getElementById("cc-choices");
+  if (!cc.tile) {
+    where.textContent = "Switch to its floor with ▲/▼ first";
+    q.textContent = "Click the tile with the hole, rope spot, ladder or stairs.";
+    ch.hidden = true;
+    return;
+  }
+  const t = cc.tile, old = ccAt(t.z, t.x, t.y);
+  where.textContent = "x" + t.x + " y" + t.y + " z" + t.z + (old ? " - now: " + CC_KINDS[old.k].label : "");
+  q.textContent = "What's here? (Click another tile to move it.)";
+  ch.textContent = "";
+  Object.keys(CC_KINDS).forEach(function (k) {
+    const d = CC_KINDS[k], to = t.z + d.dz;
+    if (to < MAP_FLOOR_MIN || to > MAP_FLOOR_MAX) return;
+    const b = document.createElement("button"); b.type = "button";
+    b.textContent = d.glyph + " " + d.label;
+    b.title = d.label + " to " + mapFloorLabel(to);
+    b.setAttribute("aria-pressed", old && old.k === k ? "true" : "false");
+    b.addEventListener("click", function () { ccPick(k); });
+    ch.appendChild(b);
+  });
+  ch.hidden = false;
+}
+function ccPickAt(sx, sy) {
+  const [wx, wy] = screenToWorld(sx, sy);
+  cc.tile = { z: state.mapFloor, x: Math.floor(wx), y: Math.floor(wy) };
+  ccShowCard();
+  drawMap();
+}
+function ccPick(k) {
+  const t = cc.tile;
+  if (!t) return;
+  const old = ccAt(t.z, t.x, t.y);
+  if (old) old.k = k;
+  else if (ccList.length < CC_MAX) ccList.push({ z: t.z, x: t.x, y: t.y, k: k });
+  ccEnd();
+  ccChanged();
+}
+// Markers for them on the current floor, drawn whenever stairs matter
+// (Stairs & holes layer, Find path, Route builder, while adding one).
+function drawCustomConns(w, h) {
+  if (!ccList.length && !cc.active) return;
+  if (!(state.showFloorConnections || pathState.active || routeState.mode !== "off" || cc.active)) return;
+  const r = Math.max(7, Math.min(11, mapView.scale * 0.45));
+  mapCtx.save();
+  mapCtx.textAlign = "center"; mapCtx.textBaseline = "middle";
+  ccList.forEach(function (c) {
+    if (c.z !== state.mapFloor) return;
+    const [sx, sy] = worldToScreen(c.x + 0.5, c.y + 0.5);
+    if (sx < -15 || sx > w + 15 || sy < -15 || sy > h + 15) return;
+    mapCtx.beginPath(); mapCtx.arc(sx, sy, r, 0, Math.PI * 2);
+    mapCtx.fillStyle = "#c026d3"; mapCtx.fill();
+    mapCtx.lineWidth = 1.5; mapCtx.strokeStyle = "#fff"; mapCtx.stroke();
+    mapCtx.fillStyle = "#fff"; mapCtx.font = "700 " + Math.round(r * 1.15) + "px 'Segoe UI', sans-serif";
+    mapCtx.fillText(CC_KINDS[c.k].glyph, sx, sy + 0.5);
+  });
+  if (cc.active && cc.tile && cc.tile.z === state.mapFloor) {
+    const [ax, ay] = worldToScreen(cc.tile.x, cc.tile.y), [bx, by] = worldToScreen(cc.tile.x + 1, cc.tile.y + 1);
+    const pad = Math.max(3, (bx - ax) * 0.3);
+    mapCtx.lineWidth = 4; mapCtx.strokeStyle = "rgba(0,0,0,0.6)"; mapCtx.strokeRect(ax - pad, ay - pad, bx - ax + pad * 2, by - ay + pad * 2);
+    mapCtx.lineWidth = 2; mapCtx.strokeStyle = "#f0abfc"; mapCtx.strokeRect(ax - pad, ay - pad, bx - ax + pad * 2, by - ay + pad * 2);
+  }
+  mapCtx.restore();
 }
 
 // Shows prep progress in whichever tool is waiting on it; "" = done, so
@@ -4922,6 +5177,10 @@ function botMarkers() {
     const m = botMarkerIndex.known[z] = new Map();
     DATA.floorConnections[z].forEach(function (c) { m.set(c[0] + "," + c[1], c[2]); });
   });
+  ccList.forEach(function (c) {
+    const m = botMarkerIndex.known[c.z] || (botMarkerIndex.known[c.z] = new Map()), k = c.x + "," + c.y;
+    m.set(k, (m.get(k) || 0) | (CC_KINDS[c.k].dz > 0 ? 2 : 1));
+  });
   Object.keys(DATA.floorConnectionsUnknown || {}).forEach(function (z) {
     const m = botMarkerIndex.unknown[z] = new Set();
     DATA.floorConnectionsUnknown[z].forEach(function (c) { m.add(c[0] + "," + c[1]); });
@@ -4932,7 +5191,7 @@ function botNextPoint(i) {
   const pts = routeState.points;
   for (let k = 1; k < pts.length; k++) {
     const j = i + k;
-    if (j >= pts.length && !routeState.loop) return null;
+    if (j >= pts.length && !(routeState.loop && pts.length > 2)) return null;   // as routePairs
     const q = pts[j % pts.length];
     if (q.en) return q;
   }
@@ -5029,6 +5288,7 @@ function routeEncode() {
   }) };
   if (routeState.title) obj.t = routeState.title;
   if (routeState.loop) obj.l = 1;
+  if (ccList.length) obj.c = ccList.map(function (c) { return [c.z, c.x, c.y, c.k]; });
   const bytes = new TextEncoder().encode(JSON.stringify(obj));
   let bin = "";
   for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
@@ -5054,7 +5314,10 @@ function routeDecode(code) {
               params: b.f === 1 ? Object.assign(botClone(BOT_FULL_DEFAULTS), botSafeParams(b.p) || {}) : botSafeParams(b.p) } : null));
     });
     if (!points.length) return null;
-    return { title: typeof obj.t === "string" ? obj.t.slice(0, ROUTE_TITLE_MAX) : "", loop: obj.l === 1, points: points };
+    const custom = Array.isArray(obj.c) ? obj.c.slice(0, CC_MAX).map(function (c) {
+      return Array.isArray(c) ? { z: c[0], x: c[1], y: c[2], k: c[3] } : null;
+    }).filter(ccValid) : [];
+    return { title: typeof obj.t === "string" ? obj.t.slice(0, ROUTE_TITLE_MAX) : "", loop: obj.l === 1, points: points, custom: custom };
   } catch (e) { return null; }
 }
 function routeLink() {
@@ -5308,6 +5571,16 @@ function botDirTo(a, b) {
   return "here";
 }
 
+// Waypoints for one of your own stairs/holes (CC_KINDS): [type, the param
+// that takes the step direction]. A shovel hole is opened, then stepped in.
+const CC_BOT_STEPS = {
+  "shovel": [["shovel", "targetOffset"], ["floor-down", "transitionTarget"]],
+  "hole": [["floor-down", "transitionTarget"]],
+  "stairs-down": [["floor-down", "transitionTarget"]],
+  "rope": [["rope", "targetOffset"]],
+  "ladder": [["ladder-up", "transitionTarget"]],
+  "stairs-up": [["stairs-up", "transitionTarget"]]
+};
 // Appends the waypoints along one computed leg (pathfinder nodes) to `out`:
 // a "walk" every `spacing` tiles (0 = none) and a floor-change waypoint at
 // every stairs/hole/ladder the path takes - placed on the tile you stand on
@@ -5322,13 +5595,20 @@ function botLegFill(out, nodes, spacing) {
     if (t.portal) {
       const marker = tiles[k - 1], before = k >= 2 && !tiles[k - 1].portal && tiles[k - 2].z === marker.z ? tiles[k - 2] : null;
       const at = before || marker;
-      const wp = routeMakePoint(at.z, at.x, at.y, "", { t: t.z > marker.z ? "floor-down" : "up" });
-      wp.params.transitionTarget = before ? botDirTo(before, marker) : "auto";
+      const dir = before ? botDirTo(before, marker) : null;
+      // One of your own stairs/holes: its kind says what to write.
+      const own = ccAt(marker.z, marker.x, marker.y);
+      const steps = own && own.z + CC_KINDS[own.k].dz === t.z ? CC_BOT_STEPS[own.k] : [[t.z > marker.z ? "floor-down" : "up", "transitionTarget"]];
       // A walk sample on the stand tile itself would be redundant.
       const last = out[out.length - 1];
       if (last && last.t === "walk" && last.fill && last.z === at.z && last.x === at.x && last.y === at.y) { out.pop(); added--; }
-      out.push(wp); wp.fill = true; added++; floors++;
-      if (t.z < marker.z) ups++;
+      steps.forEach(function (st) {
+        const wp = routeMakePoint(at.z, at.x, at.y, "", { t: st[0] });
+        wp.params[st[1]] = dir || (st[1] === "transitionTarget" ? "auto" : "here");
+        out.push(wp); wp.fill = true; added++;
+        if (st[0] === "up") ups++;
+      });
+      floors++;
       walked = 0;
       continue;
     }
@@ -5360,7 +5640,9 @@ function botFillIn(spacing) {
     const n = botLegFill(out, routeState.legs[i].nodes, spacing);
     added += n.added; floors += n.floors; ups += n.ups;
   });
-  if (!routeState.loop) out.push(routeState.points[routeState.points.length - 1]);
+  // routePairs only closes the loop from 3 points on, so a 2-point route
+  // still ends on its last point.
+  if (!(routeState.loop && routeState.points.length > 2)) out.push(routeState.points[routeState.points.length - 1]);
   if (out.length > ROUTE_MAX_POINTS) return "That would make " + out.length + " waypoints (max " + ROUTE_MAX_POINTS + ") - use a larger spacing.";
   routeState.undoFill = routeState.points.slice();
   routeState.points = out;
@@ -5626,6 +5908,7 @@ function routeHandleAt(sx, sy) {
 // What a press in edit mode grabs: an existing point, or a new one made
 // from a leg's "+" handle (inserted between the two points it joins).
 function routeGrabAt(sx, sy) {
+  if (cc.active) return -1;
   const hit = routePointAt(sx, sy);
   if (hit >= 0) return hit;
   const k = routeHandleAt(sx, sy);
@@ -5767,6 +6050,7 @@ function routeLoadFromHash() {
   setMapFloor(r.points[0].z);
   routeFitFloor(r.points[0].z);
   routeShowPanel();
+  ccMerge(r.custom);   // the link's own stairs/holes, so its legs walk the same way
   routeRecompute();
   document.getElementById("map-wrap").scrollIntoView({ block: "start" });
   return true;
@@ -5969,7 +6253,9 @@ function initMap() {
       if (e.touches.length === 0) { routeDragEnd(); mapView.dragging = false; touchState.pinching = false; }
       return;
     }
-    if (upq.active) {
+    if (cc.active) {
+      if (!touchState.pinching && !touchState.moved && e.changedTouches.length === 1) { mapTooltip.style.display = "none"; ccPickAt(touchState.tapX, touchState.tapY); }
+    } else if (upq.active) {
       // Picking ways up: taps on the map do nothing (pan and zoom still work).
     } else if ((routeState.mode === "edit" || pathState.active) && !touchState.pinching && !touchState.moved && e.changedTouches.length === 1) {
       mapTooltip.style.display = "none";
@@ -6027,6 +6313,7 @@ function initMap() {
     const rect = mapCanvas.getBoundingClientRect();
     const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
     if (sx < 0 || sy < 0 || sx > rect.width || sy > rect.height) return;
+    if (cc.active) { ccPickAt(sx, sy); return; }
     if (upq.active) return;
     if (routeState.mode === "edit") { routeAddPoint(sx, sy); return; }
     if (pathState.active) { pathHandleClick(sx, sy); return; }
@@ -6230,6 +6517,8 @@ function initMap() {
     if (b && upq.active) upqPick(b.getAttribute("data-t"));
   });
   document.getElementById("upq-close").addEventListener("click", upqClose);
+  document.getElementById("cc-close").addEventListener("click", ccEnd);
+  ccRender();
   document.getElementById("upq-back").addEventListener("click", function () { if (upq.i > 0) { upq.i--; upqShow(); } });
   document.getElementById("upq-skip").addEventListener("click", function () {
     if (upq.i < upq.items.length - 1) { upq.i++; upqShow(); return; }
@@ -6365,6 +6654,7 @@ document.getElementById("sort").addEventListener("change", function (e) { state.
 })();
 // On touch screens, Enter in a one-line field closes the keyboard.
 document.addEventListener("keydown", function (e) {
+  if (e.key === "Escape" && cc.active) { ccEnd(); return; }
   if (e.key === "Escape" && upq.active) { upqClose(); return; }
   if (e.key !== "Enter" || e.isComposing) return;
   const t = e.target;
