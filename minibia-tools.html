@@ -57,6 +57,7 @@
     font-family: 'Avenir Next', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     font-size: 15px; line-height: 1.55; -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
+    overflow-x: clip;   /* where supported: same, without making body a scroll box (keeps position: sticky working) */
   }
   .num { font-family: 'SF Mono', 'Cascadia Code', 'JetBrains Mono', Consolas, 'Courier New', monospace; font-variant-numeric: tabular-nums; }
   h1, h2, h3 { font-family: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif; font-weight: 600; text-wrap: balance; margin: 0; }
@@ -283,7 +284,10 @@
   .mapx { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 12px; align-items: start; }
   .mapx-main, .mapx-side { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow); }
   .mapx-main { padding: 10px; min-width: 0; }
-  .mapx-side { padding: 14px; max-height: 720px; overflow-y: auto; min-width: 0; }
+  /* The side panel grows with its content (no scroll box inside the page);
+     the map stays pinned beside it while the page scrolls past a long one. */
+  .mapx-side { padding: 14px; min-width: 0; }
+  .mapx-main { position: sticky; top: 12px; }
   .mapx-panel { display: flex; flex-direction: column; gap: 10px; }
   .mapx-panel[hidden] { display: none; }
   .mapx-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
@@ -331,11 +335,10 @@
     .mapx { width: min(1520px, calc(100vw - 80px)); margin-left: calc((100% - min(1520px, calc(100vw - 80px))) / 2); }
     .mapx { grid-template-columns: minmax(0, 1fr) 360px; }
     .mapx #map-canvas { height: 700px; }
-    .mapx-side { max-height: 772px; }
   }
   @media (max-width: 960px) {
     .mapx { grid-template-columns: 1fr; }
-    .mapx-side { max-height: none; }
+    .mapx-main { position: static; }
   }
   @media (max-width: 560px) {
     .map-ovl-floor .map-floor-label { min-width: 0; font-size: 11.5px; }
@@ -446,15 +449,19 @@
   .hunt-est-sum { font-size: 13px; color: var(--text-primary); line-height: 1.5; }
   .hunt-est-sum b { font-variant-numeric: tabular-nums; }
   .hunt-est-body { display: flex; flex-direction: column; gap: 8px; }
-  .hunt-est-table { width: 100%; border-collapse: collapse; font-size: 12.5px; table-layout: fixed; }
+  .hunt-est-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
   .hunt-est-table th { text-align: left; font-weight: 600; color: var(--text-muted); font-size: 11.5px; padding: 3px 4px; border-bottom: 1px solid var(--border); }
-  .hunt-est-table td { padding: 3px 4px; border-bottom: 1px solid var(--border); vertical-align: top; overflow-wrap: anywhere; }
+  .hunt-est-table td { padding: 3px 4px; border-bottom: 1px solid var(--border); vertical-align: top; overflow-wrap: break-word; }
   .hunt-est-table th.num, .hunt-est-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
-  .hunt-est-table td.num { white-space: nowrap; }
-  .hunt-est-table th:first-child { width: 40%; }
+  .hunt-est-table td.num, .hunt-est-table th.num { white-space: nowrap; }
+  .hunt-est-table th:first-child { width: 99%; }   /* name column takes what the numbers leave */
   .hunt-est-table .xlink-text { cursor: pointer; }
   .hunt-est-table .xlink-text:hover { text-decoration: underline; }
-  .hunt-est-table .unsure { color: var(--text-muted); }
+  .hunt-est-name { display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
+  .hunt-est-icon { width: 24px; height: 24px; flex: none; image-rendering: pixelated; border-radius: 4px; background: var(--surface-2); }
+  .hunt-est-icon.missing { display: inline-block; opacity: .4; }
+  .hunt-est-tier { width: 10px; height: 10px; flex: none; border-radius: 50%; box-shadow: 0 0 0 1px rgba(0,0,0,.45); }
+  .hunt-est-table td { vertical-align: middle; }
   .hunt-est-more { align-self: flex-start; }
   .cc-choices { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
   @media (max-width: 480px) { .cc-choices { grid-template-columns: repeat(2, 1fr); } .cc-choices button { white-space: nowrap; } }
@@ -5507,9 +5514,22 @@ function huntRender() {
         const td = document.createElement("td");
         if (i) td.className = "num";
         if (c && typeof c === "object") {   // (not c.link: strings have a legacy .link())
+          const wrap = document.createElement("span"); wrap.className = "hunt-est-name";
+          if (c.item !== undefined) {
+            const it = findItemByName(c.item), b64 = it && ICONS ? ICONS[String(it.cid)] : null;
+            const ic = document.createElement(b64 ? "img" : "span");
+            ic.className = "hunt-est-icon" + (b64 ? "" : " missing");
+            if (b64) { ic.src = "data:image/png;base64," + b64; ic.alt = ""; }
+            wrap.appendChild(ic);
+          } else if (c.tier !== undefined) {
+            const dot = document.createElement("span"); dot.className = "hunt-est-tier";
+            dot.style.background = mapTierColor(c.tier);
+            if (TIER_LABELS[c.tier]) dot.title = TIER_LABELS[c.tier];
+            wrap.appendChild(dot);
+          }
           const a = document.createElement("span"); a.className = "xlink-text"; a.textContent = c.text;
-          a.addEventListener("click", c.link); td.appendChild(a);
-          if (c.unsure) { const u = document.createElement("span"); u.className = "unsure"; u.textContent = c.unsure; td.appendChild(u); }
+          a.addEventListener("click", c.link); wrap.appendChild(a);
+          td.appendChild(wrap);
         } else td.textContent = c;
         tr.appendChild(td);
       });
@@ -5518,13 +5538,13 @@ function huntRender() {
     return t;
   };
   body.appendChild(table(["Monster", "Kills", "XP", "Loot gp"], res.rows.map(function (r) {
-    return [{ text: r.name, link: function () { if (r.monster) goToMonster(r.name); } },
+    return [{ text: r.name, tier: r.monster ? r.monster.tier : null, link: function () { if (r.monster) goToMonster(r.name); } },
       fmt(r.kills) + (r.unsure ? " (" + r.unsure + "?)" : ""),
       r.exp == null ? "?" : fmt(Math.round(r.exp)), r.gold == null ? "?" : fmt(Math.round(r.gold))];
   })));
   const lootShown = hunt.showAllLoot ? res.loot : res.loot.slice(0, 15);
   body.appendChild(table(["Expected loot", "Count", "Value gp"], lootShown.map(function (e) {
-    return [{ text: e.name, link: function () { goToItem(e.name); } }, huntFmt(e.count), !e.priced ? "–" : e.value > 0 && e.value < 0.5 ? "<1" : fmt(Math.round(e.value))];
+    return [{ text: e.name, item: e.name, link: function () { goToItem(e.name); } }, huntFmt(e.count), !e.priced ? "–" : e.value > 0 && e.value < 0.5 ? "<1" : fmt(Math.round(e.value))];
   })));
   if (res.loot.length > 15) {
     const more = document.createElement("button"); more.type = "button"; more.className = "map-btn hunt-est-more";
