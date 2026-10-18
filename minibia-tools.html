@@ -57,6 +57,7 @@
     font-family: 'Avenir Next', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     font-size: 15px; line-height: 1.55; -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
+    overflow-x: clip;   /* where supported: same, without making body a scroll box (keeps position: sticky working) */
   }
   .num { font-family: 'SF Mono', 'Cascadia Code', 'JetBrains Mono', Consolas, 'Courier New', monospace; font-variant-numeric: tabular-nums; }
   h1, h2, h3 { font-family: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif; font-weight: 600; text-wrap: balance; margin: 0; }
@@ -283,7 +284,10 @@
   .mapx { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 12px; align-items: start; }
   .mapx-main, .mapx-side { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow); }
   .mapx-main { padding: 10px; min-width: 0; }
-  .mapx-side { padding: 14px; max-height: 720px; overflow-y: auto; min-width: 0; }
+  /* The side panel grows with its content (no scroll box inside the page);
+     the map stays pinned beside it while the page scrolls past a long one. */
+  .mapx-side { padding: 14px; min-width: 0; }
+  .mapx-main { position: sticky; top: 12px; }
   .mapx-panel { display: flex; flex-direction: column; gap: 10px; }
   .mapx-panel[hidden] { display: none; }
   .mapx-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
@@ -331,11 +335,10 @@
     .mapx { width: min(1520px, calc(100vw - 80px)); margin-left: calc((100% - min(1520px, calc(100vw - 80px))) / 2); }
     .mapx { grid-template-columns: minmax(0, 1fr) 360px; }
     .mapx #map-canvas { height: 700px; }
-    .mapx-side { max-height: 772px; }
   }
   @media (max-width: 960px) {
     .mapx { grid-template-columns: 1fr; }
-    .mapx-side { max-height: none; }
+    .mapx-main { position: static; }
   }
   @media (max-width: 560px) {
     .map-ovl-floor .map-floor-label { min-width: 0; font-size: 11.5px; }
@@ -442,6 +445,24 @@
   .pb-choice button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
   .upq[hidden] { display: none; }
   .cc-glyph { background: #c026d3; color: #fff; }
+  .hunt-est[hidden] { display: none; }
+  .hunt-est-sum { font-size: 13px; color: var(--text-primary); line-height: 1.5; }
+  .hunt-est-sum b { font-variant-numeric: tabular-nums; }
+  .hunt-est-body { display: flex; flex-direction: column; gap: 8px; }
+  .hunt-est-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  .hunt-est-table th { text-align: left; font-weight: 600; color: var(--text-muted); font-size: 11.5px; padding: 3px 4px; border-bottom: 1px solid var(--border); }
+  .hunt-est-table td { padding: 3px 4px; border-bottom: 1px solid var(--border); vertical-align: top; overflow-wrap: break-word; }
+  .hunt-est-table th.num, .hunt-est-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .hunt-est-table td.num, .hunt-est-table th.num { white-space: nowrap; }
+  .hunt-est-table th:first-child { width: 99%; }   /* name column takes what the numbers leave */
+  .hunt-est-table .xlink-text { cursor: pointer; }
+  .hunt-est-table .xlink-text:hover { text-decoration: underline; }
+  .hunt-est-name { display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
+  .hunt-est-icon { width: 24px; height: 24px; flex: none; image-rendering: pixelated; border-radius: 4px; background: var(--surface-2); }
+  .hunt-est-icon.missing { display: inline-block; opacity: .4; }
+  .hunt-est-tier { width: 10px; height: 10px; flex: none; border-radius: 50%; box-shadow: 0 0 0 1px rgba(0,0,0,.45); }
+  .hunt-est-table td { vertical-align: middle; }
+  .hunt-est-more { align-self: flex-start; }
   .cc-choices { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
   @media (max-width: 480px) { .cc-choices { grid-template-columns: repeat(2, 1fr); } .cc-choices button { white-space: nowrap; } }
   .cc-choices[hidden] { display: none; }
@@ -794,6 +815,18 @@
             </div>
             <input type="text" class="route-link edit-only" id="route-link" readonly aria-label="Share link" style="display:none;">
             <div class="cc-box edit-only" data-cc></div>
+            <div class="route-bot hunt-est" id="hunt-est" hidden>
+              <div class="route-bot-title">Hunt estimate <span class="beta-tag">beta</span></div>
+              <div class="route-actions">
+                <label class="route-bot-spacing">Reach
+                  <select id="hunt-est-reach"><option value="3">3 tiles</option><option value="5" selected>5 tiles</option><option value="8">8 tiles</option></select>
+                </label>
+                <label class="map-floor-filter-toggle"><input type="checkbox" id="hunt-est-unsure" checked> Count spawns whose floor isn't confirmed</label>
+              </div>
+              <div class="hunt-est-sum" id="hunt-est-sum"></div>
+              <div class="hunt-est-body" id="hunt-est-body"></div>
+              <p class="cc-help" id="hunt-est-note">Rough: every spawn within reach of the walked path (on the same floor) counts as killed once per lap, all alive; respawn times, monsters that follow you and anything off the path aren't modelled. Loot uses the design database's drop chances and NPC sell prices. Circled on the map: solid = floor confirmed, dashed = floor not confirmed.</p>
+            </div>
             <div class="route-bot">
               <div class="route-bot-title">Cave bot route</div>
               <div class="route-actions">
@@ -3172,7 +3205,7 @@ function drawMap() {
   }
 
   drawCustomConns(w, h);
-  if (routeState.mode !== "off") drawRouteOverlay();
+  if (routeState.mode !== "off") { drawHuntMarks(); drawRouteOverlay(); }
   if (pathState.active) drawPathOverlay(w, h);
   drawUpqHighlight();
   drawVersionMark();
@@ -5351,6 +5384,192 @@ function routeRecompute() {
   })();
 }
 
+// --- Hunt estimate (beta, feature flag: #hunt-est in the URL turns it on
+// for this device, #hunt-est-off turns it off). From the Route builder's
+// walked path: which spawns are within reach of it, on its floor - so
+// which monsters a lap kills - and from those the XP and expected loot per
+// lap. A spawn cluster counts once per lap with its monster count; one
+// with real-Tibia spawn tiles counts tile by tile. "Sure" = its floor is
+// known (real-Tibia data); the rest are only terrain-plausible there.
+const HUNT_FLAG_KEY = "minibia.flag.huntEst";
+function huntFlagOn() {
+  const h = location.hash.toLowerCase();
+  try {
+    if (/(^#|&)hunt-est-off(&|$)/.test(h)) localStorage.removeItem(HUNT_FLAG_KEY);
+    else if (/(^#|&)hunt-est(&|$)/.test(h)) localStorage.setItem(HUNT_FLAG_KEY, "1");
+    return localStorage.getItem(HUNT_FLAG_KEY) === "1";
+  } catch (e) { return /(^#|&)hunt-est(&|$)/.test(h); }
+}
+let huntFlag = false;
+const hunt = { key: "", res: null, showAllLoot: false };
+function huntCompute(reach, withUnsure) {
+  const pairs = routePairs();
+  if (!pairs.length) return { empty: true };
+  if (routeState.legs.length !== pairs.length || routeState.legs.some(function (l) { return !l; })) return { pending: true };
+  // Walked tiles per floor, bucketed by `reach` for the distance test.
+  const buckets = {};
+  let steps = 0, failed = 0;
+  routeState.legs.forEach(function (leg) {
+    if (!leg.ok) { failed++; return; }
+    steps += pathNodeStats(leg.nodes).steps;
+    botLegTiles(leg.nodes).forEach(function (t) {
+      const b = buckets[t.z] || (buckets[t.z] = new Map());
+      const k = Math.floor(t.x / reach) + "," + Math.floor(t.y / reach);
+      let list = b.get(k); if (!list) { list = []; b.set(k, list); }
+      list.push(t.x, t.y);
+    });
+  });
+  const near = function (z, x, y) {
+    const b = buckets[z]; if (!b) return false;
+    const bx = Math.floor(x / reach), by = Math.floor(y / reach);
+    for (let gy = by - 1; gy <= by + 1; gy++) for (let gx = bx - 1; gx <= bx + 1; gx++) {
+      const list = b.get(gx + "," + gy); if (!list) continue;
+      for (let i = 0; i < list.length; i += 2) if (Math.abs(list[i] - x) <= reach && Math.abs(list[i + 1] - y) <= reach) return true;
+    }
+    return false;
+  };
+  const floors = Object.keys(buckets).map(Number);
+  const byName = new Map(), marks = [];
+  const add = function (name, n, sure, z, x, y) {
+    let r = byName.get(name);
+    if (!r) { r = { name: name, sure: 0, unsure: 0 }; byName.set(name, r); }
+    if (sure) r.sure += n; else r.unsure += n;
+    marks.push({ z: z, x: x, y: y, sure: sure });
+  };
+  (DATA.spawnMap.monsters || []).forEach(function (sm) {
+    sm.points.forEach(function (p) {
+      if (p.spots) {
+        p.spots.forEach(function (t) { if (near(t[2], t[0], t[1])) add(sm.name, 1, true, t[2], t[0], t[1]); });
+        return;
+      }
+      const mask = p[3] == null ? 0xFFFF : p[3];
+      const known = p[4] === 1, single = (mask & (mask - 1)) === 0;
+      const sure = known && single;
+      if (!sure && !withUnsure) return;
+      for (let i = 0; i < floors.length; i++) {
+        const z = floors[i];
+        if (((mask >> z) & 1) && near(z, p[0], p[1])) { add(sm.name, p[2], sure, z, p[0], p[1]); return; }
+      }
+    });
+  });
+  const rows = [], loot = new Map();
+  let kills = 0, killsUnsure = 0, exp = 0, gold = 0, noData = 0;
+  byName.forEach(function (r) {
+    const m = findMonsterByName(r.name), k = r.sure + r.unsure;
+    kills += r.sure; killsUnsure += r.unsure;
+    const row = { name: r.name, kills: k, unsure: r.unsure, monster: m, exp: null, gold: null };
+    if (m) {
+      row.exp = (m.experience || 0) * k; exp += row.exp;
+      row.gold = (m.pickGold || 0) * k; gold += row.gold;
+      (m.loot || []).forEach(function (l) {
+        let e = loot.get(l.name);
+        if (!e) { e = { name: l.name, count: 0, value: 0, priced: l.unitPrice > 0 }; loot.set(l.name, e); }
+        e.count += k * l.probability * (l.min + l.max) / 2;
+        e.value += k * (l.value || 0);
+      });
+    } else noData += k;
+    rows.push(row);
+  });
+  rows.sort(function (a, b) { return (b.exp || 0) - (a.exp || 0) || b.kills - a.kills; });
+  const lootRows = Array.from(loot.values()).filter(function (e) { return e.count >= 0.005; })
+    .sort(function (a, b) { return b.value - a.value || b.count - a.count; });
+  return { rows: rows, loot: lootRows, kills: kills, killsUnsure: killsUnsure, exp: exp, gold: gold, noData: noData,
+    steps: steps, failed: failed, marks: marks, loop: routeState.loop && routeState.points.length > 2 };
+}
+function huntFmt(v) { return v >= 100 ? fmt(Math.round(v)) : v >= 10 ? v.toFixed(1) : v.toFixed(2); }
+function huntRender() {
+  const box = document.getElementById("hunt-est");
+  if (!box) return;
+  box.hidden = !huntFlag || routeState.mode === "off";
+  if (box.hidden) { hunt.res = null; return; }
+  const reach = Number(document.getElementById("hunt-est-reach").value) || 5;
+  const withUnsure = document.getElementById("hunt-est-unsure").checked;
+  const res = huntCompute(reach, withUnsure);
+  hunt.res = res.rows ? res : null;
+  const sum = document.getElementById("hunt-est-sum"), body = document.getElementById("hunt-est-body");
+  body.textContent = "";
+  if (res.empty) { sum.textContent = "Add at least two points to see what a lap of this route kills."; return; }
+  if (res.pending) { sum.textContent = "Waiting for the route to finish calculating…"; return; }
+  const lap = res.loop ? "Per lap" : "Per run (one way)";
+  const k = res.kills + res.killsUnsure;
+  sum.textContent = "";
+  const parts = [lap + ": ~", fmt(k), " kill" + (k === 1 ? "" : "s"),
+    res.killsUnsure ? " (" + fmt(res.killsUnsure) + " on a floor that isn't confirmed)" : "",
+    " · ~", fmt(Math.round(res.exp)), " XP · ~", fmt(Math.round(res.gold)), " gp of loot at NPC prices · ~", fmt(res.steps), " steps."];
+  parts.forEach(function (t, i) {
+    if (i === 1 || i === 5 || i === 7) { const b = document.createElement("b"); b.textContent = t; sum.appendChild(b); }
+    else sum.appendChild(document.createTextNode(t));
+  });
+  if (res.failed) sum.appendChild(document.createTextNode(" " + res.failed + " leg" + (res.failed === 1 ? "" : "s") + " couldn't be walked and aren't counted."));
+  if (res.noData) sum.appendChild(document.createTextNode(" " + res.noData + " of the kills are monsters without library data (no XP/loot)."));
+  if (!res.rows.length) return;
+  const table = function (heads, rows) {
+    const t = document.createElement("table"); t.className = "hunt-est-table";
+    const hr = document.createElement("tr");
+    heads.forEach(function (h, i) { const th = document.createElement("th"); th.textContent = h; if (i) th.className = "num"; hr.appendChild(th); });
+    t.appendChild(hr);
+    rows.forEach(function (cells) {
+      const tr = document.createElement("tr");
+      cells.forEach(function (c, i) {
+        const td = document.createElement("td");
+        if (i) td.className = "num";
+        if (c && typeof c === "object") {   // (not c.link: strings have a legacy .link())
+          const wrap = document.createElement("span"); wrap.className = "hunt-est-name";
+          if (c.item !== undefined) {
+            const it = findItemByName(c.item), b64 = it && ICONS ? ICONS[String(it.cid)] : null;
+            const ic = document.createElement(b64 ? "img" : "span");
+            ic.className = "hunt-est-icon" + (b64 ? "" : " missing");
+            if (b64) { ic.src = "data:image/png;base64," + b64; ic.alt = ""; }
+            wrap.appendChild(ic);
+          } else if (c.tier !== undefined) {
+            const dot = document.createElement("span"); dot.className = "hunt-est-tier";
+            dot.style.background = mapTierColor(c.tier);
+            if (TIER_LABELS[c.tier]) dot.title = TIER_LABELS[c.tier];
+            wrap.appendChild(dot);
+          }
+          const a = document.createElement("span"); a.className = "xlink-text"; a.textContent = c.text;
+          a.addEventListener("click", c.link); wrap.appendChild(a);
+          td.appendChild(wrap);
+        } else td.textContent = c;
+        tr.appendChild(td);
+      });
+      t.appendChild(tr);
+    });
+    return t;
+  };
+  body.appendChild(table(["Monster", "Kills", "XP", "Loot gp"], res.rows.map(function (r) {
+    return [{ text: r.name, tier: r.monster ? r.monster.tier : null, link: function () { if (r.monster) goToMonster(r.name); } },
+      fmt(r.kills) + (r.unsure ? " (" + r.unsure + "?)" : ""),
+      r.exp == null ? "?" : fmt(Math.round(r.exp)), r.gold == null ? "?" : fmt(Math.round(r.gold))];
+  })));
+  const lootShown = hunt.showAllLoot ? res.loot : res.loot.slice(0, 15);
+  body.appendChild(table(["Expected loot", "Count", "Value gp"], lootShown.map(function (e) {
+    return [{ text: e.name, item: e.name, link: function () { goToItem(e.name); } }, huntFmt(e.count), !e.priced ? "–" : e.value > 0 && e.value < 0.5 ? "<1" : fmt(Math.round(e.value))];
+  })));
+  if (res.loot.length > 15) {
+    const more = document.createElement("button"); more.type = "button"; more.className = "map-btn hunt-est-more";
+    more.textContent = hunt.showAllLoot ? "Show top 15" : "Show all " + res.loot.length + " items";
+    more.addEventListener("click", function () { hunt.showAllLoot = !hunt.showAllLoot; huntRender(); });
+    body.appendChild(more);
+  }
+}
+// Rings round the spawns the estimate counts, on the current floor.
+function drawHuntMarks() {
+  if (!hunt.res || !huntFlag || routeState.mode === "off") return;
+  const z = state.mapFloor, r = Math.max(5, Math.min(12, mapView.scale * 0.8 + 3));
+  mapCtx.save();
+  mapCtx.lineWidth = 1.5;
+  hunt.res.marks.forEach(function (m) {
+    if (m.z !== z) return;
+    const [sx, sy] = worldToScreen(m.x + 0.5, m.y + 0.5);
+    mapCtx.setLineDash(m.sure ? [] : [3, 3]);
+    mapCtx.beginPath(); mapCtx.arc(sx, sy, r + 2.5, 0, Math.PI * 2);
+    mapCtx.strokeStyle = "rgba(0,0,0,0.6)"; mapCtx.lineWidth = 3; mapCtx.stroke();
+    mapCtx.strokeStyle = "#fde047"; mapCtx.lineWidth = 2; mapCtx.stroke();
+  });
+  mapCtx.restore();
+}
+
 function routeAutoFloorDone() {
   routeState.open.clear();
   routeChanged();
@@ -5360,6 +5579,7 @@ function routeAutoFloorDone() {
 function routeRenderStatus() {
   const el = document.getElementById("route-status");
   if (!el) return;
+  huntRender();
   const n = routeState.points.length;
   if (routeState.prepText) { el.textContent = routeState.prepText; return; }
   if (!n) { el.textContent = routeState.mode === "edit" ? "Click the map to add the first point. Change floors with ▲/▼ between clicks if the route goes up or down" + (routeAutoFloorOn() ? " - the stairs/holes on the way go in as waypoints by themselves." : ".") : ""; return; }
@@ -6513,7 +6733,11 @@ function initMap() {
     setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
   });
   botPathFlag = botPathFlagOn();
-  window.addEventListener("hashchange", function () { botPathFlag = botPathFlagOn(); pathBotRender(); drawMap(); });
+  huntFlag = huntFlagOn();
+  window.addEventListener("hashchange", function () { botPathFlag = botPathFlagOn(); huntFlag = huntFlagOn(); pathBotRender(); huntRender(); drawMap(); });
+  ["hunt-est-reach", "hunt-est-unsure"].forEach(function (id) {
+    document.getElementById(id).addEventListener("change", function () { huntRender(); drawMap(); });
+  });
   document.getElementById("path-bot-pick").addEventListener("click", function () { upqStart("path"); });
   document.getElementById("route-bot-pickups").addEventListener("click", function () { upqStart("route"); });
   document.getElementById("upq-choices").addEventListener("click", function (e) {
