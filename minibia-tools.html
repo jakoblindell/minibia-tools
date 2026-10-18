@@ -5572,12 +5572,15 @@ function botDirTo(a, b) {
 }
 
 // Waypoints for one of your own stairs/holes (CC_KINDS): [type, the param
-// that takes the step direction]. A shovel hole is opened, then stepped in.
+// that takes the step direction, "on" = placed on the hole/spot itself with
+// that param "here"]. Item-use waypoints go on the tile they're used on, as
+// the bot records them (it acts from an adjacent tile, "actionFromAdjacent").
+// A shovel hole is opened, then stepped in from the tile beside it.
 const CC_BOT_STEPS = {
-  "shovel": [["shovel", "targetOffset"], ["floor-down", "transitionTarget"]],
+  "shovel": [["shovel", "targetOffset", "on"], ["floor-down", "transitionTarget"]],
   "hole": [["floor-down", "transitionTarget"]],
   "stairs-down": [["floor-down", "transitionTarget"]],
-  "rope": [["rope", "targetOffset"]],
+  "rope": [["rope", "targetOffset", "on"]],
   "ladder": [["ladder-up", "transitionTarget"]],
   "stairs-up": [["stairs-up", "transitionTarget"]]
 };
@@ -5603,8 +5606,9 @@ function botLegFill(out, nodes, spacing) {
       const last = out[out.length - 1];
       if (last && last.t === "walk" && last.fill && last.z === at.z && last.x === at.x && last.y === at.y) { out.pop(); added--; }
       steps.forEach(function (st) {
-        const wp = routeMakePoint(at.z, at.x, at.y, "", { t: st[0] });
-        wp.params[st[1]] = dir || (st[1] === "transitionTarget" ? "auto" : "here");
+        const on = st[2] === "on", pos = on ? marker : at;
+        const wp = routeMakePoint(pos.z, pos.x, pos.y, "", { t: st[0] });
+        wp.params[st[1]] = on ? "here" : dir || (st[1] === "transitionTarget" ? "auto" : "here");
         out.push(wp); wp.fill = true; added++;
         if (st[0] === "up") ups++;
       });
@@ -6027,7 +6031,7 @@ function routeApplyAutoFloor() {
     }
     if (pts.length + add.length > ROUTE_MAX_POINTS) { const keep = Math.max(0, ROUTE_MAX_POINTS - pts.length); n -= add.length - keep; add.length = keep; }
     pts.splice.apply(pts, [i + 1, 0].concat(add));
-    routeState.autoNote = n ? "Added " + n + " floor change" + (n === 1 ? "" : "s") + " for the walk to #" + (pts.indexOf(m.b) + 1) + "." +
+    routeState.autoNote = n ? "Added " + n + " floor-change waypoint" + (n === 1 ? "" : "s") + " for the walk to #" + (pts.indexOf(m.b) + 1) + "." +
       (botUnpicked(pts).length && !BOT_UP_EXPORT ? " Ways up need a type - pick them on the map (button below)." : "") : "";
     return true;
   }
