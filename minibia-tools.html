@@ -446,6 +446,20 @@
   .upq[hidden] { display: none; }
   .cc-glyph { background: #c026d3; color: #fff; }
   .hunt-est[hidden] { display: none; }
+  .rot[hidden], .rot [hidden] { display: none; }
+  .rot-sec { display: flex; flex-direction: column; gap: 4px; }
+  .rot-line { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 13px; }
+  .rot-row { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 6px; font-size: 12.5px; align-items: baseline; }
+  .rot-row .rot-meta { grid-column: 2; }
+  .rot-meta { font-size: 11.5px; color: var(--text-muted); overflow-wrap: anywhere; }
+  .rot-buy-row { display: grid; grid-template-columns: minmax(0, 1.4fr) 62px 62px minmax(0, 1.3fr) auto; gap: 4px; align-items: center; }
+  .rot-buy-row input, .rot-buy-row select, .rot-sec select, .rot-sec input[type=number] { min-width: 0; font: inherit; font-size: 12.5px; padding: 3px 5px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface-2); color: var(--text-primary); }
+  .rot-head { font-size: 11px; color: var(--text-muted); font-weight: 600; }
+  .rot-stops { margin: 0; padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 5px; font-size: 13px; }
+  .rot-dot { display: inline-flex; width: 18px; height: 18px; border-radius: 50%; color: #000; font-weight: 700; font-size: 10.5px; align-items: center; justify-content: center; margin-right: 6px; }
+  .rot-stops .rot-meta { margin-left: 24px; }
+  .rot-err { font-size: 12.5px; color: #f87171; margin: 0; }
+  .rot-sum { font-size: 13px; margin: 0; color: var(--text-primary); }
   .hunt-est-sum { font-size: 13px; color: var(--text-primary); line-height: 1.5; }
   .hunt-est-sum b { font-variant-numeric: tabular-nums; }
   .hunt-est-body { display: flex; flex-direction: column; gap: 8px; }
@@ -826,6 +840,43 @@
               <div class="hunt-est-sum" id="hunt-est-sum"></div>
               <div class="hunt-est-body" id="hunt-est-body"></div>
               <p class="cc-help" id="hunt-est-note">Rough: every spawn within reach of the walked path (on the same floor) counts as killed once per lap, all alive; respawn times, monsters that follow you and anything off the path aren't modelled. Loot uses the design database's drop chances and NPC sell prices. Circled on the map: solid = floor confirmed, dashed = floor not confirmed.</p>
+            </div>
+            <div class="route-bot rot" id="rot" hidden>
+              <div class="route-bot-title">Rotation planner <span class="beta-tag">beta</span></div>
+              <p class="cc-help">This route is the hunt loop. Add the town side and get one cave bot route: hunt → when supplies run low → sell loot → depot → bank → buy supplies → back to the hunt. Every leg is walked by the pathfinder; stops a trip doesn't need are skipped by the bot on the spot.</p>
+              <div class="rot-sec">
+                <div class="rot-line"><b>Depot</b> <span id="rot-depot"></span> <button class="map-btn" id="rot-depot-set" type="button">Set on map</button></div>
+                <p class="cc-help">Click the middle of the depot room - the bot finds a free locker there by itself. NPCs are chosen from those near the depot.</p>
+                <label class="rot-line">NPCs within <select id="rot-range"><option value="60">60 tiles</option><option value="120">120 tiles</option><option value="200">200 tiles</option></select> of the depot</label>
+              </div>
+              <div class="rot-sec">
+                <label class="map-floor-filter-toggle"><input type="checkbox" id="rot-sell-on"> Sell loot first</label>
+                <div id="rot-sell"></div>
+              </div>
+              <div class="rot-sec">
+                <label class="map-floor-filter-toggle"><input type="checkbox" id="rot-bank-on"> Bank gold after the depot</label>
+                <div class="rot-line" id="rot-bank-row"><select id="rot-bank-npc"></select> when carrying <input type="number" id="rot-bank-min" min="1" style="width:84px"> gp or more</div>
+              </div>
+              <div class="rot-sec">
+                <label class="map-floor-filter-toggle"><input type="checkbox" id="rot-buy-on"> Buy supplies last</label>
+                <div id="rot-buy"></div>
+                <datalist id="rot-items"></datalist>
+                <div><button class="map-btn" id="rot-buy-add" type="button">+ Supply</button></div>
+              </div>
+              <div class="route-actions">
+                <label class="route-bot-spacing">Walk waypoint every
+                  <select id="rot-spacing"><option value="0">none (floor changes only)</option><option value="5">5 tiles</option><option value="8">8 tiles</option><option value="12">12 tiles</option></select>
+                </label>
+                <button class="map-btn pb-primary" id="rot-build" type="button">Build rotation</button>
+              </div>
+              <div class="rot-sec" id="rot-out"></div>
+              <div class="route-actions">
+                <button class="map-btn pb-primary" id="rot-pick" type="button" hidden>Pick ways up</button>
+                <button class="map-btn pb-primary" id="rot-copy" type="button" disabled title="Copy the whole rotation in the bot's Import JSON format">Copy bot JSON</button>
+                <button class="map-btn" id="rot-download" type="button" disabled>Download .json</button>
+              </div>
+              <div class="route-bot-msg" id="rot-msg"></div>
+              <p class="cc-help">Needs the bot's waypoint checks (Supplies low? / Anything to sell? / Gold to bank? / Anything to buy?). Loot and NPC offers come from the game data, which doesn't list every NPC offer (no one sells mana fluid in it, for example) - pick the NPC in that supply's row.</p>
             </div>
             <div class="route-bot">
               <div class="route-bot-title">Cave bot route</div>
@@ -3205,7 +3256,7 @@ function drawMap() {
   }
 
   drawCustomConns(w, h);
-  if (routeState.mode !== "off") { drawHuntMarks(); drawRouteOverlay(); }
+  if (routeState.mode !== "off") { drawHuntMarks(); drawRouteOverlay(); drawRotOverlay(); }
   if (pathState.active) drawPathOverlay(w, h);
   drawUpqHighlight();
   drawVersionMark();
@@ -4390,6 +4441,17 @@ function upqItems(kind) {
         set: function (t) { pathBot.choice[key] = t; pathBot.key = ""; pathBotRender(); }
       });
     });
+  } else if (kind === "rot") {
+    rotUps().forEach(function (p) {
+      const key = rotUpKey(p);
+      out.push({
+        z: p.z, x: p.x, y: p.y,
+        dir: function () { return p.params.transitionTarget || p.params.targetOffset; },
+        num: function () { return rot.res ? rot.res.route.indexOf(p) + 1 : "?"; },
+        get: function () { return rot.choice[key] || ""; },
+        set: function (t) { rot.choice[key] = t; rotRender(); }
+      });
+    });
   } else {
     routeState.points.forEach(function (p) {
       if (p.t !== "up") return;
@@ -4468,8 +4530,10 @@ function upqFinish() {
   const kind = upq.kind, n = upq.items.length;
   upqClose();
   const msg = "All " + n + " way" + (n === 1 ? "" : "s") + " up picked ✓";
-  const btn = document.getElementById(kind === "path" ? "path-bot-copy" : "route-bot-copy");
-  if (kind === "path") pathBotRender(msg + " - ready to copy."); else botRenderMessages(msg + ".");
+  const btn = document.getElementById(kind === "path" ? "path-bot-copy" : kind === "rot" ? "rot-copy" : "route-bot-copy");
+  if (kind === "path") pathBotRender(msg + " - ready to copy.");
+  else if (kind === "rot") { rotRender(); document.getElementById("rot-msg").textContent = msg + " - ready to copy."; }
+  else botRenderMessages(msg + ".");
   const r = btn.getBoundingClientRect();
   if (r.top < 0 || r.bottom > window.innerHeight) btn.scrollIntoView({ block: "center", behavior: "smooth" });
 }
@@ -5129,6 +5193,9 @@ function botUnpicked(points) {
 // Params that hold a direction; carried over when the type changes, so a
 // generated "stairs-up" can become a ladder or rope without re-picking it.
 const BOT_DIR_KEYS = ["transitionTarget", "targetOffset", "standDirection", "dropTargetOffset"];
+// The bot's waypoint checks ("Check after this waypoint" - params checkType,
+// checkYesId / checkNoId, checkMin for bank-needed, optional checkStepId).
+const BOT_WP_CHECKS = ["supplies-low", "sell-needed", "bank-needed", "buy-needed"];
 const NPC_PRESETS = ["deposit-all", "withdraw", "buy-item", "sell-items", "refill-supplies", "custom"];
 // Friendly inputs for the common params; anything else is edited as JSON.
 const BOT_FIELDS = {
@@ -5570,6 +5637,527 @@ function drawHuntMarks() {
   mapCtx.restore();
 }
 
+
+// --- Rotation planner (beta, feature flag: #rotation in the URL turns it
+// on for this device, #rotation-off turns it off). The Route builder route
+// is the hunt loop; the planner adds the town side - sell loot, depot,
+// bank, buy supplies - with the pathfinder walking every leg, and exports
+// one cave bot route: hunt -> (Supplies low?) -> sell -> depot -> bank ->
+// buy -> back to the hunt. Optional stops are skipped by checks the bot
+// runs on the spot (Anything to sell? / Gold to bank? / Anything to buy?),
+// so every way between two stops that can follow each other is walked
+// and written out once.
+const ROT_FLAG_KEY = "minibia.flag.rotation", ROT_CFG_KEY = "minibia.rotation.v1";
+function rotFlagOn() {
+  const h = location.hash.toLowerCase();
+  try {
+    if (/(^#|&)rotation-off(&|$)/.test(h)) localStorage.removeItem(ROT_FLAG_KEY);
+    else if (/(^#|&)rotation(&|$)/.test(h)) localStorage.setItem(ROT_FLAG_KEY, "1");
+    return localStorage.getItem(ROT_FLAG_KEY) === "1";
+  } catch (e) { return /(^#|&)rotation(&|$)/.test(h); }
+}
+let rotFlag = false;
+function rotDefaults() {
+  return { depot: null, range: 120, spacing: 8, sell: { on: true, off: {} }, bank: { on: true, npc: "", min: 1000 },
+    buy: { on: true, rows: [{ name: "", low: 20, to: 100, npc: "" }] } };
+}
+function rotLoadCfg() {
+  const d = rotDefaults();
+  try {
+    const c = JSON.parse(localStorage.getItem(ROT_CFG_KEY) || "null");
+    if (!c || typeof c !== "object") return d;
+    const pos = c.depot && [c.depot.z, c.depot.x, c.depot.y].every(Number.isInteger) ? { z: c.depot.z, x: c.depot.x, y: c.depot.y } : null;
+    return {
+      depot: pos, range: [60, 120, 200].indexOf(c.range) >= 0 ? c.range : d.range, spacing: [0, 5, 8, 12].indexOf(c.spacing) >= 0 ? c.spacing : d.spacing,
+      sell: { on: !(c.sell && c.sell.on === false), off: c.sell && c.sell.off && typeof c.sell.off === "object" ? c.sell.off : {} },
+      bank: { on: !(c.bank && c.bank.on === false), npc: String(c.bank && c.bank.npc || "").slice(0, 60), min: Math.max(1, Math.floor(Number(c.bank && c.bank.min) || d.bank.min)) },
+      buy: { on: !(c.buy && c.buy.on === false), rows: Array.isArray(c.buy && c.buy.rows) && c.buy.rows.length ? c.buy.rows.slice(0, 20).map(function (r) {
+        return { name: String(r && r.name || "").slice(0, 60), low: Math.max(0, Math.floor(Number(r && r.low) || 0)), to: Math.max(0, Math.floor(Number(r && r.to) || 0)), npc: String(r && r.npc || "").slice(0, 60) };
+      }) : d.buy.rows }
+    };
+  } catch (e) { return d; }
+}
+const rot = { cfg: rotLoadCfg(), pickDepot: false, poi: null, poiState: "", plan: null, res: null, gen: 0, choice: {}, msg: "" };
+function rotSaveCfg() { try { localStorage.setItem(ROT_CFG_KEY, JSON.stringify(rot.cfg)); } catch (e) {} }
+
+// npc-poi.json says which NPCs are banks (keywords can't: rune shops answer
+// "deposit" too). Loaded once, only while the planner is on.
+function rotLoadPoi() {
+  if (rot.poiState) return;
+  rot.poiState = "loading";
+  fetch("data/raw/npc-poi.json").then(function (r) { return r.ok ? r.json() : null; }).then(function (list) {
+    const map = {};
+    (Array.isArray(list) ? list : []).forEach(function (p) { if (p && typeof p.n === "string") map[p.n.toLowerCase()] = String(p.t || ""); });
+    rot.poi = map; rot.poiState = Array.isArray(list) ? "ok" : "failed"; rotRender();
+  }).catch(function () { rot.poi = {}; rot.poiState = "failed"; rotRender(); });
+}
+function rotDist(a, b) { return Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y)) + 20 * Math.abs(a.z - b.z); }
+function rotKey(n) { return String(n || "").trim().toLowerCase(); }
+// NPCs with a position within range of the depot, nearest first.
+function rotNearNpcs() {
+  const d = rot.cfg.depot;
+  if (!d) return [];
+  return (DATA.npcs || []).filter(function (n) { return n.position && rotDist(n.position, d) <= rot.cfg.range; })
+    .sort(function (a, b) { return rotDist(a.position, d) - rotDist(b.position, d); });
+}
+function rotPoiType(n) { return rot.poi ? rot.poi[rotKey(n.name)] || "" : ""; }
+// Best NPC near the depot that buys an item (highest price; near comes nearest first).
+function rotBuyerFor(name, near) {
+  let best = null;
+  near.forEach(function (n) {
+    (n.buys || []).forEach(function (o) {
+      if (rotKey(o.name) === rotKey(name) && (!best || o.price > best.price)) best = { npc: n, price: o.price };
+    });
+  });
+  return best;
+}
+// Cheapest NPC near the depot that sells an item.
+function rotSellerFor(name, near) {
+  let best = null;
+  near.forEach(function (n) {
+    (n.sells || []).forEach(function (o) {
+      if (rotKey(o.name) === rotKey(name) && (!best || o.price < best.price)) best = { npc: n, price: o.price };
+    });
+  });
+  return best;
+}
+function rotOffer(n, list, name) {
+  const o = (n && n[list] || []).find(function (x) { return rotKey(x.name) === rotKey(name); });
+  return o ? o.price : null;
+}
+function rotBanks(near) { return near.filter(function (n) { return rotPoiType(n) === "bank"; }); }
+// NPCs you can pick as a supply seller when the data has none for an item:
+// anyone near with a shop list, plus the map's shop / rune NPCs.
+function rotTraders(near) { return near.filter(function (n) { return (n.sells || []).length || ["shop", "rune"].indexOf(rotPoiType(n)) >= 0; }); }
+
+// The stops, in order. Reads the config, the hunt route and the hunt
+// estimate's loot; no paths yet.
+function rotPlan() {
+  const cfg = rot.cfg, errors = [], notes = [], hp = routeState.points;
+  if (hp.length < 2) errors.push("Build the hunt loop in the Route builder first (at least two points).");
+  if (!cfg.depot) errors.push("Set the depot: press Set on map and click the middle of the depot room.");
+  if (errors.length) return { errors: errors, notes: notes, stops: [], noBuyer: [] };
+  const near = rotNearNpcs(), H = hp[0];
+  const stops = [{ key: "hunt", kind: "hunt", label: "Hunt start", pos: { z: H.z, x: H.x, y: H.y }, mandatory: true }];
+  // Sell: the hunt estimate's expected loot, each item to its best buyer.
+  const sells = new Map(), noBuyer = [], loot = [];
+  let sellValue = 0;
+  if (cfg.sell.on) {
+    const h = huntCompute(5, true);
+    if (h.pending) notes.push("The loot list waits for the hunt route's legs to finish calculating.");
+    (h.loot || []).forEach(function (e) {
+      if (/^(gold|platinum|crystal) coin$/i.test(e.name) || !e.priced) return;
+      const b = rotBuyerFor(e.name, near);
+      if (!b) { noBuyer.push(e.name); return; }
+      const on = !cfg.sell.off[rotKey(e.name)];
+      loot.push({ name: e.name, count: e.count, price: b.price, npc: b.npc.name, on: on });
+      if (!on) return;
+      let s = sells.get(b.npc.name);
+      if (!s) { s = { npc: b.npc, items: [] }; sells.set(b.npc.name, s); }
+      s.items.push({ name: e.name, count: e.count, price: b.price });
+      sellValue += e.count * b.price;
+    });
+    sells.forEach(function (s) {
+      stops.push({ key: "sell:" + s.npc.name, kind: "sell", optional: true, npc: s.npc, pos: s.npc.position, label: "Sell to " + s.npc.name, items: s.items });
+    });
+    if (!h.pending && !loot.length) notes.push("No loot along the hunt route has a buyer near the depot (Hunt estimate shows the expected loot).");
+  }
+  stops.push({ key: "depot", kind: "depot", mandatory: true, pos: cfg.depot, label: "Depot" });
+  if (cfg.bank.on) {
+    const banks = rotBanks(near), bank = banks.find(function (n) { return rotKey(n.name) === rotKey(cfg.bank.npc); }) || banks[0];
+    if (bank) stops.push({ key: "bank", kind: "bank", optional: true, npc: bank, pos: bank.position, label: "Bank at " + bank.name, min: cfg.bank.min });
+    else if (rot.poiState === "loading" || !rot.poiState) notes.push("Loading which NPCs are banks…");
+    else errors.push("No bank NPC within " + cfg.range + " tiles of the depot" + (rot.poiState === "failed" ? " (couldn't load data/raw/npc-poi.json)" : "") + ".");
+  }
+  // Buy: each supply from its seller; one buy stop per NPC.
+  const buys = new Map();
+  let refillCost = 0, unpriced = 0;
+  if (cfg.buy.on) {
+    cfg.buy.rows.forEach(function (r) {
+      const name = r.name.trim();
+      if (!name) return;
+      if (!(r.to > r.low)) errors.push(name + ": Refill to must be more than Low below.");
+      let npc = null, price = null;
+      if (r.npc) {
+        npc = near.find(function (n) { return rotKey(n.name) === rotKey(r.npc); }) || null;
+        if (!npc) { errors.push(name + ": " + r.npc + " isn't within " + cfg.range + " tiles of the depot."); return; }
+        price = rotOffer(npc, "sells", name);
+      } else {
+        const s = rotSellerFor(name, near);
+        if (!s) { errors.push(name + ": no NPC near the depot sells it in the game data - pick the NPC in its row."); return; }
+        npc = s.npc; price = s.price;
+      }
+      let b = buys.get(npc.name);
+      if (!b) { b = { npc: npc, rows: [] }; buys.set(npc.name, b); }
+      b.rows.push({ name: name, low: r.low, to: r.to, price: price });
+      if (price != null) refillCost += Math.max(0, r.to - r.low) * price; else unpriced++;
+    });
+    buys.forEach(function (b) { stops.push({ key: "buy:" + b.npc.name, kind: "buy", optional: true, npc: b.npc, pos: b.npc.position, label: "Buy from " + b.npc.name, rows: b.rows }); });
+  }
+  stops.push({ key: "return", kind: "return", mandatory: true, pos: { z: H.z, x: H.x, y: H.y }, label: "Back to the hunt" });
+  if (!routeState.loop) notes.push("Loop back to start is off - the hunt is normally a loop.");
+  return { errors: errors, notes: notes, stops: stops, loot: loot, noBuyer: noBuyer, sellValue: sellValue, refillCost: refillCost, unpriced: unpriced };
+}
+// Which earlier stops a stop can be walked to from: every stop since the
+// last mandatory one (the optional ones in between may have been skipped).
+function rotPreds(stops, k) {
+  const out = [];
+  for (let j = k - 1; j >= 0; j--) { out.unshift(j); if (stops[j].mandatory) break; }
+  return out;
+}
+function rotLegPairs(stops) {
+  const pairs = [];
+  for (let k = 1; k < stops.length; k++) rotPreds(stops, k).forEach(function (j) { pairs.push([j, k]); });
+  return pairs;
+}
+// From a stop, the stops that can come next, up to the next mandatory one.
+function rotNexts(stops, j) {
+  const out = [];
+  for (let k = j + 1; k < stops.length; k++) { out.push(k); if (stops[k].mandatory) break; }
+  return out;
+}
+
+// Turns the stops and walked legs into one bot route (points as made by
+// routeMakePoint). legs: "j>k" -> pathfinder nodes. Layout:
+//   hunt points, then T (walk on the hunt start: Supplies low? LOW -> decide, OK -> hunt start)
+//   decide after T, then per stop k: a leg from each possible previous stop,
+//   k's action, decide after k.
+// "Decide" is one walk per optional next stop with its check (YES -> the leg
+// there), then a Go to the leg to the next mandatory stop. The last legs end
+// with a Go to the hunt label.
+function rotAssemble(huntPoints, stops, legs, spacing) {
+  let seq = 0;
+  const nid = function (tag) { return "rot-" + tag + "-" + (++seq); };
+  const route = [], labels = {};
+  const label = function (txt) {
+    const base = String(txt).slice(0, 54);
+    let l = base, n = 2;
+    while (labels[l]) l = base + " " + (n++);
+    labels[l] = true; return l;
+  };
+  const hunt = huntPoints.map(function (p, i) {
+    const q = routeMakePoint(p.z, p.x, p.y, p.note, { t: p.t, id: p.id || ("hunt-" + (i + 1)), label: p.label, en: p.en, params: botClone(p.params) });
+    q.picked = p.picked; return q;
+  });
+  hunt.forEach(function (p) { if (p.label) labels[p.label] = true; });
+  const H = hunt[0];
+  if (!H.label) H.label = label("Hunt");
+  hunt.forEach(function (p) { route.push(p); });
+  const T = routeMakePoint(H.z, H.x, H.y, "", { id: nid("trigger"), label: label("Supplies check") });
+  T.params.checkType = "supplies-low"; T.params.checkNoId = H.id;
+  route.push(T);
+  const legStart = {}, action = {}, gotos = [];
+  const decide = function (j) {
+    const at = j === 0 ? T : action[j];
+    let first = null;
+    rotNexts(stops, j).forEach(function (k) {
+      const s = stops[k];
+      if (s.mandatory) {
+        const g = routeMakePoint(at.z, at.x, at.y, "", { t: "goto", id: nid("go") });
+        gotos.push({ wp: g, key: j + ">" + k }); route.push(g);
+        if (!first) first = g;
+        return;
+      }
+      const d = routeMakePoint(at.z, at.x, at.y, "", { id: nid("check") });
+      d.params.checkType = s.kind === "sell" ? "sell-needed" : s.kind === "bank" ? "bank-needed" : "buy-needed";
+      d.params.checkYesId = "@leg:" + j + ">" + k;
+      d.params.checkNoId = "next";
+      if (s.kind === "bank") d.params.checkMin = s.min;
+      else d.params.checkStepId = "@action:" + k;
+      route.push(d);
+      if (!first) first = d;
+    });
+    return first;
+  };
+  T.params.checkYesId = decide(0).id;
+  for (let k = 1; k < stops.length; k++) {
+    const s = stops[k], preds = rotPreds(stops, k);
+    preds.forEach(function (j, pi) {
+      const nodes = legs[j + ">" + k], tiles = botLegTiles(nodes), out = [];
+      botLegFill(out, nodes, spacing);
+      // At an NPC, stop on the tile before the NPC's own (it stands there);
+      // elsewhere on the goal itself.
+      let end = tiles[tiles.length - 1];
+      if (s.npc && tiles.length >= 2 && !end.portal && tiles[tiles.length - 2].z === end.z) end = tiles[tiles.length - 2];
+      out.push(routeMakePoint(end.z, end.x, end.y, "", {}));
+      out.forEach(function (p) { if (!p.id) p.id = nid("leg"); });
+      out[0].label = label("To " + s.label + " from " + stops[j].label);
+      legStart[j + ">" + k] = out[0];
+      out.forEach(function (p) { route.push(p); });
+      if (s.kind === "return") {
+        route.push(routeMakePoint(end.z, end.x, end.y, "", { t: "goto", id: nid("home"), params: { targetLabel: H.label } }));
+        return;
+      }
+      if (!action[k]) {
+        const a = routeMakePoint(end.z, end.x, end.y, "", { t: s.kind === "depot" ? "depot" : "npc", id: nid("act"), label: label(s.label) });
+        if (s.kind === "sell") a.params = { npcPreset: "sell-items", npcName: s.npc.name, sellSkipUnavailable: true,
+          sellRows: s.items.map(function (it, i) { return { id: "sell-" + (i + 1), itemName: it.name, mode: "all", amount: 0, keep: 0 }; }) };
+        if (s.kind === "bank") a.params = { npcPreset: "deposit-all", npcName: s.npc.name };
+        if (s.kind === "buy") a.params = { npcPreset: "refill-supplies", npcName: s.npc.name, refillOnlyListed: true,
+          refillRows: s.rows.map(function (r) { return { id: "", name: r.name, tradeName: r.name, refillTarget: r.to }; }) };
+        action[k] = a;
+      }
+      // Only the last leg runs straight into the action; the others jump to it.
+      if (pi < preds.length - 1) route.push(routeMakePoint(end.z, end.x, end.y, "", { t: "goto", id: nid("go"), params: { targetLabel: "@label:" + k } }));
+    });
+    if (action[k]) { route.push(action[k]); decide(k); }
+  }
+  // Forward references, now that every waypoint exists.
+  gotos.forEach(function (g) { g.wp.params.targetLabel = legStart[g.key].label; });
+  route.forEach(function (p) {
+    const pr = p.params;
+    if (typeof pr.checkYesId === "string" && pr.checkYesId.indexOf("@leg:") === 0) pr.checkYesId = legStart[pr.checkYesId.slice(5)].id;
+    if (typeof pr.checkStepId === "string" && pr.checkStepId.indexOf("@action:") === 0) pr.checkStepId = action[pr.checkStepId.slice(8)].id;
+    if (typeof pr.targetLabel === "string" && pr.targetLabel.indexOf("@label:") === 0) pr.targetLabel = action[pr.targetLabel.slice(7)].label;
+  });
+  return route;
+}
+
+// Walks every leg the plan needs (pathRequest, cached like the Route
+// builder's legs), then assembles the route. An NPC stands on its tile, so
+// a leg to an NPC that the pathfinder can't end on tries its 8 neighbours.
+const ROT_COLORS = { hunt: "#f8fafc", sell: "#22c55e", depot: "#eab308", bank: "#38bdf8", buy: "#a855f7", "return": "#f8fafc" };
+const ROT_LETTER = { hunt: "H", sell: "S", depot: "D", bank: "B", buy: "$", "return": "H" };
+async function rotFindLeg(a, b, npc) {
+  const key = routeLegKey(a, b);
+  let leg = routeLegCache.get(key);
+  if (!leg) {
+    const r = await pathRequest(a, b);
+    leg = r.ok ? { ok: true, nodes: r.nodes, doors: r.doors || [] } : { ok: false, reason: r.reason };
+    routeLegCache.set(key, leg);
+  }
+  if (leg.ok || !npc) return leg;
+  for (const d of ["n", "e", "s", "w", "ne", "se", "sw", "nw"]) {
+    const st = BOT_DIR_STEP[d], g = { z: b.z, x: b.x + st[0], y: b.y + st[1] };
+    const alt = await rotFindLeg(a, g, false);
+    if (alt.ok) return alt;
+  }
+  return leg;
+}
+function rotBuild() {
+  const plan = rotPlan(), gen = ++rot.gen;
+  rot.plan = plan; rot.res = null; rot.msg = "";
+  if (plan.errors.length) { rotRender(); return; }
+  rot.msg = "Walking the town legs…"; rotRender();
+  const pairs = rotLegPairs(plan.stops);
+  (async function () {
+    const legs = {}, failed = [], doors = [];
+    for (const pr of pairs) {
+      const a = plan.stops[pr[0]], b = plan.stops[pr[1]];
+      const leg = await rotFindLeg(a.pos, b.pos, !!b.npc);
+      if (gen !== rot.gen) return;
+      if (!leg.ok) failed.push(a.label + " → " + b.label);
+      else { legs[pr[0] + ">" + pr[1]] = leg.nodes; doors.push.apply(doors, leg.doors || []); }
+    }
+    if (failed.length) { rot.msg = "No walking route for: " + failed.join("; ") + ". Move the depot or check the stairs on the way."; rotRender(); return; }
+    const spacing = rot.cfg.spacing;
+    const route = rotAssemble(routeState.points, plan.stops, legs, spacing);
+    const steps = Object.keys(legs).reduce(function (n, k) { return n + pathNodeStats(legs[k]).steps; }, 0);
+    rot.res = { route: route, legs: legs, stops: plan.stops, doors: doors, steps: steps, plan: plan };
+    rot.msg = "";
+    rotRender(); drawMap();
+  })();
+}
+// The rotation's own ways up (the town legs); the hunt's are picked in the
+// Route builder list as before. Choice is kept per stand tile.
+function rotUpKey(p) { return p.z + "," + p.x + "," + p.y; }
+function rotUps() { return rot.res ? rot.res.route.filter(function (p, i) { return p.t === "up" && i >= routeState.points.length; }) : []; }
+function rotExport() {
+  const route = rot.res.route.map(function (p, i) {
+    const w = botWaypoint(p, i);
+    if (p.t === "up" && i >= routeState.points.length && rot.choice[rotUpKey(p)]) w.type = rot.choice[rotUpKey(p)];
+    return w;
+  });
+  return { json: JSON.stringify({ version: 1, route: route }, null, 2), errors: botValidate(route), route: route };
+}
+function rotBlocked() {
+  if (!rot.res) return "Build the rotation first.";
+  const huntUps = botUnpicked(routeState.points), left = rotUps().filter(function (p) { return !rot.choice[rotUpKey(p)]; });
+  if (huntUps.length) return "Pick the hunt route's ways up first (Route builder list: " + huntUps.join(", ") + ").";
+  if (left.length) return left.length + " way" + (left.length === 1 ? "" : "s") + " up on the town legs still need a type - press Pick ways up.";
+  const ex = rotExport();
+  if (ex.errors.length) return "Not exported: " + ex.errors.join(" · ");
+  return "";
+}
+
+function rotEl(tag, parent, text, cls) {
+  const e = document.createElement(tag);
+  if (text != null) e.textContent = text;
+  if (cls) e.className = cls;
+  if (parent) parent.appendChild(e);
+  return e;
+}
+function rotRender() {
+  const box = document.getElementById("rot");
+  if (!box) return;
+  box.hidden = !rotFlag || routeState.mode === "off";
+  if (box.hidden) return;
+  rotLoadPoi();
+  const cfg = rot.cfg, near = rotNearNpcs();
+  document.getElementById("rot-depot").textContent = rot.pickDepot ? "Click the middle of the depot room on the map…" :
+    cfg.depot ? "x" + cfg.depot.x + " y" + cfg.depot.y + " z" + cfg.depot.z + " · " + near.length + " NPCs within " + cfg.range + " tiles" : "Not set";
+  document.getElementById("rot-depot-set").textContent = rot.pickDepot ? "Cancel" : (cfg.depot ? "Move" : "Set on map");
+  document.getElementById("rot-range").value = String(cfg.range);
+  document.getElementById("rot-spacing").value = String(cfg.spacing);
+  document.getElementById("rot-sell-on").checked = cfg.sell.on;
+  document.getElementById("rot-bank-on").checked = cfg.bank.on;
+  document.getElementById("rot-buy-on").checked = cfg.buy.on;
+  document.getElementById("rot-bank-min").value = String(cfg.bank.min);
+  const plan = rotPlan();
+  // Sell: the expected loot and who buys it.
+  const sell = document.getElementById("rot-sell");
+  sell.textContent = "";
+  sell.hidden = !cfg.sell.on;
+  if (cfg.sell.on) {
+    if (!(plan.loot || []).length) rotEl("p", sell, cfg.depot ? "Loot to sell comes from the hunt route (as in Hunt estimate). Nothing with a buyer near the depot yet." : "Set the depot to see who buys your loot.", "cc-help");
+    (plan.loot || []).forEach(function (it) {
+      const row = rotEl("label", sell, null, "rot-row");
+      const cb = rotEl("input", row); cb.type = "checkbox"; cb.checked = it.on;
+      cb.addEventListener("change", function () { if (cb.checked) delete cfg.sell.off[rotKey(it.name)]; else cfg.sell.off[rotKey(it.name)] = true; rotSaveCfg(); rotRender(); });
+      rotEl("span", row, it.name, "rot-name");
+      rotEl("span", row, huntFmt(it.count) + "/lap · " + fmt(it.price) + " gp · " + it.npc, "rot-meta");
+    });
+    if ((plan.noBuyer || []).length) rotEl("p", sell, "No buyer near the depot (stays in the loot bag for the depot): " + plan.noBuyer.join(", ") + ".", "cc-help");
+  }
+  // Bank NPC choice.
+  const bankSel = document.getElementById("rot-bank-npc"), banks = rotBanks(near);
+  bankSel.textContent = "";
+  rotEl("option", bankSel, banks.length ? "Nearest (" + banks[0].name + ")" : rot.poiState === "loading" ? "Loading…" : "None in range").value = "";
+  banks.forEach(function (n) { rotEl("option", bankSel, n.name + " · " + rotDist(n.position, cfg.depot) + " tiles").value = n.name; });
+  bankSel.value = banks.some(function (n) { return n.name === cfg.bank.npc; }) ? cfg.bank.npc : "";
+  document.getElementById("rot-bank-row").hidden = !cfg.bank.on;
+  // Buy rows.
+  const buy = document.getElementById("rot-buy");
+  buy.textContent = "";
+  buy.hidden = !cfg.buy.on;
+  document.getElementById("rot-buy-add").hidden = !cfg.buy.on;
+  if (cfg.buy.on) {
+    const head = rotEl("div", buy, null, "rot-buy-row rot-head");
+    ["Item", "Low below", "Refill to", "NPC", ""].forEach(function (t) { rotEl("span", head, t); });
+    const traders = rotTraders(near);
+    cfg.buy.rows.forEach(function (r, i) {
+      const row = rotEl("div", buy, null, "rot-buy-row");
+      const name = rotEl("input", row); name.value = r.name; name.placeholder = "e.g. mana fluid"; name.setAttribute("list", "rot-items");
+      const low = rotEl("input", row); low.type = "number"; low.min = "0"; low.value = String(r.low);
+      const to = rotEl("input", row); to.type = "number"; to.min = "0"; to.value = String(r.to);
+      const npc = rotEl("select", row);
+      const auto = r.name.trim() ? rotSellerFor(r.name, near) : null;
+      rotEl("option", npc, auto ? "Auto (" + auto.npc.name + ", " + auto.price + " gp)" : "Auto").value = "";
+      traders.forEach(function (n) { const p = rotOffer(n, "sells", r.name); rotEl("option", npc, n.name + (p != null ? " · " + p + " gp" : "")).value = n.name; });
+      npc.value = traders.some(function (n) { return n.name === r.npc; }) ? r.npc : "";
+      const del = rotEl("button", row, "×", "map-btn"); del.type = "button"; del.title = "Remove";
+      const save = function () {
+        cfg.buy.rows[i] = { name: name.value.slice(0, 60), low: Math.max(0, Math.floor(Number(low.value) || 0)), to: Math.max(0, Math.floor(Number(to.value) || 0)), npc: npc.value };
+        rotSaveCfg(); rotRender();
+      };
+      [name, low, to, npc].forEach(function (el) { el.addEventListener("change", save); });
+      del.addEventListener("click", function () { cfg.buy.rows.splice(i, 1); if (!cfg.buy.rows.length) cfg.buy.rows.push({ name: "", low: 20, to: 100, npc: "" }); rotSaveCfg(); rotRender(); });
+    });
+    // Autocomplete: what NPCs near the depot sell, then every item.
+    const dl = document.getElementById("rot-items"), seen = {};
+    dl.textContent = "";
+    near.forEach(function (n) { (n.sells || []).forEach(function (o) { const k = rotKey(o.name); if (!seen[k]) { seen[k] = 1; rotEl("option", dl).value = k; } }); });
+  }
+  // Result.
+  const out = document.getElementById("rot-out");
+  out.textContent = "";
+  const shown = rot.plan && rot.res ? rot.plan : plan;
+  shown.errors.forEach(function (t) { rotEl("p", out, "⚠ " + t, "rot-err"); });
+  shown.notes.forEach(function (t) { rotEl("p", out, t, "cc-help"); });
+  if (rot.msg) rotEl("p", out, rot.msg, "cc-help");
+  if (rot.res) {
+    const r = rot.res, ol = rotEl("ol", out, null, "rot-stops");
+    r.stops.forEach(function (s) {
+      const li = rotEl("li", ol);
+      const dot = rotEl("span", li, ROT_LETTER[s.kind], "rot-dot"); dot.style.background = ROT_COLORS[s.kind];
+      rotEl("span", li, s.label + (s.optional ? " (skipped when not needed)" : ""));
+      if (s.kind === "sell") rotEl("div", li, s.items.map(function (it) { return it.name; }).join(", "), "rot-meta");
+      if (s.kind === "buy") rotEl("div", li, s.rows.map(function (x) { return x.name + " → " + x.to; }).join(", "), "rot-meta");
+      if (s.kind === "bank") rotEl("div", li, "when you carry " + fmt(s.min) + " gp or more", "rot-meta");
+    });
+    const p = r.plan;
+    rotEl("p", out, r.route.length + " waypoints · " + Object.keys(r.legs).length + " town legs, ~" + fmt(r.steps) + " steps in all" +
+      (p.sellValue ? " · loot sold ~" + fmt(Math.round(p.sellValue)) + " gp/lap" : "") +
+      (p.refillCost ? " · a full refill ~" + fmt(Math.round(p.refillCost)) + " gp" + (p.unpriced ? " (+" + p.unpriced + " unpriced)" : "") : "") +
+      (r.doors.length ? " · passes " + r.doors.length + " assumed door" + (r.doors.length === 1 ? "" : "s") : ""), "rot-sum");
+    const ups = rotUps(), left = ups.filter(function (x) { return !rot.choice[rotUpKey(x)]; }).length;
+    document.getElementById("rot-pick").hidden = !ups.length;
+    if (ups.length) document.getElementById("rot-pick").textContent = left ? "Pick ways up (" + left + " left)" : "Ways up picked ✓";
+    rotEl("p", out, "Add each supply to the bot's Supplies too (same name, Low below, Refill to) - the bot decides LOW from those.", "cc-help");
+  } else document.getElementById("rot-pick").hidden = true;
+  document.getElementById("rot-copy").disabled = !rot.res;
+  document.getElementById("rot-download").disabled = !rot.res;
+  document.getElementById("rot-msg").textContent = "";
+}
+function rotPickDepotAt(sx, sy) {
+  const [wx, wy] = screenToWorld(sx, sy);
+  rot.cfg.depot = { z: state.mapFloor, x: Math.floor(wx), y: Math.floor(wy) };
+  rot.pickDepot = false; rot.res = null;
+  rotSaveCfg(); rotRender(); drawMap();
+}
+function drawRotOverlay() {
+  if (!rotFlag || routeState.mode === "off") return;
+  const z = state.mapFloor;
+  mapCtx.save();
+  if (rot.res) {
+    mapCtx.setLineDash([6, 4]); mapCtx.lineWidth = 2.5; mapCtx.strokeStyle = "#c084fc";
+    Object.keys(rot.res.legs).forEach(function (k) {
+      const nodes = rot.res.legs[k];
+      mapCtx.beginPath();
+      let pen = false;
+      nodes.forEach(function (n) {
+        if (n.z !== z) { pen = false; return; }
+        const [sx, sy] = worldToScreen(n.x + 0.5, n.y + 0.5);
+        if (pen) mapCtx.lineTo(sx, sy); else mapCtx.moveTo(sx, sy);
+        pen = true;
+      });
+      mapCtx.stroke();
+    });
+    mapCtx.setLineDash([]);
+  }
+  const marks = rot.res ? rot.res.stops.filter(function (s) { return s.kind !== "return"; }) : (rot.cfg.depot ? [{ kind: "depot", pos: rot.cfg.depot }] : []);
+  mapCtx.font = "700 11px 'Segoe UI', sans-serif"; mapCtx.textAlign = "center"; mapCtx.textBaseline = "middle";
+  marks.forEach(function (s) {
+    if (s.pos.z !== z) return;
+    const [sx, sy] = worldToScreen(s.pos.x + 0.5, s.pos.y + 0.5);
+    mapCtx.beginPath(); mapCtx.arc(sx, sy, 10, 0, Math.PI * 2);
+    mapCtx.fillStyle = ROT_COLORS[s.kind]; mapCtx.fill();
+    mapCtx.lineWidth = 2; mapCtx.strokeStyle = "#000"; mapCtx.stroke();
+    mapCtx.fillStyle = "#000"; mapCtx.fillText(ROT_LETTER[s.kind], sx, sy + 0.5);
+  });
+  mapCtx.restore();
+}
+function rotWire() {
+  const cfg = rot.cfg, changed = function () { rot.res = null; rotSaveCfg(); rotRender(); drawMap(); };
+  document.getElementById("rot-depot-set").addEventListener("click", function () { rot.pickDepot = !rot.pickDepot; rotRender(); });
+  document.getElementById("rot-range").addEventListener("change", function (e) { cfg.range = Number(e.target.value); changed(); });
+  document.getElementById("rot-spacing").addEventListener("change", function (e) { cfg.spacing = Number(e.target.value); changed(); });
+  document.getElementById("rot-sell-on").addEventListener("change", function (e) { cfg.sell.on = e.target.checked; changed(); });
+  document.getElementById("rot-bank-on").addEventListener("change", function (e) { cfg.bank.on = e.target.checked; changed(); });
+  document.getElementById("rot-buy-on").addEventListener("change", function (e) { cfg.buy.on = e.target.checked; changed(); });
+  document.getElementById("rot-bank-min").addEventListener("change", function (e) { cfg.bank.min = Math.max(1, Math.floor(Number(e.target.value) || 1)); changed(); });
+  document.getElementById("rot-bank-npc").addEventListener("change", function (e) { cfg.bank.npc = e.target.value; changed(); });
+  document.getElementById("rot-buy-add").addEventListener("click", function () { if (cfg.buy.rows.length < 20) cfg.buy.rows.push({ name: "", low: 20, to: 100, npc: "" }); changed(); });
+  document.getElementById("rot-build").addEventListener("click", rotBuild);
+  document.getElementById("rot-pick").addEventListener("click", function () { upqStart("rot"); });
+  const give = function (download) {
+    const why = rotBlocked(), msg = document.getElementById("rot-msg");
+    if (why) { msg.textContent = why; return; }
+    const ex = rotExport();
+    if (download) {
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([ex.json], { type: "application/json" }));
+      a.download = (slugify(routeState.title || "") || "rotation") + "-rotation.json";
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+      msg.textContent = "Downloaded. In the bot: Cave → Route → Import JSON.";
+    } else navigator.clipboard.writeText(ex.json).then(function () { msg.textContent = "Copied " + ex.route.length + " waypoints. In the bot: Cave → Route → Import JSON."; },
+      function () { msg.textContent = "Couldn't copy - use Download."; });
+  };
+  document.getElementById("rot-copy").addEventListener("click", function () { give(false); });
+  document.getElementById("rot-download").addEventListener("click", function () { give(true); });
+}
+
 function routeAutoFloorDone() {
   routeState.open.clear();
   routeChanged();
@@ -5580,6 +6168,8 @@ function routeRenderStatus() {
   const el = document.getElementById("route-status");
   if (!el) return;
   huntRender();
+  const rotBox = document.getElementById("rot");
+  if (rotBox && !rotBox.contains(document.activeElement)) rotRender();
   const n = routeState.points.length;
   if (routeState.prepText) { el.textContent = routeState.prepText; return; }
   if (!n) { el.textContent = routeState.mode === "edit" ? "Click the map to add the first point. Change floors with ▲/▼ between clicks if the route goes up or down" + (routeAutoFloorOn() ? " - the stairs/holes on the way go in as waypoints by themselves." : ".") : ""; return; }
@@ -5901,6 +6491,14 @@ function botValidate(route) {
     if (w.type === "supply-check") ["lowTargetId", "okTargetId"].forEach(function (k) {
       if (pr[k] !== "next" && !ids[pr[k]]) errs.push(n + ": " + k + " “" + (pr[k] || "") + "” isn't “next” or a waypoint id");
     });
+    // Waypoint checks (the bot's "Check after this waypoint"): targets and step must exist.
+    if (pr.checkType && pr.checkType !== "none" && w.type !== "goto" && w.type !== "supply-check") {
+      if (BOT_WP_CHECKS.indexOf(pr.checkType) < 0) errs.push(n + ": unknown checkType “" + pr.checkType + "”");
+      ["checkYesId", "checkNoId"].forEach(function (k) {
+        if (pr[k] != null && pr[k] !== "next" && pr[k] !== "" && !ids[pr[k]]) errs.push(n + ": " + k + " “" + pr[k] + "” isn't “next” or a waypoint id");
+      });
+      if (pr.checkStepId && !route.some(function (x) { return x.id === pr.checkStepId && x.type === "npc"; })) errs.push(n + ": checkStepId “" + pr.checkStepId + "” isn't an NPC waypoint");
+    }
     if (w.type === "npc") {
       if (pr.npcPreset && NPC_PRESETS.indexOf(pr.npcPreset) < 0) errs.push(n + ": unknown npcPreset “" + pr.npcPreset + "”");
       if (pr.npcPreset === "buy-item" && !pr.tradeItemName) errs.push(n + ": buy-item needs an item to buy");
@@ -6481,6 +7079,9 @@ function initMap() {
       if (!touchState.pinching && !touchState.moved && e.changedTouches.length === 1) { mapTooltip.style.display = "none"; ccPickAt(touchState.tapX, touchState.tapY); }
     } else if (upq.active) {
       // Picking ways up: taps on the map do nothing (pan and zoom still work).
+    } else if (rot.pickDepot && routeState.mode !== "off" && !touchState.pinching && !touchState.moved && e.changedTouches.length === 1) {
+      mapTooltip.style.display = "none";
+      rotPickDepotAt(touchState.tapX, touchState.tapY);
     } else if ((routeState.mode === "edit" || pathState.active) && !touchState.pinching && !touchState.moved && e.changedTouches.length === 1) {
       mapTooltip.style.display = "none";
       if (routeState.mode === "edit") routeAddPoint(touchState.tapX, touchState.tapY);
@@ -6539,6 +7140,7 @@ function initMap() {
     if (sx < 0 || sy < 0 || sx > rect.width || sy > rect.height) return;
     if (cc.active) { ccPickAt(sx, sy); return; }
     if (upq.active) return;
+    if (rot.pickDepot && routeState.mode !== "off") { rotPickDepotAt(sx, sy); return; }
     if (routeState.mode === "edit") { routeAddPoint(sx, sy); return; }
     if (pathState.active) { pathHandleClick(sx, sy); return; }
     const connHit = mapConnectionAt(sx, sy);
@@ -6734,7 +7336,9 @@ function initMap() {
   });
   botPathFlag = botPathFlagOn();
   huntFlag = huntFlagOn();
-  window.addEventListener("hashchange", function () { botPathFlag = botPathFlagOn(); huntFlag = huntFlagOn(); pathBotRender(); huntRender(); drawMap(); });
+  rotFlag = rotFlagOn();
+  rotWire();
+  window.addEventListener("hashchange", function () { botPathFlag = botPathFlagOn(); huntFlag = huntFlagOn(); rotFlag = rotFlagOn(); pathBotRender(); huntRender(); rotRender(); drawMap(); });
   ["hunt-est-reach", "hunt-est-unsure"].forEach(function (id) {
     document.getElementById(id).addEventListener("change", function () { huntRender(); drawMap(); });
   });
