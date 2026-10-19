@@ -131567,7 +131567,7 @@
   "group": 2,
   "properties": {
    "article": "a",
-   "name": "dead guardian wyrm",
+   "name": "dead lapis drake",
    "containerSize": 8,
    "decayTo": 22182,
    "duration": 300,
@@ -131780,6 +131780,96 @@
    "containerSize": 20,
    "slotType": "backpack",
    "type": "container"
+  }
+ },
+ "22197": {
+  "__note": "The Broken Seals reward set (owner 2026-10-18: tomb-themed weapons \"just about stronger than the inquisition rewards\", names one per beaten pharaoh, scheme C), the owner's own sprite (2026-10-19, pharaoh_items_1.rar nep_sword.png; kept in ~/Documents/minibia-item-pixels/tomb-set/owner/), client id 12874 (tools/dat-spr/add-item-sprite.js, donor CID 8102 = the emerald sword, so the dat carries its flags). DORMANT: nothing gives it out (no shop, loot, NPC or quest script) until the owner says so. One-handed, 50/34 (emerald sword 49/33).",
+  "id": 12874,
+  "flags": 112,
+  "group": 0,
+  "properties": {
+   "article": "",
+   "name": "Nephrenkhet's blade",
+   "weight": 4100,
+   "defense": 34,
+   "attack": 50,
+   "weaponType": "sword"
+  }
+ },
+ "22198": {
+  "__note": "The Broken Seals reward set (owner 2026-10-18: tomb-themed weapons \"just about stronger than the inquisition rewards\", names one per beaten pharaoh, scheme C), the owner's own sprite (2026-10-19, pharaoh_items_1.rar kha_axe.png; kept in ~/Documents/minibia-item-pixels/tomb-set/owner/), client id 12875 (tools/dat-spr/add-item-sprite.js, donor CID 8096 = the hellforged axe, so the dat carries its flags). DORMANT: nothing gives it out (no shop, loot, NPC or quest script) until the owner says so. One-handed, 52/29 (hellforged axe 51/28).",
+  "id": 12875,
+  "flags": 112,
+  "group": 0,
+  "properties": {
+   "article": "",
+   "name": "Khamuret's axe",
+   "weight": 8800,
+   "defense": 29,
+   "attack": 52,
+   "weaponType": "axe"
+  }
+ },
+ "22199": {
+  "__note": "The Broken Seals reward set (owner 2026-10-18: tomb-themed weapons \"just about stronger than the inquisition rewards\", names one per beaten pharaoh, scheme C), the owner's own sprite (2026-10-19, pharaoh_items_1.rar sen_mace.png; kept in ~/Documents/minibia-item-pixels/tomb-set/owner/), client id 12876 (tools/dat-spr/add-item-sprite.js, donor CID 8100 = the obsidian truncheon, so the dat carries its flags). DORMANT: nothing gives it out (no shop, loot, NPC or quest script) until the owner says so. One-handed, 51/31 (obsidian truncheon 50/30).",
+  "id": 12876,
+  "flags": 112,
+  "group": 0,
+  "properties": {
+   "article": "",
+   "name": "Senefris's mace",
+   "weight": 6500,
+   "defense": 31,
+   "attack": 51,
+   "weaponType": "club"
+  }
+ },
+ "22200": {
+  "__note": "The Broken Seals reward set (owner 2026-10-18: tomb-themed weapons \"just about stronger than the inquisition rewards\", names one per beaten pharaoh, scheme C), hand-edited sprite in ~/Documents/minibia-item-pixels/tomb-set/tomb-xbow-a.png, client id 12877 (tools/dat-spr/add-item-sprite.js, donor CID 8023 = the royal crossbow, so the dat carries its flags). DORMANT: nothing gives it out (no shop, loot, NPC or quest script) until the owner says so. Two-handed, bolts, attack 7, range 3, minDamagePct 18 (royal crossbow 6/3/17).",
+  "id": 12877,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "",
+   "name": "Tutheres's crossbow",
+   "weight": 12000,
+   "slotType": "two-handed",
+   "weaponType": "distance",
+   "ammoType": "bolt",
+   "range": 3,
+   "minDamagePct": 18,
+   "attack": 7
+  }
+ },
+ "22201": {
+  "__note": "The Broken Seals reward set (owner 2026-10-18: tomb-themed weapons \"just about stronger than the inquisition rewards\", names one per beaten pharaoh, scheme C), hand-edited sprite in ~/Documents/minibia-item-pixels/tomb-set/tomb-armor-gold-a.png, client id 12878 (tools/dat-spr/add-item-sprite.js, donor CID 8057 = the divine plate, so the dat carries its flags). DORMANT: nothing gives it out (no shop, loot, NPC or quest script) until the owner says so. The golden Divine Plate (owner 10-18): armor 17, physical 5%, knights and paladins, no shielding (owner dropped it). The 5% needs its line in equipment-buff-allowlist.json.",
+  "id": 12878,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "",
+   "name": "Mahrdis's armor",
+   "armor": 17,
+   "slotType": "body",
+   "weight": 7500,
+   "absorbPercentPhysical": 5,
+   "vocations": "knight,paladin"
+  }
+ },
+ "22202": {
+  "__note": "The Broken Seals reward set (owner 2026-10-18: tomb-themed weapons \"just about stronger than the inquisition rewards\", names one per beaten pharaoh, scheme C), hand-edited sprite in ~/Documents/minibia-item-pixels/tomb-set/tomb-spellbook-c.png, client id 12879 (tools/dat-spr/add-item-sprite.js, donor CID 8090 = the spellbook of dark mysteries, so the dat carries its flags). DORMANT: nothing gives it out (no shop, loot, NPC or quest script) until the owner says so. The Dark Mysteries edit: defense 27, magic level +2, druids and sorcerers (spellbook of dark mysteries 26 +2). The +2 needs its line in equipment-buff-allowlist.json.",
+  "id": 12879,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "the",
+   "name": "book of the broken seals",
+   "description": "It shows your spells and can also shield against attacks when worn.",
+   "weight": 2850,
+   "magiclevelpoints": 2,
+   "defense": 27,
+   "weaponType": "shield",
+   "vocations": "druid,sorcerer"
   }
  }
 }

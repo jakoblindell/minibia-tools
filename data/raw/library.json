@@ -22660,6 +22660,56 @@
             ]
         },
         {
+            "name": "Burnt Offering",
+            "health": 4500,
+            "experience": 3800,
+            "speed": 140,
+            "armor": 25,
+            "attacks": [
+                {
+                    "name": "melee",
+                    "min": 0,
+                    "max": 300,
+                    "element": null
+                },
+                {
+                    "name": "fire",
+                    "min": 350,
+                    "max": 700,
+                    "element": null
+                },
+                {
+                    "name": "firecondition",
+                    "min": 100,
+                    "max": 200,
+                    "element": null
+                },
+                {
+                    "name": "speed",
+                    "min": 0,
+                    "max": 0,
+                    "element": null
+                }
+            ],
+            "elements": {
+                "fire": 100,
+                "ice": -15,
+                "holy": -25,
+                "earth": 100,
+                "death": 100
+            },
+            "immunities": {
+                "death": true,
+                "poison": true,
+                "drown": true,
+                "lifedrain": true,
+                "paralyze": true,
+                "invisible": true,
+                "fire": true
+            },
+            "loot": []
+        },
+        {
             "name": "Draken Abomination",
             "health": 6250,
             "experience": 3800,
@@ -24235,6 +24285,53 @@
             ]
         },
         {
+            "name": "Sacred Scarab",
+            "health": 6500,
+            "experience": 4900,
+            "speed": 109,
+            "armor": 60,
+            "attacks": [
+                {
+                    "name": "melee",
+                    "min": 0,
+                    "max": 450,
+                    "element": null
+                },
+                {
+                    "name": "fire",
+                    "min": 300,
+                    "max": 600,
+                    "element": null
+                },
+                {
+                    "name": "firecondition",
+                    "min": 100,
+                    "max": 200,
+                    "element": null
+                },
+                {
+                    "name": "speed",
+                    "min": 0,
+                    "max": 0,
+                    "element": null
+                }
+            ],
+            "elements": {
+                "energy": 20,
+                "physical": 10,
+                "fire": 100,
+                "ice": -15,
+                "earth": 100
+            },
+            "immunities": {
+                "poison": true,
+                "paralyze": true,
+                "invisible": true,
+                "fire": true
+            },
+            "loot": []
+        },
+        {
             "name": "Hand Of Cursed Fate",
             "health": 10500,
             "experience": 5000,
@@ -24601,6 +24698,97 @@
             ]
         },
         {
+            "name": "Condemned Soul",
+            "health": 7000,
+            "experience": 5200,
+            "speed": 85,
+            "armor": 35,
+            "attacks": [
+                {
+                    "name": "melee",
+                    "min": 0,
+                    "max": 450,
+                    "element": null
+                },
+                {
+                    "name": "fire",
+                    "min": 300,
+                    "max": 650,
+                    "element": null
+                },
+                {
+                    "name": "speed",
+                    "min": 0,
+                    "max": 0,
+                    "element": null
+                }
+            ],
+            "elements": {
+                "ice": 50,
+                "energy": 10,
+                "holy": -25,
+                "fire": 100,
+                "death": 100,
+                "earth": 100
+            },
+            "immunities": {
+                "fire": true,
+                "poison": true,
+                "death": true,
+                "lifedrain": true,
+                "paralyze": true,
+                "invisible": true
+            },
+            "loot": []
+        },
+        {
+            "name": "Carrion Scarab",
+            "health": 7500,
+            "experience": 5600,
+            "speed": 109,
+            "armor": 65,
+            "attacks": [
+                {
+                    "name": "melee",
+                    "min": 0,
+                    "max": 550,
+                    "element": null
+                },
+                {
+                    "name": "death",
+                    "min": 300,
+                    "max": 650,
+                    "element": null
+                },
+                {
+                    "name": "poisoncondition",
+                    "min": 100,
+                    "max": 200,
+                    "element": null
+                },
+                {
+                    "name": "speed",
+                    "min": 0,
+                    "max": 0,
+                    "element": null
+                }
+            ],
+            "elements": {
+                "energy": 20,
+                "physical": 10,
+                "fire": -20,
+                "ice": -5,
+                "earth": 100,
+                "death": 100
+            },
+            "immunities": {
+                "poison": true,
+                "paralyze": true,
+                "invisible": true
+            },
+            "loot": []
+        },
+        {
             "name": "Son of Verminor",
             "health": 8500,
             "experience": 5900,
@@ -24638,6 +24826,56 @@
             },
             "immunities": {
                 "poison": true,
+                "paralyze": true,
+                "invisible": true
+            },
+            "loot": []
+        },
+        {
+            "name": "Bound Soul",
+            "health": 8000,
+            "experience": 6000,
+            "speed": 85,
+            "armor": 40,
+            "attacks": [
+                {
+                    "name": "melee",
+                    "min": 0,
+                    "max": 500,
+                    "element": null
+                },
+                {
+                    "name": "death",
+                    "min": 200,
+                    "max": 450,
+                    "element": null
+                },
+                {
+                    "name": "lifedrain",
+                    "min": 300,
+                    "max": 700,
+                    "element": null
+                },
+                {
+                    "name": "speed",
+                    "min": 0,
+                    "max": 0,
+                    "element": null
+                }
+            ],
+            "elements": {
+                "ice": 50,
+                "energy": 10,
+                "holy": -25,
+                "fire": 100,
+                "death": 100,
+                "earth": 100
+            },
+            "immunities": {
+                "fire": true,
+                "poison": true,
+                "death": true,
+                "lifedrain": true,
                 "paralyze": true,
                 "invisible": true
             },
@@ -24984,6 +25222,53 @@
             ]
         },
         {
+            "name": "Cursed Scarab",
+            "health": 8500,
+            "experience": 6400,
+            "speed": 109,
+            "armor": 65,
+            "attacks": [
+                {
+                    "name": "melee",
+                    "min": 0,
+                    "max": 600,
+                    "element": null
+                },
+                {
+                    "name": "death",
+                    "min": 350,
+                    "max": 700,
+                    "element": null
+                },
+                {
+                    "name": "cursecondition",
+                    "min": 150,
+                    "max": 300,
+                    "element": null
+                },
+                {
+                    "name": "speed",
+                    "min": 0,
+                    "max": 0,
+                    "element": null
+                }
+            ],
+            "elements": {
+                "energy": 20,
+                "physical": 10,
+                "fire": -20,
+                "ice": -5,
+                "earth": 100,
+                "death": 100
+            },
+            "immunities": {
+                "poison": true,
+                "paralyze": true,
+                "invisible": true
+            },
+            "loot": []
+        },
+        {
             "name": "Hellhound",
             "health": 7500,
             "experience": 6800,
@@ -25321,6 +25606,152 @@
                     "max": 1
                 }
             ]
+        },
+        {
+            "name": "Forsaken Soul",
+            "health": 10000,
+            "experience": 7600,
+            "speed": 85,
+            "armor": 45,
+            "attacks": [
+                {
+                    "name": "melee",
+                    "min": 0,
+                    "max": 550,
+                    "element": null
+                },
+                {
+                    "name": "earth",
+                    "min": 400,
+                    "max": 850,
+                    "element": null
+                },
+                {
+                    "name": "lifedrain",
+                    "min": 300,
+                    "max": 600,
+                    "element": null
+                },
+                {
+                    "name": "speed",
+                    "min": 0,
+                    "max": 0,
+                    "element": null
+                }
+            ],
+            "elements": {
+                "ice": 50,
+                "energy": 10,
+                "holy": -25,
+                "fire": 100,
+                "death": 100,
+                "earth": 100
+            },
+            "immunities": {
+                "fire": true,
+                "poison": true,
+                "death": true,
+                "lifedrain": true,
+                "paralyze": true,
+                "invisible": true
+            },
+            "loot": []
+        },
+        {
+            "name": "Embalmed Dragon",
+            "health": 11000,
+            "experience": 8200,
+            "speed": 80,
+            "armor": 50,
+            "attacks": [
+                {
+                    "name": "melee",
+                    "min": 0,
+                    "max": 650,
+                    "element": null
+                },
+                {
+                    "name": "death",
+                    "min": 400,
+                    "max": 850,
+                    "element": null
+                },
+                {
+                    "name": "death",
+                    "min": 250,
+                    "max": 450,
+                    "element": null
+                },
+                {
+                    "name": "cursecondition",
+                    "min": 150,
+                    "max": 300,
+                    "element": null
+                }
+            ],
+            "elements": {
+                "death": 100,
+                "earth": 80,
+                "fire": -10,
+                "holy": -20,
+                "ice": -10
+            },
+            "immunities": {
+                "paralyze": true,
+                "invisible": true,
+                "death": true,
+                "earth": true,
+                "poison": true,
+                "lifedrain": true
+            },
+            "loot": []
+        },
+        {
+            "name": "Lapis Drake",
+            "health": 12500,
+            "experience": 9500,
+            "speed": 80,
+            "armor": 55,
+            "attacks": [
+                {
+                    "name": "melee",
+                    "min": 0,
+                    "max": 700,
+                    "element": null
+                },
+                {
+                    "name": "energy",
+                    "min": 500,
+                    "max": 1000,
+                    "element": null
+                },
+                {
+                    "name": "energy",
+                    "min": 250,
+                    "max": 450,
+                    "element": null
+                },
+                {
+                    "name": "energyfield",
+                    "min": 0,
+                    "max": 0,
+                    "element": null
+                }
+            ],
+            "elements": {
+                "energy": 100,
+                "earth": 80,
+                "fire": 50,
+                "ice": -10
+            },
+            "immunities": {
+                "paralyze": true,
+                "invisible": true,
+                "energy": true,
+                "earth": true,
+                "poison": true
+            },
+            "loot": []
         },
         {
             "name": "Golgordan",
@@ -26276,6 +26707,53 @@
             ]
         },
         {
+            "name": "Temple Colossus",
+            "health": 16000,
+            "experience": 10500,
+            "speed": 70,
+            "armor": 90,
+            "attacks": [
+                {
+                    "name": "melee",
+                    "min": 0,
+                    "max": 1100,
+                    "element": null
+                },
+                {
+                    "name": "physical",
+                    "min": 300,
+                    "max": 700,
+                    "element": null
+                },
+                {
+                    "name": "physical",
+                    "min": 200,
+                    "max": 500,
+                    "element": null
+                },
+                {
+                    "name": "energy",
+                    "min": 250,
+                    "max": 450,
+                    "element": null
+                }
+            ],
+            "elements": {
+                "physical": 15,
+                "fire": 20,
+                "energy": 100,
+                "death": 20,
+                "ice": -10,
+                "earth": 100
+            },
+            "immunities": {
+                "paralyze": true,
+                "drown": true,
+                "poison": true
+            },
+            "loot": []
+        },
+        {
             "name": "Juggernaut",
             "health": 20000,
             "experience": 11200,
@@ -26435,6 +26913,54 @@
                     "max": 1
                 }
             ]
+        },
+        {
+            "name": "Executioner",
+            "health": 15000,
+            "experience": 11500,
+            "speed": 185,
+            "armor": 60,
+            "attacks": [
+                {
+                    "name": "melee",
+                    "min": 0,
+                    "max": 900,
+                    "element": null
+                },
+                {
+                    "name": "earth",
+                    "min": 500,
+                    "max": 1000,
+                    "element": null
+                },
+                {
+                    "name": "poisonfield",
+                    "min": 0,
+                    "max": 0,
+                    "element": null
+                },
+                {
+                    "name": "dark torturer skill reducer",
+                    "min": 0,
+                    "max": 0,
+                    "element": null
+                }
+            ],
+            "elements": {
+                "physical": 25,
+                "energy": 30,
+                "earth": 100,
+                "ice": -10,
+                "holy": -10,
+                "death": 10,
+                "fire": -15
+            },
+            "immunities": {
+                "poison": true,
+                "earth": true,
+                "invisible": true
+            },
+            "loot": []
         },
         {
             "name": "Annihilon",
@@ -27807,6 +28333,17 @@
             "keywords": [
                 "name"
             ],
+            "sells": [],
+            "buys": []
+        },
+        {
+            "name": "A Sealed Sarcophagus",
+            "position": {
+                "x": 33483,
+                "y": 32008,
+                "z": 15
+            },
+            "keywords": [],
             "sells": [],
             "buys": []
         },
