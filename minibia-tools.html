@@ -6603,6 +6603,9 @@ function routeUpdateLink() {
   box.value = routeState.points.length ? routeLink() : "";
 }
 function routeChanged() {
+  // A built rotation copies the hunt route's points (and counts them to
+  // find its own ways up), so any change to the route means building again.
+  if (rot.res || rot.msg) { rot.gen++; rot.res = null; rot.msg = ""; }
   routeUndoButton();
   routeRenderList();
   botRenderMessages();
