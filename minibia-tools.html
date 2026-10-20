@@ -4595,6 +4595,23 @@ function pathPrepare() {
         }
       });
     } catch (e) { /* no slope data - yellow stays walkable */ }
+    // Ice walls: light cyan boxed in by walls (the glacier behind Svargrond's
+    // and the Ice Islands' grey walls) - same [y, x0, length] runs, from
+    // gen-floor-connections.py; ice lying in the ground stays walkable.
+    try {
+      const ice = await fetch("data/derived/ice-walls.json").then(function (r) { return r.ok ? r.json() : {}; });
+      Object.keys(ice).forEach(function (zk) {
+        const b = bits[zk], v = ice[zk];
+        if (!b) return;
+        for (let i = 0; i < v.length; i += 3) {
+          const row = (v[i] - minY) * W - minX;
+          for (let x = v[i + 1]; x < v[i + 1] + v[i + 2]; x++) {
+            const k = row + x;
+            b[k >> 3] &= ~(1 << (k & 7));
+          }
+        }
+      });
+    } catch (e) { /* no ice data - all ice stays walkable */ }
 
     // Stairs/ladders/holes -> portal edges. A marker on floor z flagged "up"
     // lands on z-1 (at the matching marker there if one is within 2 tiles,
