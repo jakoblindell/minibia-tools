@@ -4659,6 +4659,23 @@ function pathPrepare() {
         }
       });
     } catch (e) { /* no slope data - yellow stays walkable */ }
+    // Ice walls: light cyan boxed in by walls (the glacier behind Svargrond's
+    // and the Ice Islands' grey walls) - same [y, x0, length] runs, from
+    // gen-floor-connections.py; ice lying in the ground stays walkable.
+    try {
+      const ice = await fetch("data/derived/ice-walls.json").then(function (r) { return r.ok ? r.json() : {}; });
+      Object.keys(ice).forEach(function (zk) {
+        const b = bits[zk], v = ice[zk];
+        if (!b) return;
+        for (let i = 0; i < v.length; i += 3) {
+          const row = (v[i] - minY) * W - minX;
+          for (let x = v[i + 1]; x < v[i + 1] + v[i + 2]; x++) {
+            const k = row + x;
+            b[k >> 3] &= ~(1 << (k & 7));
+          }
+        }
+      });
+    } catch (e) { /* no ice data - all ice stays walkable */ }
 
     // Stairs/ladders/holes -> portal edges. A marker on floor z flagged "up"
     // lands on z-1 (at the matching marker there if one is within 2 tiles,
@@ -5451,23 +5468,11 @@ function routeRecompute() {
   })();
 }
 
-// --- Hunt estimate (beta, feature flag: #hunt-est in the URL turns it on
-// for this device, #hunt-est-off turns it off). From the Route builder's
-// walked path: which spawns are within reach of it, on its floor - so
-// which monsters a lap kills - and from those the XP and expected loot per
-// lap. A spawn cluster counts once per lap with its monster count; one
+// --- Hunt estimate (beta). From the Route builder's walked path: which
+// spawns are within reach of it, on its floor - so which monsters a lap
+// kills - and from those the XP and expected loot per lap. A spawn cluster counts once per lap with its monster count; one
 // with real-Tibia spawn tiles counts tile by tile. "Sure" = its floor is
 // known (real-Tibia data); the rest are only terrain-plausible there.
-const HUNT_FLAG_KEY = "minibia.flag.huntEst";
-function huntFlagOn() {
-  const h = location.hash.toLowerCase();
-  try {
-    if (/(^#|&)hunt-est-off(&|$)/.test(h)) localStorage.removeItem(HUNT_FLAG_KEY);
-    else if (/(^#|&)hunt-est(&|$)/.test(h)) localStorage.setItem(HUNT_FLAG_KEY, "1");
-    return localStorage.getItem(HUNT_FLAG_KEY) === "1";
-  } catch (e) { return /(^#|&)hunt-est(&|$)/.test(h); }
-}
-let huntFlag = false;
 const hunt = { key: "", res: null, showAllLoot: false };
 function huntCompute(reach, withUnsure) {
   const pairs = routePairs();
@@ -5547,7 +5552,7 @@ function huntFmt(v) { return v >= 100 ? fmt(Math.round(v)) : v >= 10 ? v.toFixed
 function huntRender() {
   const box = document.getElementById("hunt-est");
   if (!box) return;
-  box.hidden = !huntFlag || routeState.mode === "off";
+  box.hidden = routeState.mode === "off";
   if (box.hidden) { hunt.res = null; return; }
   const reach = Number(document.getElementById("hunt-est-reach").value) || 5;
   const withUnsure = document.getElementById("hunt-est-unsure").checked;
@@ -5622,7 +5627,7 @@ function huntRender() {
 }
 // Rings round the spawns the estimate counts, on the current floor.
 function drawHuntMarks() {
-  if (!hunt.res || !huntFlag || routeState.mode === "off") return;
+  if (!hunt.res || routeState.mode === "off") return;
   const z = state.mapFloor, r = Math.max(5, Math.min(12, mapView.scale * 0.8 + 3));
   mapCtx.save();
   mapCtx.lineWidth = 1.5;
@@ -7335,10 +7340,10 @@ function initMap() {
     setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
   });
   botPathFlag = botPathFlagOn();
-  huntFlag = huntFlagOn();
+  try { localStorage.removeItem("minibia.flag.huntEst"); } catch (e) { /* the old #hunt-est flag, no longer used */ }
   rotFlag = rotFlagOn();
   rotWire();
-  window.addEventListener("hashchange", function () { botPathFlag = botPathFlagOn(); huntFlag = huntFlagOn(); rotFlag = rotFlagOn(); pathBotRender(); huntRender(); rotRender(); drawMap(); });
+  window.addEventListener("hashchange", function () { botPathFlag = botPathFlagOn(); rotFlag = rotFlagOn(); pathBotRender(); huntRender(); rotRender(); drawMap(); });
   ["hunt-est-reach", "hunt-est-unsure"].forEach(function (id) {
     document.getElementById(id).addEventListener("change", function () { huntRender(); drawMap(); });
   });

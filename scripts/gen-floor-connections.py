@@ -65,6 +65,16 @@ step through those as assumed doors (at a small extra cost). Because a
 crossing must join two separate walkable areas, a route can never use it
 to cut through a wall it could have walked around.
 
+Ice: the minimap's light cyan (palette 179) is both walkable ice lying in
+the ground and the ice walls/glacier behind the grey walls (around
+Svargrond and the Ice Islands). Per floor, each 4-connected patch of it is
+judged by what it borders: a patch that touches walkable ground along at
+least ICE_GROUND_SHARE of its border with ground or walls (and on at least
+ICE_GROUND_MIN tiles) is ground ice; the rest - boxed in by walls, touching
+ground only at a seam or two - is ice wall, not walkable. Those tiles are
+written to data/derived/ice-walls.json as [y, x0, length] runs (the
+pathfinder clears them, as with slopes.json) and count as blocked here too.
+
 Run:  python scripts/gen-floor-connections.py   (after gen-minimap.py and
       build-data.py - loads their output and rewrites compendium.json/.js
       in place, adding the floorConnections key, and writes
@@ -82,6 +92,9 @@ RAW = os.path.join(ROOT, "data", "raw")
 LABELS_PATH = os.path.join(ROOT, "data", "manual", "floor-connection-labels.json")
 
 YELLOW_RGB = (255, 255, 0)
+ICE_IDX = 179  # light cyan - see "Ice" above
+ICE_GROUND_SHARE = 0.1
+ICE_GROUND_MIN = 3
 # Same table gen-floor-plausibility.py uses - see that script for how it was derived.
 BLOCKING_IDX = {0, 12, 40, 86, 114, 186, 192}
 RADIUS = 2
@@ -164,23 +177,66 @@ def slope_mask(floors, z):
     return climb
 
 
+def color_mask(arr, idxs):
+    rgb = arr[:, :, :3]
+    out = np.zeros(arr.shape[:2], dtype=bool)
+    for i in idxs:
+        c = idx_to_rgb(i)
+        out |= (rgb[:, :, 0] == c[0]) & (rgb[:, :, 1] == c[1]) & (rgb[:, :, 2] == c[2])
+    return out & (arr[:, :, 3] > 0)
+
+
+_ice_cache = {}
+
+
+def ice_wall_mask(floors, z):
+    """Ice tiles that are wall, not floor (see "Ice" above): per 4-connected
+    patch of ice, how much of its border is walkable ground vs walls."""
+    if z in _ice_cache:
+        return _ice_cache[z]
+    arr, _ = floors[z]
+    ice = color_mask(arr, [ICE_IDX])
+    wall_out = np.zeros(ice.shape, dtype=bool)
+    if ice.any():
+        lab = label_components(ice)
+        n = int(lab.max())
+        opaque = arr[:, :, 3] > 0
+        blocked = color_mask(arr, BLOCKING_IDX)
+        ground = opaque & ~blocked & ~ice
+        wall = color_mask(arr, BLOCKING_IDX - {40})  # water is neither
+        g_cnt = np.zeros(n + 1, dtype=np.int64)
+        w_cnt = np.zeros(n + 1, dtype=np.int64)
+        H, W = ice.shape
+        for dy, dx in ((0, 1), (1, 0), (0, -1), (-1, 0)):
+            # neighbour of (y, x) is (y + dy, x + dx)
+            src = (slice(max(-dy, 0), H - max(dy, 0)), slice(max(-dx, 0), W - max(dx, 0)))
+            dst = (slice(max(dy, 0), H - max(-dy, 0)), slice(max(dx, 0), W - max(-dx, 0)))
+            here = ice[src]
+            L = lab[src][here]
+            np.add.at(g_cnt, L[ground[dst][here]], 1)
+            np.add.at(w_cnt, L[wall[dst][here]], 1)
+        is_floor = (g_cnt >= ICE_GROUND_MIN) & (g_cnt >= ICE_GROUND_SHARE * (g_cnt + w_cnt))
+        is_floor[0] = True
+        wall_out = ~is_floor[lab] & ice
+    _ice_cache[z] = wall_out
+    return wall_out
+
+
 def walk_mask(floors, z):
     """Walkable tiles of one floor - the same rule the pathfinder decodes in
-    the browser: drawn, not a blocking color, not a climbing slope tile."""
+    the browser: drawn, not a blocking color, not a climbing slope tile, not
+    ice wall."""
     arr, m = floors[z]
     opaque = arr[:, :, 3] > 0
     rgb = arr[:, :, :3]
     blocking = np.zeros(opaque.shape, dtype=bool)
     for c in BLOCKING_RGB:
         blocking |= (rgb[:, :, 0] == c[0]) & (rgb[:, :, 1] == c[1]) & (rgb[:, :, 2] == c[2])
-    return opaque & ~blocking & ~slope_mask(floors, z)
+    return opaque & ~blocking & ~slope_mask(floors, z) & ~ice_wall_mask(floors, z)
 
 
-def slope_runs(floors, z):
-    """slope_mask as flat [y, x0, length, ...] runs in world coordinates,
-    for data/derived/slopes.json (the pathfinder clears these tiles)."""
-    mask = slope_mask(floors, z)
-    m = floors[z][1]
+def mask_runs(mask, m):
+    """A tile mask as flat [y, x0, length, ...] runs in world coordinates."""
     ox, oy = m["worldOriginX"], m["worldOriginY"]
     out = []
     for py in np.nonzero(mask.any(axis=1))[0].tolist():
@@ -190,6 +246,17 @@ def slope_runs(floors, z):
         for a, b in zip(starts.tolist(), ends.tolist()):
             out.extend((py + oy, a + ox, b - a))
     return out
+
+
+def slope_runs(floors, z):
+    """slope_mask as runs, for data/derived/slopes.json (the pathfinder
+    clears these tiles)."""
+    return mask_runs(slope_mask(floors, z), floors[z][1])
+
+
+def ice_wall_runs(floors, z):
+    """ice_wall_mask as runs, for data/derived/ice-walls.json."""
+    return mask_runs(ice_wall_mask(floors, z), floors[z][1])
 
 
 def door_candidates(floors, z):
@@ -611,6 +678,11 @@ def main():
     with open(os.path.join(DERIVED, "slopes.json"), "w", encoding="utf-8") as f:
         json.dump(slopes, f, separators=(",", ":"))
 
+    ice = {str(z): ice_wall_runs(floors, z) for z in floors}
+    ice = {z: v for z, v in ice.items() if v}
+    with open(os.path.join(DERIVED, "ice-walls.json"), "w", encoding="utf-8") as f:
+        json.dump(ice, f, separators=(",", ":"))
+
     doors = {str(z): door_candidates(floors, z) for z in floors}
     # Only where there's no other way: a wall whose two sides already reach
     # each other through stairs/other floors (a walled city entered by its
@@ -643,6 +715,8 @@ def main():
     print("hidden stair tops: %d light grey tiles above a yellow marker, added as confirmed 'down'" % n_tops)
     print("slopes: %d yellow ramp/pyramid tiles under the floor above (the climbing part) written to slopes.json - routes don't step on them"
           % sum(sum(v[i + 2] for i in range(0, len(v), 3)) for v in slopes.values()))
+    print("ice walls: %d light cyan tiles boxed in by walls written to ice-walls.json - not walkable (the rest is ground ice)"
+          % sum(sum(v[i + 2] for i in range(0, len(v), 3)) for v in ice.values()))
     print("door candidates: %d (written to door-candidates.json); %d walls dropped whose two sides already "
           "connect through stairs/other floors%s" % (n_doors, n_door_walls, "" if reach else " (scipy missing - not checked)"))
 
