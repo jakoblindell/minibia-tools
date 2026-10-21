@@ -445,6 +445,9 @@
   .pb-choice button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
   .upq[hidden] { display: none; }
   .cc-glyph { background: #c026d3; color: #fff; }
+  .path-vias[hidden] { display: none; }
+  .path-vias { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; }
+  .path-vias .cc-head b { font-size: 12.5px; }
   .hunt-est[hidden] { display: none; }
   .rot[hidden], .rot [hidden] { display: none; }
   .rot-sec { display: flex; flex-direction: column; gap: 4px; }
@@ -776,12 +779,13 @@
         </section>
         <section class="mapx-panel" data-panel="path" hidden>
           <div class="mapx-h">Find path</div>
-          <p class="mapx-p">Click a start point, then an end point (change floor in between if needed). Routes only walk walkable ground and change floor at stairs, ladders and holes.</p>
+          <p class="mapx-p">Click a start point, then an end point (change floor in between if needed). Routes only walk walkable ground and change floor at stairs, ladders and holes. Then drag the start, the end or a via point to move it, or the + on the path to add a via point the route must pass.</p>
           <div class="cc-box" data-cc></div>
           <div class="map-path-bar" id="map-path-bar" style="display:none;">
             <span id="map-path-status"></span>
             <span class="map-path-floors" id="map-path-floors"></span>
           </div>
+          <div class="path-vias" id="path-vias" hidden></div>
           <div class="route-bot path-bot" id="path-bot" hidden>
             <div class="route-bot-title">One-way cave bot route <span class="beta-tag">beta</span></div>
             <label class="pb-field"><span>Walk waypoints</span>
@@ -4310,7 +4314,8 @@ const PATH_WORKER_SRC = function () {
   }
 }.toString();
 
-const pathState = { active: false, start: null, goal: null, result: null, busy: false, worker: null, ready: null, grid: null, reqId: 0, hint: "" };
+const pathState = { active: false, start: null, goal: null, result: null, busy: false, worker: null, ready: null, grid: null, reqId: 0, hint: "",
+  vias: [], legs: [], handles: [], drag: null };
 
 // The instruction for whatever the user should do next; shown after any
 // transient message (like the one-time terrain prep progress) clears.
@@ -4346,13 +4351,23 @@ function pathBotPoints() {
   const res = pathState.result;
   if (!res) return null;
   const spacing = Number(document.getElementById("path-bot-spacing").value) || 0;
-  const key = spacing + "|" + res.nodes.length + "|" + res.nodes[0].x + "," + res.nodes[0].y + "," + res.nodes[0].z + "|" + res.steps;
+  const key = spacing + "|" + res.nodes.length + "|" + res.nodes[0].x + "," + res.nodes[0].y + "," + res.nodes[0].z + "|" + res.steps + "|" + pathState.legs.length;
   if (pathBot.key === key && pathBot.res === res) return pathBot;
-  if (pathBot.res !== res) pathBot.choice = {};
+  // (pathBot.choice - picked ways up - is kept by tile across edits)
   const nodes = res.nodes, s = nodes[0], g = nodes[nodes.length - 1];
   const first = routeMakePoint(s.z, s.x, s.y, ""); first.fill = true;
   const out = [first];
-  const n = botLegFill(out, nodes, spacing);
+  // Leg by leg, with a walk waypoint on each via point, so the bot passes
+  // them too.
+  const legs = pathState.legs.length ? pathState.legs : [nodes];
+  const n = { floors: 0, ups: 0 };
+  legs.forEach(function (legNodes, i) {
+    const r = botLegFill(out, legNodes, spacing);
+    n.floors += r.floors; n.ups += r.ups;
+    if (i === legs.length - 1) return;
+    const v = legNodes[legNodes.length - 1], last = out[out.length - 1];
+    if (!(last.z === v.z && last.x === v.x && last.y === v.y)) out.push(routeMakePoint(v.z, v.x, v.y, ""));
+  });
   const last = out[out.length - 1];
   if (out.length === 1 || last.z !== g.z || last.x !== g.x || last.y !== g.y) out.push(routeMakePoint(g.z, g.x, g.y, ""));
   out.forEach(function (p) {
@@ -5068,21 +5083,45 @@ function pathNodeStats(nodes) {
   return { steps: steps, changes: changes, teleports: teleports };
 }
 
-function pathRun() {
+// The path runs start -> via points -> goal, one pathfinder search per
+// leg, joined into one result (keepView: an edit, don't re-zoom).
+function pathRun(keepView) {
   pathState.busy = true;
-  pathState.result = null;
   const token = ++pathState.reqId;
   pathHint("Calculating route…");
-  pathRequest(pathState.start, pathState.goal).then(function (r) {
-    if (token !== pathState.reqId || !pathState.active) return;
-    pathShowResult(r);
-  });
+  const pts = [pathState.start].concat(pathState.vias, [pathState.goal]);
+  const legs = [];
+  let ms = 0, expanded = 0;
+  (async function () {
+    for (let i = 1; i < pts.length; i++) {
+      const r = await pathRequest(pts[i - 1], pts[i]);
+      if (token !== pathState.reqId || !pathState.active) return;
+      if (!r.ok) {
+        pathState.result = null; pathState.legs = [];
+        r.reason = (pts.length > 2 ? "leg " + i + " of " + (pts.length - 1) + ": " : "") + r.reason;
+        pathShowResult(r);
+        return;
+      }
+      ms += r.ms || 0; expanded += r.expanded || 0;
+      legs.push(r);
+    }
+    const nodes = [], doors = [];
+    pathState.legs = legs.map(function (r) {
+      const skip = nodes.length && r.nodes[0].z === nodes[nodes.length - 1].z && r.nodes[0].x === nodes[nodes.length - 1].x && r.nodes[0].y === nodes[nodes.length - 1].y ? 1 : 0;
+      const off = nodes.length - skip;
+      for (let k = skip; k < r.nodes.length; k++) nodes.push(r.nodes[k]);
+      (r.doors || []).forEach(function (d) { if (d >= skip) doors.push(d + off); });
+      return r.nodes;
+    });
+    pathShowResult({ ok: true, nodes: nodes, doors: doors, ms: ms, expanded: expanded }, keepView);
+  })();
 }
 
-function pathShowResult(r) {
+function pathShowResult(r, keepView) {
   pathState.busy = false;
   if (!r.ok) {
-    pathSetStatus("No path found: " + r.reason + ".");
+    pathSetStatus("No path found: " + r.reason + "." + (pathState.vias.length ? " Move or remove a via point." : ""));
+    pathRenderVias();
     drawMap();
     return;
   }
@@ -5101,8 +5140,82 @@ function pathShowResult(r) {
   pathSetStatus("Route: ~" + fmt(steps) + " steps, " + changes + " floor change" + (changes === 1 ? "" : "s") +
     (st.teleports ? ", " + st.teleports + " teleport" + (st.teleports === 1 ? "" : "s") : "") +
     (doors.length ? ", passes " + doors.length + " assumed door" + (doors.length === 1 ? "" : "s") + " (white squares - walls the minimap draws with no door, check these)" : "") +
+    (pathState.vias.length ? ", through " + pathState.vias.length + " via point" + (pathState.vias.length === 1 ? "" : "s") : "") +
     " (" + Math.round(r.ms) + " ms, " + fmt(r.expanded) + " jump points).", chips);
-  pathShowSegment(0);
+  pathRenderVias();
+  if (keepView) drawMap(); else pathShowSegment(0);
+}
+
+// --- Via points: the + at the middle of each leg adds one (drag it to
+// where the route must pass, or just click it), the start, the end and via
+// points drag to a new tile, the list removes them. Each change re-runs
+// the search without moving the view.
+function pathRenderVias() {
+  const box = document.getElementById("path-vias");
+  if (!box) return;
+  box.textContent = "";
+  box.hidden = !pathState.vias.length;
+  if (box.hidden) return;
+  const head = document.createElement("div"); head.className = "cc-head";
+  const t = document.createElement("b"); t.textContent = "Via points (" + pathState.vias.length + ")";
+  const clr = document.createElement("button"); clr.type = "button"; clr.className = "map-btn"; clr.textContent = "Remove all";
+  clr.addEventListener("click", function () { pathState.vias = []; pathRun(true); });
+  head.appendChild(t); head.appendChild(clr); box.appendChild(head);
+  const ul = document.createElement("ul"); ul.className = "cc-list";
+  pathState.vias.forEach(function (v, i) {
+    const li = document.createElement("li"); li.className = "cc-item";
+    const dot = document.createElement("span"); dot.className = "cc-dot path-via-dot"; dot.textContent = String(i + 1);
+    const tx = document.createElement("span"); tx.className = "cc-text"; tx.title = "Show on the map";
+    const sm = document.createElement("small"); sm.textContent = "x" + v.x + " y" + v.y + " z" + v.z; tx.appendChild(sm);
+    tx.addEventListener("click", function () { setMapFloor(v.z); mapFitToPoint(v.x, v.y); drawMap(); });
+    const del = document.createElement("button"); del.type = "button"; del.className = "map-btn"; del.textContent = "×";
+    del.title = "Remove"; del.setAttribute("aria-label", "Remove via point " + (i + 1));
+    del.addEventListener("click", function () { pathState.vias.splice(i, 1); pathRun(true); });
+    li.appendChild(dot); li.appendChild(tx); li.appendChild(del); ul.appendChild(li);
+  });
+  box.appendChild(ul);
+}
+// What's under the pointer: a point to drag (start / via i / goal) or the
+// + handle of leg i (inserts a via there).
+function pathGrabAt(sx, sy) {
+  if (!pathState.active || !pathState.goal || cc.active || upq.active) return null;
+  const z = state.mapFloor, near = function (p, r) {
+    if (!p || p.z !== z) return false;
+    const [px, py] = worldToScreen(p.x + 0.5, p.y + 0.5);
+    return (px - sx) * (px - sx) + (py - sy) * (py - sy) <= r * r;
+  };
+  for (let i = pathState.vias.length - 1; i >= 0; i--) if (near(pathState.vias[i], 12)) return { kind: "via", i: i };
+  if (near(pathState.goal, 12)) return { kind: "goal" };
+  if (near(pathState.start, 12)) return { kind: "start" };
+  for (let k = 0; k < pathState.handles.length; k++) {
+    const h = pathState.handles[k];
+    if ((h.sx - sx) * (h.sx - sx) + (h.sy - sy) * (h.sy - sy) <= 11 * 11) return { kind: "handle", leg: h.leg, tile: h.tile };
+  }
+  return null;
+}
+function pathDragStart(g) {
+  if (g.kind === "handle") {   // a new via point at the leg's middle, then dragged
+    pathState.vias.splice(g.leg, 0, { z: g.tile.z, x: g.tile.x, y: g.tile.y });
+    g = { kind: "via", i: g.leg, inserted: true };
+  }
+  pathState.drag = { g: g, moved: false };
+  pathState.reqId++;   // drop a search still running for the old points
+  drawMap();
+}
+function pathDragPoint(g) { return g.kind === "start" ? pathState.start : g.kind === "goal" ? pathState.goal : pathState.vias[g.i]; }
+function pathDragTo(sx, sy) {
+  const d = pathState.drag; if (!d) return;
+  const [wx, wy] = screenToWorld(sx, sy), p = pathDragPoint(d.g);
+  const x = Math.floor(wx), y = Math.floor(wy);
+  if (p.x === x && p.y === y && p.z === state.mapFloor) return;
+  p.x = x; p.y = y; p.z = state.mapFloor; d.moved = true;
+  pathState.result = null; pathState.handles = [];
+  drawMap();
+}
+function pathDragEnd() {
+  const d = pathState.drag; if (!d) return;
+  pathState.drag = null;
+  pathRun(true);
 }
 
 function pathShowSegment(i) {
@@ -5127,7 +5240,7 @@ function pathHandleClick(sx, sy) {
   const [wx, wy] = screenToWorld(sx, sy);
   const pt = { z: state.mapFloor, x: Math.floor(wx), y: Math.floor(wy) };
   if (!pathState.start || pathState.goal) {
-    pathState.start = pt; pathState.goal = null; pathState.result = null;
+    pathState.start = pt; pathState.goal = null; pathState.result = null; pathState.vias = []; pathState.legs = [];
     pathHint("Start: x" + pt.x + " y" + pt.y + " z" + pt.z + ". Now click the end point (change floor first if it's on another floor).");
     drawMap();
     pathPrepare();
@@ -5167,6 +5280,7 @@ function pathToggle() {
   if (!pathState.active && routeState.mode === "edit") routeClose();
   pathState.active = !pathState.active;
   pathState.start = pathState.goal = pathState.result = null;
+  pathState.vias = []; pathState.legs = []; pathState.handles = []; pathState.drag = null;
   pathState.busy = false;
   pathState.reqId++;
   document.getElementById("map-path-bar").style.display = pathState.active ? "" : "none";
@@ -5235,6 +5349,37 @@ function drawPathOverlay(w, h) {
   }
   if (res) drawDoorMarkers(res.nodes, res.doors, z);
   drawPathBotWaypoints(z);
+  // + handles at the middle of each leg (not while dragging, nor when the
+  // middle sits right on a point).
+  pathState.handles = [];
+  if (res && !pathState.drag) {
+    const pts = [pathState.start].concat(pathState.vias, [pathState.goal]);
+    pathState.legs.forEach(function (nodes, k) {
+      const tiles = botLegTiles(nodes);
+      const t = tiles[Math.floor(tiles.length / 2)];
+      if (!t || t.z !== z) return;
+      const [hx, hy] = worldToScreen(t.x + 0.5, t.y + 0.5);
+      const tooClose = [pts[k], pts[k + 1]].some(function (q) {
+        if (!q || q.z !== z) return false;
+        const [qx, qy] = worldToScreen(q.x + 0.5, q.y + 0.5);
+        return (qx - hx) * (qx - hx) + (qy - hy) * (qy - hy) < 28 * 28;
+      });
+      if (tooClose) return;
+      pathState.handles.push({ sx: hx, sy: hy, leg: k, tile: { z: t.z, x: t.x, y: t.y } });
+      mapCtx.beginPath(); mapCtx.arc(hx, hy, 7, 0, Math.PI * 2);
+      mapCtx.fillStyle = "#fff"; mapCtx.fill(); mapCtx.lineWidth = 2; mapCtx.strokeStyle = "#ff2bd6"; mapCtx.stroke();
+      mapCtx.beginPath(); mapCtx.moveTo(hx - 3.5, hy); mapCtx.lineTo(hx + 3.5, hy); mapCtx.moveTo(hx, hy - 3.5); mapCtx.lineTo(hx, hy + 3.5);
+      mapCtx.lineWidth = 2; mapCtx.strokeStyle = "#ff2bd6"; mapCtx.stroke();
+    });
+  }
+  mapCtx.font = "700 10px 'Segoe UI', sans-serif"; mapCtx.textAlign = "center"; mapCtx.textBaseline = "middle";
+  pathState.vias.forEach(function (v, i) {
+    if (v.z !== z) return;
+    const [vx, vy] = worldToScreen(v.x + 0.5, v.y + 0.5);
+    mapCtx.beginPath(); mapCtx.arc(vx, vy, 8, 0, Math.PI * 2);
+    mapCtx.fillStyle = "#fff"; mapCtx.fill(); mapCtx.lineWidth = 2; mapCtx.strokeStyle = "#ff2bd6"; mapCtx.stroke();
+    mapCtx.fillStyle = "#000"; mapCtx.fillText(String(i + 1), vx, vy + 0.5);
+  });
   if (pathState.start && pathState.start.z === z) dot(pathState.start.x, pathState.start.y, "#22c55e");
   if (pathState.goal && pathState.goal.z === z) dot(pathState.goal.x, pathState.goal.y, "#ef4444");
   mapCtx.restore();
@@ -7132,6 +7277,8 @@ function initMap() {
       touchState.pinching = false;
       const hit = routeGrabAt(e.touches[0].clientX - rect.left, e.touches[0].clientY - rect.top);
       if (hit >= 0) { routeDragStart(hit); mapView.dragging = false; mapTooltip.style.display = "none"; return; }
+      const pg = pathGrabAt(e.touches[0].clientX - rect.left, e.touches[0].clientY - rect.top);
+      if (pg) { pathDragStart(pg); mapView.dragging = false; mapTooltip.style.display = "none"; return; }
       mapView.dragging = true;
       mapView.lastX = e.touches[0].clientX; mapView.lastY = e.touches[0].clientY;
       touchState.tapX = e.touches[0].clientX - rect.left; touchState.tapY = e.touches[0].clientY - rect.top;
@@ -7143,6 +7290,10 @@ function initMap() {
     const rect = mapCanvas.getBoundingClientRect();
     if (routeState.dragIndex != null) {
       if (e.touches.length === 1) routeDragTo(e.touches[0].clientX - rect.left, e.touches[0].clientY - rect.top);
+      return;
+    }
+    if (pathState.drag) {
+      if (e.touches.length === 1) pathDragTo(e.touches[0].clientX - rect.left, e.touches[0].clientY - rect.top);
       return;
     }
     if (touchState.pinching && e.touches.length === 2) {
@@ -7164,6 +7315,10 @@ function initMap() {
   mapCanvas.addEventListener("touchend", function (e) {
     if (routeState.dragIndex != null) {
       if (e.touches.length === 0) { routeDragEnd(); mapView.dragging = false; touchState.pinching = false; }
+      return;
+    }
+    if (pathState.drag) {
+      if (e.touches.length === 0) { pathDragEnd(); mapView.dragging = false; touchState.pinching = false; }
       return;
     }
     if (cc.active) {
@@ -7213,6 +7368,10 @@ function initMap() {
       const r0 = mapCanvas.getBoundingClientRect(), hit = routeGrabAt(e.clientX - r0.left, e.clientY - r0.top);
       if (hit >= 0) { e.preventDefault(); routeDragStart(hit); mapCanvas.style.cursor = "grabbing"; mapTooltip.style.display = "none"; return; }
     }
+    if (pathState.active) {
+      const r0 = mapCanvas.getBoundingClientRect(), pg = pathGrabAt(e.clientX - r0.left, e.clientY - r0.top);
+      if (pg) { e.preventDefault(); pathDragStart(pg); mapCanvas.style.cursor = "grabbing"; mapTooltip.style.display = "none"; return; }
+    }
     mapView.dragging = true;
     mapView.lastX = e.clientX; mapView.lastY = e.clientY;
     mapView.downX = e.clientX; mapView.downY = e.clientY; mapView.moved = false;
@@ -7221,6 +7380,7 @@ function initMap() {
   });
   window.addEventListener("mouseup", function (e) {
     if (routeState.dragIndex != null) { routeDragEnd(); mapCanvas.style.cursor = "move"; return; }
+    if (pathState.drag) { pathDragEnd(); mapCanvas.style.cursor = "move"; return; }
     const startedOnCanvas = mapView.dragging;
     mapView.dragging = false;
     mapCanvas.classList.remove("dragging");
@@ -7242,6 +7402,7 @@ function initMap() {
     if (state.tab !== "map") return;
     const rect = mapCanvas.getBoundingClientRect();
     if (routeState.dragIndex != null) { routeDragTo(e.clientX - rect.left, e.clientY - rect.top); return; }
+    if (pathState.drag) { pathDragTo(e.clientX - rect.left, e.clientY - rect.top); return; }
     if (mapView.dragging) {
       if (Math.abs(e.clientX - mapView.downX) > 3 || Math.abs(e.clientY - mapView.downY) > 3) mapView.moved = true;
       mapView.offX += (e.clientX - mapView.lastX);
@@ -7274,7 +7435,8 @@ function initMap() {
       mapCanvas.style.cursor = "pointer";
     } else {
       mapTooltip.style.display = "none";
-      mapCanvas.style.cursor = routePointAt(sx, sy) >= 0 ? "move" : (routeHandleAt(sx, sy) >= 0 ? "copy" : "grab");
+      const pg = pathGrabAt(sx, sy);
+      mapCanvas.style.cursor = routePointAt(sx, sy) >= 0 || (pg && pg.kind !== "handle") ? "move" : (routeHandleAt(sx, sy) >= 0 || (pg && pg.kind === "handle") ? "copy" : "grab");
     }
   });
 
