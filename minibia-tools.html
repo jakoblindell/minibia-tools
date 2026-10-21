@@ -4244,7 +4244,8 @@ const PATH_WORKER_SRC = function () {
   function setCustom(list) {
     forced.forEach(function (f) { setBit(floors, f[0], f[1], false); });
     forced = [];
-    const extra = [];
+    const extra = [], own = new Set();
+    for (let i = 0; i + 5 < list.length; i += 6) own.add((list[i] * H + list[i + 2]) * W + list[i + 1]);
     for (let i = 0; i + 5 < list.length; i += 6) {
       const z = list[i], x = list[i + 1], y = list[i + 2], tz = list[i + 3], tx = list[i + 4], ty = list[i + 5];
       if (x < 0 || y < 0 || x >= W || y >= H || tx < 0 || ty < 0 || tx >= W || ty >= H || !floors[z] || !floors[tz]) continue;
@@ -4258,8 +4259,16 @@ const PATH_WORKER_SRC = function () {
       if (best < 0) { forced.push([tz, ty * W + tx]); setBit(floors, tz, ty * W + tx, true); best = (tz * H + ty) * W + tx; }
       extra.push((z * H + y) * W + x, best, 0);
     }
-    const all = new Int32Array(basePortals.length + extra.length);
-    all.set(basePortals); all.set(extra, basePortals.length);
+    // Your word beats the map's guess: on a tile you marked, the map's own
+    // stairs edges from it - and into it, from the marker it was paired
+    // with - go (e.g. a teleport the minimap draws yellow like stairs).
+    const base = [];
+    for (let i = 0; i < basePortals.length; i += 3) {
+      if (basePortals[i + 2] === 0 && (own.has(basePortals[i]) || own.has(basePortals[i + 1]))) continue;
+      base.push(basePortals[i], basePortals[i + 1], basePortals[i + 2]);
+    }
+    const all = new Int32Array(base.length + extra.length);
+    all.set(base); all.set(extra, base.length);
     buildPortals(all);
   }
   function buildPortals(pr) {   // Int32Array [src, dst, kind, src, dst, kind, ...]
