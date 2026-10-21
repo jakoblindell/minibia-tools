@@ -722,10 +722,10 @@
               <button class="map-btn" id="upq-skip" type="button">Skip ›</button>
             </div>
           </div>
-          <div class="map-ovl upq cc-card" id="cc-card" hidden role="dialog" aria-label="Add your own stairs or hole">
+          <div class="map-ovl upq cc-card" id="cc-card" hidden role="dialog" aria-label="Add your own stairs, hole or teleport">
             <div class="upq-head">
               <span class="route-num cc-glyph" aria-hidden="true">+</span>
-              <div class="upq-title"><b>Add your own stairs or hole</b><small id="cc-where"></small></div>
+              <div class="upq-title"><b>Add your own stairs, hole or teleport</b><small id="cc-where"></small></div>
               <button class="map-btn upq-x" id="cc-close" type="button" aria-label="Cancel" title="Cancel (Esc)">✕</button>
             </div>
             <div class="upq-q" id="cc-q"></div>
@@ -4009,7 +4009,7 @@ const PATH_WORKER_SRC = function () {
     if (!g) return { ok: false, reason: "end isn't near any walkable tile on that floor" };
     const start = (sz * H + s[1]) * W + s[0];
     goal = (gz * H + g[1]) * W + g[0];
-    const gScore = new Map(), parent = new Map(), closed = new Set(), viaDoor = new Set();
+    const gScore = new Map(), parent = new Map(), closed = new Set(), viaDoor = new Set(), viaJump = new Set();
     hI = []; hF = [];
     gScore.set(start, 0); parent.set(start, -1);
     hPush(start, octile(Math.abs(s[0] - g[0]), Math.abs(s[1] - g[1])));
@@ -4024,12 +4024,15 @@ const PATH_WORKER_SRC = function () {
         for (let n = cur; n !== -1; n = parent.get(n)) {
           const x = n % W, t = (n - x) / W, y = t % H;
           path.push([(t - y) / H, x, y]);
-          door.push(viaDoor.has(n) ? 1 : 0);
+          door.push(viaDoor.has(n) ? 1 : viaJump.has(n) ? 2 : 0);
         }
         path.reverse(); door.reverse();
-        const doors = [];
-        for (let i = 0; i < door.length; i++) if (door[i]) doors.push(i); // path[i] was entered through an assumed door
-        return { ok: true, path: path, doors: doors, expanded: expanded };
+        const doors = [], jumps = [];
+        for (let i = 0; i < door.length; i++) {
+          if (door[i] === 1) doors.push(i); // path[i] was entered through an assumed door
+          else if (door[i] === 2) jumps.push(i); // ... by stairs/a hole/a teleport (not a walk from path[i - 1])
+        }
+        return { ok: true, path: path, doors: doors, jumps: jumps, expanded: expanded };
       }
       if (++expanded > EXPAND_LIMIT) return { ok: false, reason: "gave up after " + EXPAND_LIMIT + " nodes" };
       const x = cur % W, t = (cur - x) / W, y = t % H, z = (t - y) / H;
@@ -4038,7 +4041,7 @@ const PATH_WORKER_SRC = function () {
       let px = -1, py = -1;
       if (p !== -1) {
         const ppx = p % W, pt = (p - ppx) / W, ppy = pt % H, ppz = (pt - ppy) / H;
-        if (ppz === z && !viaDoor.has(cur)) { px = ppx; py = ppy; } // arrived via stairs or a door -> expand every direction
+        if (ppz === z && !viaDoor.has(cur) && !viaJump.has(cur)) { px = ppx; py = ppy; } // arrived via stairs, a teleport or a door -> expand every direction
       }
       // Walked onto stairs: the only way on is the stairs themselves.
       if (px >= 0 && isT(z, x, y)) nb.length = 0;
@@ -4052,7 +4055,7 @@ const PATH_WORKER_SRC = function () {
           const ng = gc + (dx && dy ? SQRT2 : 1) * (isSwamp(z, x + dx, y + dy) ? SWAMP_COST : 1);
           const old = gScore.get(tn);
           if (old === undefined || ng < old) {
-            gScore.set(tn, ng); parent.set(tn, cur); viaDoor.delete(tn);
+            gScore.set(tn, ng); parent.set(tn, cur); viaDoor.delete(tn); viaJump.delete(tn);
             hPush(tn, ng + octile(Math.abs(x + dx - g[0]), Math.abs(y + dy - g[1])) * 1.001);
           }
         }
@@ -4067,7 +4070,7 @@ const PATH_WORKER_SRC = function () {
           const ng = gc + (dx && dy ? SQRT2 : 1);
           const old = gScore.get(tn);
           if (old === undefined || ng < old) {
-            gScore.set(tn, ng); parent.set(tn, cur); viaDoor.delete(tn);
+            gScore.set(tn, ng); parent.set(tn, cur); viaDoor.delete(tn); viaJump.delete(tn);
             hPush(tn, ng + octile(Math.abs(x + dx - g[0]), Math.abs(y + dy - g[1])) * 1.001);
           }
         }
@@ -4080,7 +4083,7 @@ const PATH_WORKER_SRC = function () {
         const ng = gc + octile(Math.abs(jx - x), Math.abs(jy - y));
         const old = gScore.get(jp);
         if (old === undefined || ng < old) {
-          gScore.set(jp, ng); parent.set(jp, cur); viaDoor.delete(jp);
+          gScore.set(jp, ng); parent.set(jp, cur); viaDoor.delete(jp); viaJump.delete(jp);
           hPush(jp, ng + octile(Math.abs(jx - g[0]), Math.abs(jy - g[1])) * 1.001);
         }
       }
@@ -4095,7 +4098,7 @@ const PATH_WORKER_SRC = function () {
           if (old === undefined || ng < old) {
             const tx = tn % W, ty = ((tn - tx) / W) % H;
             gScore.set(tn, ng); parent.set(tn, cur);
-            if (kind === 1) viaDoor.add(tn); else viaDoor.delete(tn);
+            if (kind === 1) { viaDoor.add(tn); viaJump.delete(tn); } else { viaDoor.delete(tn); viaJump.add(tn); }
             hPush(tn, ng + octile(Math.abs(tx - g[0]), Math.abs(ty - g[1])) * 1.001);
           }
         }
@@ -4771,7 +4774,9 @@ function pathPrepare() {
 // (the nearest walkable tile within 2, as for the map's own). The
 // pathfinder takes them like any stairs, the bot fill-in writes the right
 // waypoint type for them, and the floor-change checks count them as
-// markers. Kept in localStorage; a shared route link carries them too.
+// markers. A teleport is one way from its tile to a tile you pick
+// anywhere (any floor). Kept in localStorage; a shared route link carries
+// them too.
 const CC_KEY = "minibia.customConns.v1", CC_MAX = 60;
 const CC_KINDS = {
   "shovel": { label: "Shovel hole", dz: 1, glyph: "⛏" },
@@ -4779,19 +4784,31 @@ const CC_KINDS = {
   "stairs-down": { label: "Stairs down", dz: 1, glyph: "↓" },
   "rope": { label: "Rope spot", dz: -1, glyph: "↑" },
   "ladder": { label: "Ladder", dz: -1, glyph: "↑" },
-  "stairs-up": { label: "Stairs up", dz: -1, glyph: "↑" }
+  "stairs-up": { label: "Stairs up", dz: -1, glyph: "↑" },
+  "teleport": { label: "Teleport", dz: 0, glyph: "✦", picksTarget: true }
 };
+// Where one leads: the tile it was given (teleport), else straight down/up.
+function ccTarget(c) {
+  return c.k === "teleport" ? { z: c.tz, x: c.tx, y: c.ty } : { z: c.z + CC_KINDS[c.k].dz, x: c.x, y: c.y };
+}
 function ccValid(c) {
-  return c && CC_KINDS[c.k] && [c.z, c.x, c.y].every(Number.isInteger) && c.z >= MAP_FLOOR_MIN && c.z <= MAP_FLOOR_MAX &&
-    c.z + CC_KINDS[c.k].dz >= MAP_FLOOR_MIN && c.z + CC_KINDS[c.k].dz <= MAP_FLOOR_MAX;
+  if (!c || !CC_KINDS[c.k] || ![c.z, c.x, c.y].every(Number.isInteger) || c.z < MAP_FLOOR_MIN || c.z > MAP_FLOOR_MAX) return false;
+  if (c.k === "teleport" && ![c.tz, c.tx, c.ty].every(Number.isInteger)) return false;
+  const t = ccTarget(c);
+  return t.z >= MAP_FLOOR_MIN && t.z <= MAP_FLOOR_MAX && !(t.z === c.z && t.x === c.x && t.y === c.y);
+}
+function ccCopy(c) {
+  const o = { z: c.z, x: c.x, y: c.y, k: c.k };
+  if (c.k === "teleport") { o.tz = c.tz; o.tx = c.tx; o.ty = c.ty; }
+  return o;
 }
 let ccList = (function () {
   try {
     const v = JSON.parse(localStorage.getItem(CC_KEY) || "[]");
-    return Array.isArray(v) ? v.map(function (c) { return c && { z: c.z, x: c.x, y: c.y, k: c.k }; }).filter(ccValid).slice(0, CC_MAX) : [];
+    return Array.isArray(v) ? v.map(function (c) { return c && ccCopy(c); }).filter(ccValid).slice(0, CC_MAX) : [];
   } catch (e) { return []; }
 })();
-const cc = { active: false, tile: null };
+const cc = { active: false, tile: null, teleportFrom: null };
 function ccAt(z, x, y) {
   for (let i = 0; i < ccList.length; i++) { const c = ccList[i]; if (c.z === z && c.x === x && c.y === y) return c; }
   return null;
@@ -4800,7 +4817,8 @@ function ccPost() {
   if (!pathState.worker || !pathState.grid) return;
   const gr = pathState.grid, arr = new Int32Array(ccList.length * 6);
   ccList.forEach(function (c, i) {
-    arr.set([c.z, c.x - gr.minX, c.y - gr.minY, c.z + CC_KINDS[c.k].dz, c.x - gr.minX, c.y - gr.minY], i * 6);
+    const t = ccTarget(c);
+    arr.set([c.z, c.x - gr.minX, c.y - gr.minY, t.z, t.x - gr.minX, t.y - gr.minY], i * 6);
   });
   pathState.worker.postMessage({ type: "custom", list: arr });
 }
@@ -4810,8 +4828,11 @@ function ccMerge(list) {
   (list || []).forEach(function (c) {
     if (!ccValid(c) || ccList.length >= CC_MAX) return;
     const old = ccAt(c.z, c.x, c.y);
-    if (old) { if (old.k !== c.k) { old.k = c.k; n++; } return; }
-    ccList.push({ z: c.z, x: c.x, y: c.y, k: c.k }); n++;
+    if (old) {
+      if (JSON.stringify(ccCopy(old)) !== JSON.stringify(ccCopy(c))) { ccList[ccList.indexOf(old)] = ccCopy(c); n++; }
+      return;
+    }
+    ccList.push(ccCopy(c)); n++;
   });
   if (n) ccChanged();
   return n;
@@ -4832,12 +4853,12 @@ function ccRender() {
     const head = document.createElement("div"); head.className = "cc-head";
     const t = document.createElement("b"); t.textContent = "Your stairs & holes" + (ccList.length ? " (" + ccList.length + ")" : "");
     const add = document.createElement("button"); add.type = "button"; add.className = "map-btn"; add.textContent = "+ Add";
-    add.title = "Mark a hole, shovel hole, rope spot, ladder or stairs the map doesn't know, so routes can use it";
+    add.title = "Mark a hole, shovel hole, rope spot, ladder, stairs or teleport the map doesn't know, so routes can use it";
     add.addEventListener("click", ccStart);
     head.appendChild(t); head.appendChild(add); box.appendChild(head);
     if (!ccList.length) {
       const p = document.createElement("p"); p.className = "cc-help";
-      p.textContent = "Missing a way down or up (a hole you open with a shovel, holes you fall through)? Add it and routes will use it.";
+      p.textContent = "Missing a way down or up (a hole you open with a shovel, holes you fall through) or a teleport? Add it and routes will use it.";
       box.appendChild(p);
       return;
     }
@@ -4848,7 +4869,10 @@ function ccRender() {
       const dot = document.createElement("span"); dot.className = "cc-dot"; dot.textContent = k.glyph;
       const tx = document.createElement("span"); tx.className = "cc-text"; tx.title = "Show on the map";
       tx.appendChild(document.createTextNode(k.label + " "));
-      const sm = document.createElement("small"); sm.textContent = "x" + c.x + " y" + c.y + " z" + c.z + " → z" + (c.z + k.dz); tx.appendChild(sm);
+      const to = ccTarget(c);
+      const sm = document.createElement("small");
+      sm.textContent = "x" + c.x + " y" + c.y + " z" + c.z + " → " + (c.k === "teleport" ? "x" + to.x + " y" + to.y + " z" + to.z : "z" + to.z);
+      tx.appendChild(sm);
       tx.addEventListener("click", function () { ccShow(c); });
       const del = document.createElement("button"); del.type = "button"; del.className = "map-btn"; del.textContent = "×";
       del.title = "Remove"; del.setAttribute("aria-label", "Remove " + k.label + " at x" + c.x + " y" + c.y + " z" + c.z);
@@ -4869,7 +4893,7 @@ function ccShow(c) {
 function ccStart() {
   if (upq.active) upqClose();
   if (routeState.insertAt !== null) routeSetInsert(null);
-  cc.active = true; cc.tile = null;
+  cc.active = true; cc.tile = null; cc.teleportFrom = null;
   document.querySelector(".map-canvas-wrap").classList.add("upq-on");
   document.getElementById("cc-card").hidden = false;
   ccShowCard();
@@ -4877,16 +4901,23 @@ function ccStart() {
   drawMap();
 }
 function ccEnd() {
-  cc.active = false; cc.tile = null;
+  cc.active = false; cc.tile = null; cc.teleportFrom = null;
   document.getElementById("cc-card").hidden = true;
   document.querySelector(".map-canvas-wrap").classList.remove("upq-on");
   drawMap();
 }
 function ccShowCard() {
   const where = document.getElementById("cc-where"), q = document.getElementById("cc-q"), ch = document.getElementById("cc-choices");
+  if (cc.teleportFrom) {
+    const f = cc.teleportFrom;
+    where.textContent = "Teleport at x" + f.x + " y" + f.y + " z" + f.z;
+    q.textContent = "Now click where it takes you (switch floor with ▲/▼ first if it's another floor).";
+    ch.hidden = true;
+    return;
+  }
   if (!cc.tile) {
     where.textContent = "Switch to its floor with ▲/▼ first";
-    q.textContent = "Click the tile with the hole, rope spot, ladder or stairs.";
+    q.textContent = "Click the tile with the hole, rope spot, ladder, stairs or teleport.";
     ch.hidden = true;
     return;
   }
@@ -4899,7 +4930,7 @@ function ccShowCard() {
     if (to < MAP_FLOOR_MIN || to > MAP_FLOOR_MAX) return;
     const b = document.createElement("button"); b.type = "button";
     b.textContent = d.glyph + " " + d.label;
-    b.title = d.label + " to " + mapFloorLabel(to);
+    b.title = d.picksTarget ? "Teleport - then click where it takes you" : d.label + " to " + mapFloorLabel(to);
     b.setAttribute("aria-pressed", old && old.k === k ? "true" : "false");
     b.addEventListener("click", function () { ccPick(k); });
     ch.appendChild(b);
@@ -4908,16 +4939,32 @@ function ccShowCard() {
 }
 function ccPickAt(sx, sy) {
   const [wx, wy] = screenToWorld(sx, sy);
-  cc.tile = { z: state.mapFloor, x: Math.floor(wx), y: Math.floor(wy) };
+  const tile = { z: state.mapFloor, x: Math.floor(wx), y: Math.floor(wy) };
+  if (cc.teleportFrom) {   // second click of a teleport: where it lands
+    const f = cc.teleportFrom;
+    if (tile.z === f.z && tile.x === f.x && tile.y === f.y) return;
+    ccSave({ z: f.z, x: f.x, y: f.y, k: "teleport", tz: tile.z, tx: tile.x, ty: tile.y });
+    return;
+  }
+  cc.tile = tile;
   ccShowCard();
   drawMap();
 }
 function ccPick(k) {
   const t = cc.tile;
   if (!t) return;
-  const old = ccAt(t.z, t.x, t.y);
-  if (old) old.k = k;
-  else if (ccList.length < CC_MAX) ccList.push({ z: t.z, x: t.x, y: t.y, k: k });
+  if (CC_KINDS[k].picksTarget) {   // teleport: ask for its landing tile next
+    cc.teleportFrom = t; cc.tile = null;
+    ccShowCard();
+    drawMap();
+    return;
+  }
+  ccSave({ z: t.z, x: t.x, y: t.y, k: k });
+}
+function ccSave(c) {
+  const old = ccAt(c.z, c.x, c.y);
+  if (old) ccList[ccList.indexOf(old)] = c;
+  else if (ccList.length < CC_MAX) ccList.push(c);
   ccEnd();
   ccChanged();
 }
@@ -4939,8 +4986,26 @@ function drawCustomConns(w, h) {
     mapCtx.fillStyle = "#fff"; mapCtx.font = "700 " + Math.round(r * 1.15) + "px 'Segoe UI', sans-serif";
     mapCtx.fillText(CC_KINDS[c.k].glyph, sx, sy + 0.5);
   });
-  if (cc.active && cc.tile && cc.tile.z === state.mapFloor) {
-    const [ax, ay] = worldToScreen(cc.tile.x, cc.tile.y), [bx, by] = worldToScreen(cc.tile.x + 1, cc.tile.y + 1);
+  // Teleport landings: a hollow ring (and a dashed line from the teleport
+  // when both ends are on this floor).
+  ccList.forEach(function (c) {
+    if (c.k !== "teleport" || c.tz !== state.mapFloor) return;
+    const [tx, ty] = worldToScreen(c.tx + 0.5, c.ty + 0.5);
+    if (c.z === c.tz) {
+      const [sx, sy] = worldToScreen(c.x + 0.5, c.y + 0.5);
+      mapCtx.setLineDash([5, 5]); mapCtx.lineWidth = 2; mapCtx.strokeStyle = "#c026d3";
+      mapCtx.beginPath(); mapCtx.moveTo(sx, sy); mapCtx.lineTo(tx, ty); mapCtx.stroke(); mapCtx.setLineDash([]);
+    }
+    if (tx < -15 || tx > w + 15 || ty < -15 || ty > h + 15) return;
+    mapCtx.beginPath(); mapCtx.arc(tx, ty, r, 0, Math.PI * 2);
+    mapCtx.fillStyle = "rgba(255,255,255,0.85)"; mapCtx.fill();
+    mapCtx.lineWidth = 2; mapCtx.strokeStyle = "#c026d3"; mapCtx.stroke();
+    mapCtx.fillStyle = "#c026d3"; mapCtx.font = "700 " + Math.round(r * 1.15) + "px 'Segoe UI', sans-serif";
+    mapCtx.fillText("✦", tx, ty + 0.5);
+  });
+  const mark = cc.active ? (cc.teleportFrom || cc.tile) : null;
+  if (mark && mark.z === state.mapFloor) {
+    const [ax, ay] = worldToScreen(mark.x, mark.y), [bx, by] = worldToScreen(mark.x + 1, mark.y + 1);
     const pad = Math.max(3, (bx - ax) * 0.3);
     mapCtx.lineWidth = 4; mapCtx.strokeStyle = "rgba(0,0,0,0.6)"; mapCtx.strokeRect(ax - pad, ay - pad, bx - ax + pad * 2, by - ay + pad * 2);
     mapCtx.lineWidth = 2; mapCtx.strokeStyle = "#f0abfc"; mapCtx.strokeRect(ax - pad, ay - pad, bx - ax + pad * 2, by - ay + pad * 2);
@@ -4978,16 +5043,20 @@ function pathWorkerMessage(e) {
   if (r.ok) {
     const gr = pathState.grid;
     r.nodes = r.path.map(function (p) { return { z: p[0], x: p[1] + gr.minX, y: p[2] + gr.minY }; });
+    // jump: reached by stairs/a hole/a teleport, not walked to from the node
+    // before - matters for a teleport on the same floor.
+    (r.jumps || []).forEach(function (i) { if (r.nodes[i]) r.nodes[i].jump = true; });
   }
   resolve(r);
 }
 function pathNodeStats(nodes) {
-  let steps = 0, changes = 0;
+  let steps = 0, changes = 0, teleports = 0;
   for (let i = 1; i < nodes.length; i++) {
     const a = nodes[i - 1], b = nodes[i];
-    if (a.z === b.z) steps += Math.max(Math.abs(b.x - a.x), Math.abs(b.y - a.y)); else changes++;
+    if (b.jump && a.z === b.z) teleports++;
+    else if (a.z === b.z) steps += Math.max(Math.abs(b.x - a.x), Math.abs(b.y - a.y)); else changes++;
   }
-  return { steps: steps, changes: changes };
+  return { steps: steps, changes: changes, teleports: teleports };
 }
 
 function pathRun() {
@@ -5011,7 +5080,7 @@ function pathShowResult(r) {
   const nodes = r.nodes;
   const segs = [{ z: nodes[0].z, from: 0, to: 0 }];
   for (let i = 1; i < nodes.length; i++) {
-    if (nodes[i - 1].z === nodes[i].z) segs[segs.length - 1].to = i;
+    if (nodes[i - 1].z === nodes[i].z && !nodes[i].jump) segs[segs.length - 1].to = i;
     else segs.push({ z: nodes[i].z, from: i, to: i });
   }
   const st = pathNodeStats(nodes), steps = st.steps, changes = st.changes;
@@ -5021,6 +5090,7 @@ function pathShowResult(r) {
     return '<button class="chip" type="button" data-path-seg="' + i + '" title="' + esc(mapFloorLabel(sg.z)) + '"><span class="fl-long">' + esc(mapFloorLabel(sg.z)) + '</span><span class="fl-short">z' + sg.z + '</span></button>';
   }).join(" → ");
   pathSetStatus("Route: ~" + fmt(steps) + " steps, " + changes + " floor change" + (changes === 1 ? "" : "s") +
+    (st.teleports ? ", " + st.teleports + " teleport" + (st.teleports === 1 ? "" : "s") : "") +
     (doors.length ? ", passes " + doors.length + " assumed door" + (doors.length === 1 ? "" : "s") + " (white squares - walls the minimap draws with no door, check these)" : "") +
     " (" + Math.round(r.ms) + " ms, " + fmt(r.expanded) + " jump points).", chips);
   pathShowSegment(0);
@@ -5133,7 +5203,7 @@ function drawPathOverlay(w, h) {
       mapCtx.beginPath();
       for (let i = 1; i < nodes.length; i++) {
         const a = nodes[i - 1], b = nodes[i];
-        if (a.z !== z || b.z !== z) continue;
+        if (a.z !== z || b.z !== z || b.jump) continue;
         const [ax, ay] = worldToScreen(a.x + 0.5, a.y + 0.5), [bx, by] = worldToScreen(b.x + 0.5, b.y + 0.5);
         mapCtx.moveTo(ax, ay); mapCtx.lineTo(bx, by);
       }
@@ -5295,6 +5365,7 @@ function botMarkers() {
     DATA.floorConnections[z].forEach(function (c) { m.set(c[0] + "," + c[1], c[2]); });
   });
   ccList.forEach(function (c) {
+    if (!CC_KINDS[c.k].dz) return;   // teleports aren't stairs
     const m = botMarkerIndex.known[c.z] || (botMarkerIndex.known[c.z] = new Map()), k = c.x + "," + c.y;
     m.set(k, (m.get(k) || 0) | (CC_KINDS[c.k].dz > 0 ? 2 : 1));
   });
@@ -5405,7 +5476,7 @@ function routeEncode() {
   }) };
   if (routeState.title) obj.t = routeState.title;
   if (routeState.loop) obj.l = 1;
-  if (ccList.length) obj.c = ccList.map(function (c) { return [c.z, c.x, c.y, c.k]; });
+  if (ccList.length) obj.c = ccList.map(function (c) { return c.k === "teleport" ? [c.z, c.x, c.y, c.k, c.tz, c.tx, c.ty] : [c.z, c.x, c.y, c.k]; });
   const bytes = new TextEncoder().encode(JSON.stringify(obj));
   let bin = "";
   for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
@@ -5432,7 +5503,7 @@ function routeDecode(code) {
     });
     if (!points.length) return null;
     const custom = Array.isArray(obj.c) ? obj.c.slice(0, CC_MAX).map(function (c) {
-      return Array.isArray(c) ? { z: c[0], x: c[1], y: c[2], k: c[3] } : null;
+      return Array.isArray(c) ? (c[3] === "teleport" ? { z: c[0], x: c[1], y: c[2], k: c[3], tz: c[4], tx: c[5], ty: c[6] } : { z: c[0], x: c[1], y: c[2], k: c[3] }) : null;
     }).filter(ccValid) : [];
     return { title: typeof obj.t === "string" ? obj.t.slice(0, ROUTE_TITLE_MAX) : "", loop: obj.l === 1, points: points, custom: custom };
   } catch (e) { return null; }
@@ -6178,14 +6249,15 @@ function routeRenderStatus() {
   const n = routeState.points.length;
   if (routeState.prepText) { el.textContent = routeState.prepText; return; }
   if (!n) { el.textContent = routeState.mode === "edit" ? "Click the map to add the first point. Change floors with ▲/▼ between clicks if the route goes up or down" + (routeAutoFloorOn() ? " - the stairs/holes on the way go in as waypoints by themselves." : ".") : ""; return; }
-  let steps = 0, changes = 0, pending = 0, failed = 0, doors = 0;
+  let steps = 0, changes = 0, teleports = 0, pending = 0, failed = 0, doors = 0;
   routeState.legs.forEach(function (leg) {
     if (!leg) { pending++; return; }
     if (!leg.ok) { failed++; return; }
-    const st = pathNodeStats(leg.nodes); steps += st.steps; changes += st.changes; doors += leg.doors.length;
+    const st = pathNodeStats(leg.nodes); steps += st.steps; changes += st.changes; teleports += st.teleports; doors += leg.doors.length;
   });
   let txt = n + " point" + (n === 1 ? "" : "s");
-  if (routeState.legs.length) txt += " · ~" + fmt(steps) + " steps" + (changes ? " · " + changes + " floor change" + (changes === 1 ? "" : "s") : "");
+  if (routeState.legs.length) txt += " · ~" + fmt(steps) + " steps" + (changes ? " · " + changes + " floor change" + (changes === 1 ? "" : "s") : "") +
+    (teleports ? " · " + teleports + " teleport" + (teleports === 1 ? "" : "s") : "");
   if (doors) txt += " · passes " + doors + " assumed door" + (doors === 1 ? "" : "s") + " (white squares)";
   if (routeState.loop && n > 2) txt += " · loops back to start";
   if (pending) txt += " · calculating " + pending + " leg" + (pending === 1 ? "" : "s") + "…";
@@ -6371,7 +6443,7 @@ function botLegTiles(nodes) {
   out.push({ z: nodes[0].z, x: nodes[0].x, y: nodes[0].y, portal: false });
   for (let k = 1; k < nodes.length; k++) {
     const u = nodes[k - 1], v = nodes[k];
-    if (u.z !== v.z) { out.push({ z: v.z, x: v.x, y: v.y, portal: true }); continue; }
+    if (u.z !== v.z || v.jump) { out.push({ z: v.z, x: v.x, y: v.y, portal: true }); continue; }
     let x = u.x, y = u.y;
     while (x !== v.x || y !== v.y) {
       x += Math.sign(v.x - x); y += Math.sign(v.y - y);
@@ -6397,7 +6469,9 @@ const CC_BOT_STEPS = {
   "stairs-down": [["floor-down", "transitionTarget"]],
   "rope": [["rope", "targetOffset", "on"]],
   "ladder": [["ladder-up", "transitionTarget"]],
-  "stairs-up": [["stairs-up", "transitionTarget"]]
+  "stairs-up": [["stairs-up", "transitionTarget"]],
+  // A teleport: just walk onto it.
+  "teleport": [["walk", null, "on"]]
 };
 // Appends the waypoints along one computed leg (pathfinder nodes) to `out`:
 // a "walk" every `spacing` tiles (0 = none) and a floor-change waypoint at
@@ -6416,18 +6490,18 @@ function botLegFill(out, nodes, spacing) {
       const dir = before ? botDirTo(before, marker) : null;
       // One of your own stairs/holes: its kind says what to write.
       const own = ccAt(marker.z, marker.x, marker.y);
-      const steps = own && own.z + CC_KINDS[own.k].dz === t.z ? CC_BOT_STEPS[own.k] : [[t.z > marker.z ? "floor-down" : "up", "transitionTarget"]];
+      const steps = own && ccTarget(own).z === t.z ? CC_BOT_STEPS[own.k] : [[t.z > marker.z ? "floor-down" : "up", "transitionTarget"]];
       // A walk sample on the stand tile itself would be redundant.
       const last = out[out.length - 1];
       if (last && last.t === "walk" && last.fill && last.z === at.z && last.x === at.x && last.y === at.y) { out.pop(); added--; }
       steps.forEach(function (st) {
         const on = st[2] === "on", pos = on ? marker : at;
         const wp = routeMakePoint(pos.z, pos.x, pos.y, "", { t: st[0] });
-        wp.params[st[1]] = on ? "here" : dir || (st[1] === "transitionTarget" ? "auto" : "here");
+        if (st[1]) wp.params[st[1]] = on ? "here" : dir || (st[1] === "transitionTarget" ? "auto" : "here");
         out.push(wp); wp.fill = true; added++;
         if (st[0] === "up") ups++;
       });
-      floors++;
+      if (t.z !== marker.z) floors++;   // (a teleport on the same floor isn't one)
       walked = 0;
       continue;
     }
@@ -6819,8 +6893,11 @@ function routeAutoFloorOn() {
 function routeMarkAutoFloor(pt) {
   if (!routeAutoFloorOn()) return;
   const pts = routeState.points, i = pts.indexOf(pt);
-  if (i > 0 && pts[i - 1].z !== pt.z) routeState.autoFloor.push({ a: pts[i - 1], b: pt });
-  if (i >= 0 && i < pts.length - 1 && pts[i + 1].z !== pt.z) routeState.autoFloor.push({ a: pt, b: pts[i + 1] });
+  // Another floor means stairs/holes on the way; with a teleport of your
+  // own, even a leg on one floor may take it (checked once it's walked).
+  const tp = ccList.some(function (c) { return c.k === "teleport"; });
+  if (i > 0 && (tp || pts[i - 1].z !== pt.z)) routeState.autoFloor.push({ a: pts[i - 1], b: pt });
+  if (i >= 0 && i < pts.length - 1 && (tp || pts[i + 1].z !== pt.z)) routeState.autoFloor.push({ a: pt, b: pts[i + 1] });
 }
 function routePlainWalk(p) {
   return p.t === "walk" && !p.id && !p.label && p.en && !Object.keys(p.params).length;
@@ -6835,7 +6912,7 @@ function routeApplyAutoFloor() {
     const leg = routeState.legs[i];
     if (!leg || pairs[i][0] !== m.a) continue;
     routeState.autoFloor.splice(k--, 1);
-    if (!leg.ok) continue;
+    if (!leg.ok || !leg.nodes.some(function (q) { return q.jump; })) continue;
     const add = [];
     botLegFill(add, leg.nodes, 0);
     add.forEach(function (w) { delete w.fill; });
@@ -6894,7 +6971,7 @@ function drawRouteOverlay() {
         mapCtx.beginPath();
         for (let k = 1; k < leg.nodes.length; k++) {
           const u = leg.nodes[k - 1], v = leg.nodes[k];
-          if (u.z !== z || v.z !== z) continue;
+          if (u.z !== z || v.z !== z || v.jump) continue;
           const [ux, uy] = worldToScreen(u.x + 0.5, u.y + 0.5), [vx, vy] = worldToScreen(v.x + 0.5, v.y + 0.5);
           mapCtx.moveTo(ux, uy); mapCtx.lineTo(vx, vy);
         }
