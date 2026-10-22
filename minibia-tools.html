@@ -779,7 +779,7 @@
         </section>
         <section class="mapx-panel" data-panel="path" hidden>
           <div class="mapx-h">Find path</div>
-          <p class="mapx-p">Click a start point, then an end point (change floor in between if needed). Routes only walk walkable ground and change floor at stairs, ladders and holes. Then drag the start, the end or a via point to move it; drag the line itself, a + or one of the bot route's walk waypoints to add a via point the route must pass.</p>
+          <p class="mapx-p">Click a start point, then an end point (change floor in between if needed). Routes only walk walkable ground and change floor at stairs, ladders and holes. Then drag the start, the end or a via point to move it; drag the line itself, a + or one of the bot route's waypoints to add a via point the route must pass (a stairs waypoint: drop it where you want to step onto the stairs from).</p>
           <div class="cc-box" data-cc></div>
           <div class="map-path-bar" id="map-path-bar" style="display:none;">
             <span id="map-path-status"></span>
@@ -4368,7 +4368,11 @@ function pathBotPoints() {
     n.floors += r.floors; n.ups += r.ups;
     if (i === legs.length - 1) return;
     const v = legNodes[legNodes.length - 1], last = out[out.length - 1];
-    if (!(last.z === v.z && last.x === v.x && last.y === v.y)) out.push(routeMakePoint(v.z, v.x, v.y, ""));
+    if (!(last.z === v.z && last.x === v.x && last.y === v.y)) {
+      // .fill: a stairs waypoint on the same tile (a via point where you step
+      // onto stairs) replaces it, as for a walk sample
+      const w = routeMakePoint(v.z, v.x, v.y, ""); w.fill = true; out.push(w);
+    }
   });
   const last = out[out.length - 1];
   if (out.length === 1 || last.z !== g.z || last.x !== g.x || last.y !== g.y) out.push(routeMakePoint(g.z, g.x, g.y, ""));
@@ -5198,12 +5202,13 @@ function pathGrabAt(sx, sy, touch) {
   }
   const res = pathState.result;
   if (!res) return null;
-  // The bot route's own walk waypoints: dragging one makes it a via point.
+  // The bot route's own waypoints: dragging one makes it a via point there -
+  // for a stairs/hole waypoint, the tile you step onto them from.
   if (botPathFlag) {
     const pts = pathBotPoints().points;
     for (let i = pts.length - 2; i > 0; i--) {
       const q = pts[i];
-      if (q.t !== "walk" || q.leg === undefined || !near(q, 10)) continue;
+      if (q.leg === undefined || !near(q, 10)) continue;
       return { kind: "step", leg: q.leg, tile: { z: q.z, x: q.x, y: q.y } };
     }
   }
