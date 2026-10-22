@@ -20,6 +20,7 @@
    python scripts/gen-known-floors.py path/to/tibia-export.json  # optional: known spawn floors from a real-Tibia spawn export (see below)
    ```
 4. Commit `data/raw/`, `data/derived/`, `data/changes/` and the updated `CHANGELOG.md`. GitHub Pages picks it up — no other build step.
+   Each push to `main` starts GitHub's own "pages build and deployment" run (Actions tab); the site updates a minute or so after it finishes. If no run shows up for the new commit (GitHub occasionally drops the trigger), the next push to `main` starts one, or re-save the source branch under Settings → Pages.
 
 `build-data.py` also writes `data/derived/merchant.json` (for a merchant-ledger page this repo doesn't have yet) and `.js` twins of both (`window.__MINIBIA_COMPENDIUM__ = ...` etc., for loading via `<script src>` instead of `fetch()` when a page needs to work over `file://`). `data/raw/npc-trades.json` and `data/raw/definitions.json` are currently empty placeholders (`{}`) — `build-data.py` requires them to exist, but nothing here reads `merchant.json` yet.
 
