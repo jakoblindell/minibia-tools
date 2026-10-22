@@ -779,7 +779,7 @@
         </section>
         <section class="mapx-panel" data-panel="path" hidden>
           <div class="mapx-h">Find path</div>
-          <p class="mapx-p">Click a start point, then an end point (change floor in between if needed). Routes only walk walkable ground and change floor at stairs, ladders and holes. Then drag the start, the end or a via point to move it, or the + on the path to add a via point the route must pass.</p>
+          <p class="mapx-p">Click a start point, then an end point (change floor in between if needed). Routes only walk walkable ground and change floor at stairs, ladders and holes. Then drag the start, the end or a via point to move it; drag the line itself, a + or one of the bot route's walk waypoints to add a via point the route must pass.</p>
           <div class="cc-box" data-cc></div>
           <div class="map-path-bar" id="map-path-bar" style="display:none;">
             <span id="map-path-status"></span>
@@ -4315,7 +4315,7 @@ const PATH_WORKER_SRC = function () {
 }.toString();
 
 const pathState = { active: false, start: null, goal: null, result: null, busy: false, worker: null, ready: null, grid: null, reqId: 0, hint: "",
-  vias: [], legs: [], handles: [], drag: null };
+  vias: [], legs: [], legStart: [], handles: [], drag: null };
 
 // The instruction for whatever the user should do next; shown after any
 // transient message (like the one-time terrain prep progress) clears.
@@ -4362,7 +4362,9 @@ function pathBotPoints() {
   const legs = pathState.legs.length ? pathState.legs : [nodes];
   const n = { floors: 0, ups: 0 };
   legs.forEach(function (legNodes, i) {
+    const from = out.length;
     const r = botLegFill(out, legNodes, spacing);
+    for (let k = from; k < out.length; k++) out[k].leg = i;   // which leg it's on (dragging it adds a via point there)
     n.floors += r.floors; n.ups += r.ups;
     if (i === legs.length - 1) return;
     const v = legNodes[legNodes.length - 1], last = out[out.length - 1];
@@ -5105,14 +5107,16 @@ function pathRun(keepView) {
       ms += r.ms || 0; expanded += r.expanded || 0;
       legs.push(r);
     }
-    const nodes = [], doors = [];
+    const nodes = [], doors = [], legStart = [];
     pathState.legs = legs.map(function (r) {
       const skip = nodes.length && r.nodes[0].z === nodes[nodes.length - 1].z && r.nodes[0].x === nodes[nodes.length - 1].x && r.nodes[0].y === nodes[nodes.length - 1].y ? 1 : 0;
       const off = nodes.length - skip;
+      legStart.push(Math.max(0, off));
       for (let k = skip; k < r.nodes.length; k++) nodes.push(r.nodes[k]);
       (r.doors || []).forEach(function (d) { if (d >= skip) doors.push(d + off); });
       return r.nodes;
     });
+    pathState.legStart = legStart;
     pathShowResult({ ok: true, nodes: nodes, doors: doors, ms: ms, expanded: expanded }, keepView);
   })();
 }
@@ -5147,8 +5151,9 @@ function pathShowResult(r, keepView) {
 }
 
 // --- Via points: the + at the middle of each leg adds one (drag it to
-// where the route must pass, or just click it), the start, the end and via
-// points drag to a new tile, the list removes them. Each change re-runs
+// where the route must pass, or just click it), and so does grabbing the
+// line anywhere (mouse) or one of the bot route's own walk waypoints; the
+// start, the end and via points drag to a new tile, the list removes them. Each change re-runs
 // the search without moving the view.
 function pathRenderVias() {
   const box = document.getElementById("path-vias");
@@ -5177,7 +5182,7 @@ function pathRenderVias() {
 }
 // What's under the pointer: a point to drag (start / via i / goal) or the
 // + handle of leg i (inserts a via there).
-function pathGrabAt(sx, sy) {
+function pathGrabAt(sx, sy, touch) {
   if (!pathState.active || !pathState.goal || cc.active || upq.active) return null;
   const z = state.mapFloor, near = function (p, r) {
     if (!p || p.z !== z) return false;
@@ -5191,10 +5196,39 @@ function pathGrabAt(sx, sy) {
     const h = pathState.handles[k];
     if ((h.sx - sx) * (h.sx - sx) + (h.sy - sy) * (h.sy - sy) <= 11 * 11) return { kind: "handle", leg: h.leg, tile: h.tile };
   }
-  return null;
+  const res = pathState.result;
+  if (!res) return null;
+  // The bot route's own walk waypoints: dragging one makes it a via point.
+  if (botPathFlag) {
+    const pts = pathBotPoints().points;
+    for (let i = pts.length - 2; i > 0; i--) {
+      const q = pts[i];
+      if (q.t !== "walk" || q.leg === undefined || !near(q, 10)) continue;
+      return { kind: "step", leg: q.leg, tile: { z: q.z, x: q.x, y: q.y } };
+    }
+  }
+  // Anywhere on the drawn line: a via point there (not by touch - a finger
+  // panning the map often starts on the line).
+  if (touch) return null;
+  let best = null, bestD = 7 * 7;
+  for (let i = 1; i < res.nodes.length; i++) {
+    const a = res.nodes[i - 1], b = res.nodes[i];
+    if (a.z !== z || b.z !== z || b.jump) continue;
+    const [ax, ay] = worldToScreen(a.x + 0.5, a.y + 0.5), [bx, by] = worldToScreen(b.x + 0.5, b.y + 0.5);
+    const dx = bx - ax, dy = by - ay, len2 = dx * dx + dy * dy;
+    const t = len2 ? Math.max(0, Math.min(1, ((sx - ax) * dx + (sy - ay) * dy) / len2)) : 0;
+    const px = ax + t * dx, py = ay + t * dy, d = (px - sx) * (px - sx) + (py - sy) * (py - sy);
+    if (d <= bestD) {
+      bestD = d;
+      let leg = 0;
+      while (leg + 1 < pathState.legStart.length && pathState.legStart[leg + 1] <= i - 1) leg++;
+      best = { kind: "line", leg: leg, tile: { z: z, x: Math.round(a.x + t * (b.x - a.x)), y: Math.round(a.y + t * (b.y - a.y)) } };
+    }
+  }
+  return best;
 }
 function pathDragStart(g) {
-  if (g.kind === "handle") {   // a new via point at the leg's middle, then dragged
+  if (g.kind === "handle" || g.kind === "step" || g.kind === "line") {   // a new via point there, then dragged
     pathState.vias.splice(g.leg, 0, { z: g.tile.z, x: g.tile.x, y: g.tile.y });
     g = { kind: "via", i: g.leg, inserted: true };
   }
@@ -7277,7 +7311,7 @@ function initMap() {
       touchState.pinching = false;
       const hit = routeGrabAt(e.touches[0].clientX - rect.left, e.touches[0].clientY - rect.top);
       if (hit >= 0) { routeDragStart(hit); mapView.dragging = false; mapTooltip.style.display = "none"; return; }
-      const pg = pathGrabAt(e.touches[0].clientX - rect.left, e.touches[0].clientY - rect.top);
+      const pg = pathGrabAt(e.touches[0].clientX - rect.left, e.touches[0].clientY - rect.top, true);
       if (pg) { pathDragStart(pg); mapView.dragging = false; mapTooltip.style.display = "none"; return; }
       mapView.dragging = true;
       mapView.lastX = e.touches[0].clientX; mapView.lastY = e.touches[0].clientY;
@@ -7436,7 +7470,8 @@ function initMap() {
     } else {
       mapTooltip.style.display = "none";
       const pg = pathGrabAt(sx, sy);
-      mapCanvas.style.cursor = routePointAt(sx, sy) >= 0 || (pg && pg.kind !== "handle") ? "move" : (routeHandleAt(sx, sy) >= 0 || (pg && pg.kind === "handle") ? "copy" : "grab");
+      const pgAdd = pg && (pg.kind === "handle" || pg.kind === "line");
+      mapCanvas.style.cursor = routePointAt(sx, sy) >= 0 || (pg && !pgAdd) ? "move" : (routeHandleAt(sx, sy) >= 0 || pgAdd ? "copy" : "grab");
     }
   });
 
