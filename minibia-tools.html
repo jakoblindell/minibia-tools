@@ -5152,6 +5152,9 @@ function pathShowResult(r, keepView) {
     " (" + Math.round(r.ms) + " ms, " + fmt(r.expanded) + " jump points).", chips);
   pathRenderVias();
   if (keepView) drawMap(); else pathShowSegment(0);
+  // With the bot route on, the waypoints are what you edit: straight into
+  // the Route builder, where every node drags, removes and changes type.
+  if (botPathFlag && !keepView) pathToRouteBuilder(true);
 }
 
 // --- Via points: the + at the middle of each leg adds one (drag it to
@@ -5159,6 +5162,32 @@ function pathShowResult(r, keepView) {
 // line anywhere (mouse) or one of the bot route's own walk waypoints; the
 // start, the end and via points drag to a new tile, the list removes them. Each change re-runs
 // the search without moving the view.
+// The found path's bot waypoints as an editable one-way route in the Route
+// builder (every node draggable, type/⚙/× per row, insert, Undo, export).
+// auto: straight after a search (with the bot route on) - a route the user
+// built themselves is only replaced after asking; one that came from Find
+// path is replaced as it is.
+function pathToRouteBuilder(auto) {
+  const pb = pathBotPoints();
+  if (!pb) return false;
+  if (pb.points.length > ROUTE_MAX_POINTS) { pathBotRender("Too many waypoints for the Route builder - use a larger spacing."); return false; }
+  if (routeState.points.length && !(auto && routeState.fromPath) &&
+      !confirm("Replace the " + routeState.points.length + "-point route in the Route builder with this path's " + pb.points.length + " waypoints?")) return false;
+  const pts = pb.points.map(function (p) {
+    return routeMakePoint(p.z, p.x, p.y, "", { t: p.t, params: botClone(p.params) });
+  });
+  if (routeState.points.length) routeSnapshot();
+  routeState.points = pts; routeState.loop = false; routeState.undoFill = null; routeState.open.clear(); routeState.fromLink = false;
+  routeState.fromPath = true;
+  document.getElementById("route-loop").checked = false;
+  document.getElementById("route-bot-unfill").style.display = "none";
+  mapSetMode("route");
+  setMapFloor(pts[0].z);
+  routeFitFloor(pts[0].z);
+  routeChanged();
+  botRenderMessages("Path from Find path, as a one-way route (loop off): drag any waypoint to move it, × in the list removes it, + on the line inserts one, Undo steps back.");
+  return true;
+}
 function pathRenderVias() {
   const box = document.getElementById("path-vias");
   if (!box) return;
@@ -7057,6 +7086,7 @@ function routeDragEnd() {
 }
 
 function routeAddPoint(sx, sy) {
+  routeState.fromPath = false;
   if (routeState.points.length >= ROUTE_MAX_POINTS) return;
   const [wx, wy] = screenToWorld(sx, sy);
   const pt = routeMakePoint(state.mapFloor, Math.floor(wx), Math.floor(wy), "");
@@ -7138,7 +7168,7 @@ function routeLoadFromHash() {
   const r = routeDecode(m[1]);
   if (!r) return false;
   if (pathState.active) pathToggle();
-  routeState.title = r.title; routeState.loop = r.loop; routeState.points = r.points;
+  routeState.title = r.title; routeState.loop = r.loop; routeState.points = r.points; routeState.fromPath = false;
   routeState.mode = "view"; routeState.fromLink = true;
   state.tab = "map";
   refreshTabChrome();
@@ -7674,24 +7704,7 @@ function initMap() {
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
   });
-  document.getElementById("path-bot-edit").addEventListener("click", function () {
-    const pb = pathBotPoints();
-    if (!pb) return;
-    if (pb.points.length > ROUTE_MAX_POINTS) { pathBotRender("Too many waypoints for the Route builder - use a larger spacing."); return; }
-    if (routeState.points.length && !confirm("Replace the " + routeState.points.length + "-point route in the Route builder with these " + pb.points.length + " waypoints?")) return;
-    const pts = pb.points.map(function (p) {
-      return routeMakePoint(p.z, p.x, p.y, "", { t: p.t, params: botClone(p.params) });
-    });
-    if (routeState.points.length) routeSnapshot();
-    routeState.points = pts; routeState.loop = false; routeState.undoFill = null; routeState.open.clear(); routeState.fromLink = false;
-    document.getElementById("route-loop").checked = false;
-    document.getElementById("route-bot-unfill").style.display = "none";
-    mapSetMode("route");
-    setMapFloor(pts[0].z);
-    routeFitFloor(pts[0].z);
-    routeChanged();
-    botRenderMessages("Path loaded as a one-way route (loop off).");
-  });
+  document.getElementById("path-bot-edit").addEventListener("click", function () { pathToRouteBuilder(false); });
   document.getElementById("route-bot-import-toggle").addEventListener("click", function () {
     const box = document.getElementById("route-bot-import");
     box.hidden = !box.hidden;
@@ -7702,7 +7715,7 @@ function initMap() {
     const r = botImport(ta.value);
     if (r.error) { botRenderMessages(r.error); return; }
     if (routeState.points.length) routeSnapshot();
-    routeState.points = r.points; routeState.loop = r.loop; routeState.undoFill = null; routeState.open.clear();
+    routeState.points = r.points; routeState.loop = r.loop; routeState.undoFill = null; routeState.open.clear(); routeState.fromPath = false;
     document.getElementById("route-loop").checked = r.loop;
     document.getElementById("route-bot-unfill").style.display = "none";
     document.getElementById("route-bot-import").hidden = true;
