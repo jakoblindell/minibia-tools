@@ -445,9 +445,14 @@
   .pb-choice button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
   .upq[hidden] { display: none; }
   .cc-glyph { background: #c026d3; color: #fff; }
-  .path-vias[hidden] { display: none; }
-  .path-vias { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; }
-  .path-vias .cc-head b { font-size: 12.5px; }
+  .path-nodes[hidden] { display: none; }
+  .path-nodes { display: flex; flex-direction: column; gap: 6px; font-size: 12.5px; }
+  .path-nodes .cc-head b { font-size: 12.5px; }
+  .path-node-list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; }
+  .path-node-list li.route-row { display: flex; flex-direction: row; flex-wrap: nowrap; align-items: center; gap: 6px; min-width: 0; }
+  .path-node-list select.route-type { flex: 1 1 auto; min-width: 0; }
+  .path-node-list .path-node-tile { flex: 1 1 auto; min-width: 0; color: var(--text-muted); font-family: 'SF Mono', Consolas, monospace; font-size: 11.5px; overflow-wrap: anywhere; }
+  .path-node-list select.route-type + .path-node-tile { flex: 0 1 auto; }
   .hunt-est[hidden] { display: none; }
   .rot[hidden], .rot [hidden] { display: none; }
   .rot-sec { display: flex; flex-direction: column; gap: 4px; }
@@ -520,6 +525,9 @@
     .route-row { flex-wrap: wrap; }
     .route-row .route-note { order: 10; flex: 1 1 100%; margin-left: 30px; }
     .route-bot-settings { margin-left: 8px; }
+    .path-node-list li.route-row select.route-type { flex: 0 0 7.2em; min-width: 7.2em; }
+    .path-node-list li.route-row .path-node-tile { flex: 1 1 auto; }
+    .path-node-list .path-node-tile { font-size: 10.5px; }
   }
   .map-floor { display: inline-flex; align-items: center; gap: 6px; }
   .map-floor-btn { padding: 4px 9px; line-height: 1; }
@@ -779,13 +787,13 @@
         </section>
         <section class="mapx-panel" data-panel="path" hidden>
           <div class="mapx-h">Find path</div>
-          <p class="mapx-p">Click a start point, then an end point (change floor in between if needed). Routes only walk walkable ground and change floor at stairs, ladders and holes. Then drag the start, the end or a via point to move it; drag the line itself, a + or one of the bot route's waypoints to add a via point the route must pass (a stairs waypoint: drop it where you want to step onto the stairs from).</p>
+          <p class="mapx-p">Click a start point, then an end point (change floor in between if needed). Routes only walk walkable ground and change floor at stairs, ladders and holes. Then the path's nodes are listed below: drag any node on the map to move it, grab the line (or a +) to add one, and change a node's type or remove it in the list.</p>
           <div class="cc-box" data-cc></div>
           <div class="map-path-bar" id="map-path-bar" style="display:none;">
             <span id="map-path-status"></span>
             <span class="map-path-floors" id="map-path-floors"></span>
           </div>
-          <div class="path-vias" id="path-vias" hidden></div>
+          <div class="path-nodes" id="path-nodes" hidden></div>
           <div class="route-bot path-bot" id="path-bot" hidden>
             <div class="route-bot-title">One-way cave bot route <span class="beta-tag">beta</span></div>
             <label class="pb-field"><span>Walk waypoints</span>
@@ -4315,7 +4323,7 @@ const PATH_WORKER_SRC = function () {
 }.toString();
 
 const pathState = { active: false, start: null, goal: null, result: null, busy: false, worker: null, ready: null, grid: null, reqId: 0, hint: "",
-  vias: [], legs: [], legStart: [], handles: [], drag: null };
+  wps: null, history: [], legs: [], legStart: [], handles: [], drag: null };
 
 // The instruction for whatever the user should do next; shown after any
 // transient message (like the one-time terrain prep progress) clears.
@@ -4348,40 +4356,16 @@ let botPathFlag = false;
 // the walk spacing changes).
 const pathBot = { key: "", res: null, points: [], floors: 0, ups: 0, choice: {} };
 function pathBotPoints() {
-  const res = pathState.result;
-  if (!res) return null;
-  const spacing = Number(document.getElementById("path-bot-spacing").value) || 0;
-  const key = spacing + "|" + res.nodes.length + "|" + res.nodes[0].x + "," + res.nodes[0].y + "," + res.nodes[0].z + "|" + res.steps + "|" + pathState.legs.length;
-  if (pathBot.key === key && pathBot.res === res) return pathBot;
-  // (pathBot.choice - picked ways up - is kept by tile across edits)
-  const nodes = res.nodes, s = nodes[0], g = nodes[nodes.length - 1];
-  const first = routeMakePoint(s.z, s.x, s.y, ""); first.fill = true;
-  const out = [first];
-  // Leg by leg, with a walk waypoint on each via point, so the bot passes
-  // them too.
-  const legs = pathState.legs.length ? pathState.legs : [nodes];
-  const n = { floors: 0, ups: 0 };
-  legs.forEach(function (legNodes, i) {
-    const from = out.length;
-    const r = botLegFill(out, legNodes, spacing);
-    for (let k = from; k < out.length; k++) out[k].leg = i;   // which leg it's on (dragging it adds a via point there)
-    n.floors += r.floors; n.ups += r.ups;
-    if (i === legs.length - 1) return;
-    const v = legNodes[legNodes.length - 1], last = out[out.length - 1];
-    if (!(last.z === v.z && last.x === v.x && last.y === v.y)) {
-      // .fill: a stairs waypoint on the same tile (a via point where you step
-      // onto stairs) replaces it, as for a walk sample
-      const w = routeMakePoint(v.z, v.x, v.y, ""); w.fill = true; out.push(w);
-    }
-  });
-  const last = out[out.length - 1];
-  if (out.length === 1 || last.z !== g.z || last.x !== g.x || last.y !== g.y) out.push(routeMakePoint(g.z, g.x, g.y, ""));
-  out.forEach(function (p) {
-    delete p.fill;
-    const c = p.t === "up" ? pathBot.choice[p.z + "," + p.x + "," + p.y] : null;
+  const w = pathState.wps;
+  if (!pathState.result || !w) return null;
+  let floors = 0, ups = 0;
+  w.forEach(function (p) {
+    const c = p.t === "up" ? pathBot.choice[p.z + "," + p.x + "," + p.y] : null;   // picked in the way-up picker
     if (c) { p.picked = true; botSetType(p, c); }
+    if (BOT_CHECKS[p.t]) floors++;
+    if (p.t === "up") ups++;
   });
-  pathBot.key = key; pathBot.res = res; pathBot.points = out; pathBot.floors = n.floors; pathBot.ups = n.ups;
+  pathBot.points = w; pathBot.floors = floors; pathBot.ups = ups;
   return pathBot;
 }
 function pathBotChecks(points) {
@@ -4402,7 +4386,7 @@ function pathBotExport() {
 function pathBotRender(note) {
   const box = document.getElementById("path-bot");
   if (!box) return;
-  const show = botPathFlag && pathState.active && !!pathState.result;
+  const show = botPathFlag && pathState.active && !!pathState.result && !!pathState.wps;
   box.hidden = !show;
   if (!show) { if (upq.kind === "path") upqClose(); return; }
   const pb = pathBotPoints();
@@ -4466,12 +4450,12 @@ function upqItems(kind) {
         z: p.z, x: p.x, y: p.y,
         dir: function () { return dir; },
         num: function () {
-          const pts = pathBotPoints().points;
+          const pts = pathState.wps ? pathBotPoints().points : [];
           for (let k = 0; k < pts.length; k++) if (pts[k].z === p.z && pts[k].x === p.x && pts[k].y === p.y) return k + 1;
           return "?";
         },
         get: function () { return pathBot.choice[key] || ""; },
-        set: function (t) { pathBot.choice[key] = t; pathBot.key = ""; pathBotRender(); }
+        set: function (t) { pathBot.choice[key] = t; pathBotRender(); pathRenderNodes(); }
       });
     });
   } else if (kind === "rot") {
@@ -4595,7 +4579,7 @@ function drawUpqHighlight() {
   mapCtx.restore();
 }
 function drawPathBotWaypoints(z) {
-  if (!botPathFlag || !pathState.result) return;
+  if (!botPathFlag || !pathState.result || !pathState.wps) return;
   const pts = pathBotPoints().points;
   mapCtx.font = "700 10px 'Segoe UI', sans-serif"; mapCtx.textAlign = "center"; mapCtx.textBaseline = "middle";
   pts.forEach(function (p, i) {
@@ -5089,47 +5073,124 @@ function pathNodeStats(nodes) {
   return { steps: steps, changes: changes, teleports: teleports };
 }
 
-// The path runs start -> via points -> goal, one pathfinder search per
-// leg, joined into one result (keepView: an edit, don't re-zoom).
+// --- Find path's nodes. The first search (start -> end) gives the path;
+// its waypoints then become the path's nodes (pathState.wps): with the bot
+// route on, the generated waypoints (a walk every N tiles and one at each
+// stairs/hole); otherwise just the start and the end. From then on the
+// path is walked node to node (each leg cached, as in the Route builder),
+// and the nodes are what you edit: drag one to move it, grab the line or a
+// + to insert one, the list changes a node's type or removes it, Undo
+// steps back. Each change re-runs only the legs it touched, without moving
+// the view.
+const PATH_HISTORY_MAX = 50;
 function pathRun(keepView) {
   pathState.busy = true;
   const token = ++pathState.reqId;
   pathHint("Calculating route…");
-  const pts = [pathState.start].concat(pathState.vias, [pathState.goal]);
+  const pts = pathState.wps ? pathState.wps : [pathState.start, pathState.goal];
   const legs = [];
   let ms = 0, expanded = 0;
   (async function () {
     for (let i = 1; i < pts.length; i++) {
-      const r = await pathRequest(pts[i - 1], pts[i]);
-      if (token !== pathState.reqId || !pathState.active) return;
-      if (!r.ok) {
+      const a = pts[i - 1], b = pts[i], key = routeLegKey(a, b);
+      let leg = routeLegCache.get(key);
+      if (!leg) {
+        const r = await pathRequest(a, b);
+        if (token !== pathState.reqId || !pathState.active) return;
+        ms += r.ms || 0; expanded += r.expanded || 0;
+        leg = r.ok ? { ok: true, nodes: r.nodes, doors: r.doors || [] } : { ok: false, reason: r.reason };
+        routeLegCache.set(key, leg);
+      }
+      if (!leg.ok) {
         pathState.result = null; pathState.legs = [];
-        r.reason = (pts.length > 2 ? "leg " + i + " of " + (pts.length - 1) + ": " : "") + r.reason;
-        pathShowResult(r);
+        pathShowResult({ ok: false, reason: (pts.length > 2 ? "between node " + i + " and " + (i + 1) + ": " : "") + leg.reason }, keepView);
         return;
       }
-      ms += r.ms || 0; expanded += r.expanded || 0;
-      legs.push(r);
+      legs.push(leg);
     }
+    if (token !== pathState.reqId || !pathState.active) return;
     const nodes = [], doors = [], legStart = [];
-    pathState.legs = legs.map(function (r) {
-      const skip = nodes.length && r.nodes[0].z === nodes[nodes.length - 1].z && r.nodes[0].x === nodes[nodes.length - 1].x && r.nodes[0].y === nodes[nodes.length - 1].y ? 1 : 0;
+    pathState.legs = legs.map(function (leg) {
+      const ln = leg.nodes;
+      const skip = nodes.length && ln[0].z === nodes[nodes.length - 1].z && ln[0].x === nodes[nodes.length - 1].x && ln[0].y === nodes[nodes.length - 1].y ? 1 : 0;
       const off = nodes.length - skip;
       legStart.push(Math.max(0, off));
-      for (let k = skip; k < r.nodes.length; k++) nodes.push(r.nodes[k]);
-      (r.doors || []).forEach(function (d) { if (d >= skip) doors.push(d + off); });
-      return r.nodes;
+      for (let k = skip; k < ln.length; k++) nodes.push(ln[k]);
+      leg.doors.forEach(function (d) { if (d >= skip) doors.push(d + off); });
+      return ln;
     });
     pathState.legStart = legStart;
+    const first = !pathState.wps;
     pathShowResult({ ok: true, nodes: nodes, doors: doors, ms: ms, expanded: expanded }, keepView);
+    // First search: its waypoints become the nodes, then walk node to node.
+    if (first) {
+      pathState.wps = botPathFlag ? pathBotGenerate() : [routeMakePoint(pathState.start.z, pathState.start.x, pathState.start.y, ""), routeMakePoint(pathState.goal.z, pathState.goal.x, pathState.goal.y, "")];
+      pathState.history = [];
+      pathSyncEnds();
+      pathRun(true);
+    }
   })();
+}
+function pathSyncEnds() {
+  const w = pathState.wps;
+  if (!w || !w.length) return;
+  pathState.start = w[0]; pathState.goal = w[w.length - 1];
+}
+function pathSnapshot() {
+  if (!pathState.wps) return;
+  pathState.history.push(JSON.stringify(pathState.wps));
+  if (pathState.history.length > PATH_HISTORY_MAX) pathState.history.shift();
+}
+function pathUndo() {
+  const prev = pathState.history.pop();
+  if (prev === undefined) return;
+  pathState.wps = JSON.parse(prev);
+  pathSyncEnds();
+  pathRun(true);
+}
+// The bot waypoints for the path as it is now (leg by leg), at the chosen
+// walk spacing - what a fresh path, or a new spacing, starts from.
+function pathBotGenerate() {
+  const res = pathState.result;
+  if (!res) return [];
+  const spacing = Number(document.getElementById("path-bot-spacing").value) || 0;
+  const nodes = res.nodes, s = nodes[0], g = nodes[nodes.length - 1];
+  const first = routeMakePoint(s.z, s.x, s.y, ""); first.fill = true;
+  const out = [first];
+  const legs = pathState.legs.length ? pathState.legs : [nodes];
+  legs.forEach(function (legNodes, i) {
+    botLegFill(out, legNodes, spacing);
+    if (i === legs.length - 1) return;
+    // keep the nodes the path already passes (a stairs waypoint on the same
+    // tile replaces it, as for a walk sample)
+    const v = legNodes[legNodes.length - 1], last = out[out.length - 1];
+    if (!(last.z === v.z && last.x === v.x && last.y === v.y)) { const w = routeMakePoint(v.z, v.x, v.y, ""); w.fill = true; out.push(w); }
+  });
+  const last = out[out.length - 1];
+  if (out.length === 1 || last.z !== g.z || last.x !== g.x || last.y !== g.y) out.push(routeMakePoint(g.z, g.x, g.y, ""));
+  out.forEach(function (p) { delete p.fill; });
+  return out;
+}
+// New walk spacing: the nodes are generated again from the path as it is.
+function pathRespace() {
+  if (!pathState.wps || !pathState.result || !botPathFlag) return;
+  pathSnapshot();
+  const set = {};   // types the user set by hand stay on their tiles
+  pathState.wps.forEach(function (p) { if (p.userType) set[p.z + "," + p.x + "," + p.y] = p; });
+  pathState.wps = pathBotGenerate();
+  pathState.wps.forEach(function (p) {
+    const o = set[p.z + "," + p.x + "," + p.y];
+    if (o) { botSetType(p, o.t); p.params = botClone(o.params); p.userType = true; p.picked = o.picked; }
+  });
+  pathSyncEnds();
+  pathRun(true);
 }
 
 function pathShowResult(r, keepView) {
   pathState.busy = false;
   if (!r.ok) {
-    pathSetStatus("No path found: " + r.reason + "." + (pathState.vias.length ? " Move or remove a via point." : ""));
-    pathRenderVias();
+    pathSetStatus("No path found: " + r.reason + "." + (pathState.wps && pathState.wps.length > 2 ? " Move or remove that node (list below)." : ""));
+    pathRenderNodes();
     drawMap();
     return;
   }
@@ -5148,103 +5209,104 @@ function pathShowResult(r, keepView) {
   pathSetStatus("Route: ~" + fmt(steps) + " steps, " + changes + " floor change" + (changes === 1 ? "" : "s") +
     (st.teleports ? ", " + st.teleports + " teleport" + (st.teleports === 1 ? "" : "s") : "") +
     (doors.length ? ", passes " + doors.length + " assumed door" + (doors.length === 1 ? "" : "s") + " (white squares - walls the minimap draws with no door, check these)" : "") +
-    (pathState.vias.length ? ", through " + pathState.vias.length + " via point" + (pathState.vias.length === 1 ? "" : "s") : "") +
-    " (" + Math.round(r.ms) + " ms, " + fmt(r.expanded) + " jump points).", chips);
-  pathRenderVias();
+    (r.ms ? " (" + Math.round(r.ms) + " ms, " + fmt(r.expanded) + " jump points)" : "") + ".", chips);
+  pathRenderNodes();
   if (keepView) drawMap(); else pathShowSegment(0);
-  // With the bot route on, the waypoints are what you edit: straight into
-  // the Route builder, where every node drags, removes and changes type.
-  if (botPathFlag && !keepView) pathToRouteBuilder(true);
 }
 
-// --- Via points: the + at the middle of each leg adds one (drag it to
-// where the route must pass, or just click it), and so does grabbing the
-// line anywhere (mouse) or one of the bot route's own walk waypoints; the
-// start, the end and via points drag to a new tile, the list removes them. Each change re-runs
-// the search without moving the view.
-// The found path's bot waypoints as an editable one-way route in the Route
-// builder (every node draggable, type/⚙/× per row, insert, Undo, export).
-// auto: straight after a search (with the bot route on) - a route the user
-// built themselves is only replaced after asking; one that came from Find
-// path is replaced as it is.
-function pathToRouteBuilder(auto) {
+// The found path's waypoints as a route in the Route builder (Edit in Route
+// builder) - for its extras: notes, labels, ⚙ settings, share links.
+function pathToRouteBuilder() {
   const pb = pathBotPoints();
   if (!pb) return false;
   if (pb.points.length > ROUTE_MAX_POINTS) { pathBotRender("Too many waypoints for the Route builder - use a larger spacing."); return false; }
-  if (routeState.points.length && !(auto && routeState.fromPath) &&
-      !confirm("Replace the " + routeState.points.length + "-point route in the Route builder with this path's " + pb.points.length + " waypoints?")) return false;
+  if (routeState.points.length && !confirm("Replace the " + routeState.points.length + "-point route in the Route builder with this path's " + pb.points.length + " waypoints?")) return false;
   const pts = pb.points.map(function (p) {
     return routeMakePoint(p.z, p.x, p.y, "", { t: p.t, params: botClone(p.params) });
   });
   if (routeState.points.length) routeSnapshot();
   routeState.points = pts; routeState.loop = false; routeState.undoFill = null; routeState.open.clear(); routeState.fromLink = false;
-  routeState.fromPath = true;
   document.getElementById("route-loop").checked = false;
   document.getElementById("route-bot-unfill").style.display = "none";
   mapSetMode("route");
   setMapFloor(pts[0].z);
   routeFitFloor(pts[0].z);
   routeChanged();
-  botRenderMessages("Path from Find path, as a one-way route (loop off): drag any waypoint to move it, × in the list removes it, + on the line inserts one, Undo steps back.");
+  botRenderMessages("Path loaded as a one-way route (loop off).");
   return true;
 }
-function pathRenderVias() {
-  const box = document.getElementById("path-vias");
+
+// The node list in the Find path panel: number, type, tile, remove.
+function pathRenderNodes() {
+  const box = document.getElementById("path-nodes");
   if (!box) return;
+  const w = pathState.wps;
   box.textContent = "";
-  box.hidden = !pathState.vias.length;
+  box.hidden = !pathState.active || !w || !w.length;
   if (box.hidden) return;
   const head = document.createElement("div"); head.className = "cc-head";
-  const t = document.createElement("b"); t.textContent = "Via points (" + pathState.vias.length + ")";
-  const clr = document.createElement("button"); clr.type = "button"; clr.className = "map-btn"; clr.textContent = "Remove all";
-  clr.addEventListener("click", function () { pathState.vias = []; pathRun(true); });
-  head.appendChild(t); head.appendChild(clr); box.appendChild(head);
-  const ul = document.createElement("ul"); ul.className = "cc-list";
-  pathState.vias.forEach(function (v, i) {
-    const li = document.createElement("li"); li.className = "cc-item";
-    const dot = document.createElement("span"); dot.className = "cc-dot path-via-dot"; dot.textContent = String(i + 1);
-    const tx = document.createElement("span"); tx.className = "cc-text"; tx.title = "Show on the map";
-    const sm = document.createElement("small"); sm.textContent = "x" + v.x + " y" + v.y + " z" + v.z; tx.appendChild(sm);
-    tx.addEventListener("click", function () { setMapFloor(v.z); mapFitToPoint(v.x, v.y); drawMap(); });
-    const del = document.createElement("button"); del.type = "button"; del.className = "map-btn"; del.textContent = "×";
-    del.title = "Remove"; del.setAttribute("aria-label", "Remove via point " + (i + 1));
-    del.addEventListener("click", function () { pathState.vias.splice(i, 1); pathRun(true); });
-    li.appendChild(dot); li.appendChild(tx); li.appendChild(del); ul.appendChild(li);
+  const t = document.createElement("b"); t.textContent = "Nodes (" + w.length + ")";
+  const undo = document.createElement("button"); undo.type = "button"; undo.className = "map-btn"; undo.textContent = "Undo";
+  undo.disabled = !pathState.history.length; undo.title = "Undo the last change to the nodes";
+  undo.addEventListener("click", pathUndo);
+  head.appendChild(t); head.appendChild(undo); box.appendChild(head);
+  const help = document.createElement("p"); help.className = "cc-help";
+  help.textContent = "Drag a node on the map to move it; grab the line or a + to add one.";
+  box.appendChild(help);
+  const ol = document.createElement("ol"); ol.className = "route-points path-node-list";
+  w.forEach(function (p, i) {
+    const li = document.createElement("li"); li.className = "route-row";
+    const num = document.createElement("span"); num.className = "route-num"; num.textContent = String(i + 1);
+    num.style.background = i === 0 ? "#22c55e" : i === w.length - 1 ? "#ef4444" : botTypeColor(p.t);
+    num.style.color = i === 0 || i === w.length - 1 ? "#fff" : botTypeInk(p.t);
+    num.title = "x" + p.x + " y" + p.y + " z" + p.z + " - click to show on the map";
+    num.style.cursor = "pointer";
+    num.addEventListener("click", function () { setMapFloor(p.z); mapFitToPoint(p.x, p.y); drawMap(); });
+    li.appendChild(num);
+    if (botPathFlag) {
+      const sel = document.createElement("select"); sel.className = "route-type";
+      Object.keys(BOT_TYPES).forEach(function (k) {
+        if (BOT_TYPES[k].internal && p.t !== k) return;
+        const o = document.createElement("option"); o.value = k; o.textContent = BOT_TYPES[k].label; sel.appendChild(o);
+      });
+      sel.value = p.t;
+      sel.addEventListener("change", function () { pathSnapshot(); botSetType(p, sel.value); p.userType = true; p.picked = BOT_UP_CHOICES.indexOf(sel.value) >= 0; pathRenderNodes(); pathBotRender(); drawMap(); });
+      li.appendChild(sel);
+    }
+    const tile = document.createElement("small"); tile.className = "path-node-tile"; tile.textContent = "x" + p.x + " y" + p.y + " z" + p.z;
+    li.appendChild(tile);
+    const del = document.createElement("button"); del.type = "button"; del.className = "map-btn icon"; del.textContent = "✕";
+    del.title = w.length > 2 ? "Remove node" : "A path needs two nodes"; del.disabled = w.length <= 2;
+    del.setAttribute("aria-label", "Remove node " + (i + 1));
+    del.addEventListener("click", function () { pathSnapshot(); w.splice(i, 1); pathSyncEnds(); pathRun(true); });
+    li.appendChild(del);
+    ol.appendChild(li);
   });
-  box.appendChild(ul);
+  box.appendChild(ol);
 }
-// What's under the pointer: a point to drag (start / via i / goal) or the
-// + handle of leg i (inserts a via there).
+// What's under the pointer: a node to drag, or a place to insert one (a +
+// handle, or - by mouse - anywhere on the drawn line).
 function pathGrabAt(sx, sy, touch) {
-  if (!pathState.active || !pathState.goal || cc.active || upq.active) return null;
-  const z = state.mapFloor, near = function (p, r) {
-    if (!p || p.z !== z) return false;
+  const w = pathState.wps;
+  if (!pathState.active || !w || cc.active || upq.active) return null;
+  const z = state.mapFloor;
+  let best = -1, bestD = 12 * 12 + 1;
+  for (let i = w.length - 1; i >= 0; i--) {
+    const p = w[i];
+    if (p.z !== z) continue;
     const [px, py] = worldToScreen(p.x + 0.5, p.y + 0.5);
-    return (px - sx) * (px - sx) + (py - sy) * (py - sy) <= r * r;
-  };
-  for (let i = pathState.vias.length - 1; i >= 0; i--) if (near(pathState.vias[i], 12)) return { kind: "via", i: i };
-  if (near(pathState.goal, 12)) return { kind: "goal" };
-  if (near(pathState.start, 12)) return { kind: "start" };
+    const d = (px - sx) * (px - sx) + (py - sy) * (py - sy);
+    if (d < bestD) { bestD = d; best = i; }
+  }
+  if (best >= 0) return { kind: "node", i: best };
   for (let k = 0; k < pathState.handles.length; k++) {
     const h = pathState.handles[k];
-    if ((h.sx - sx) * (h.sx - sx) + (h.sy - sy) * (h.sy - sy) <= 11 * 11) return { kind: "handle", leg: h.leg, tile: h.tile };
+    if ((h.sx - sx) * (h.sx - sx) + (h.sy - sy) * (h.sy - sy) <= 11 * 11) return { kind: "insert", leg: h.leg, tile: h.tile };
   }
   const res = pathState.result;
-  if (!res) return null;
-  // The bot route's own waypoints: dragging one makes it a via point there -
-  // for a stairs/hole waypoint, the tile you step onto them from.
-  if (botPathFlag) {
-    const pts = pathBotPoints().points;
-    for (let i = pts.length - 2; i > 0; i--) {
-      const q = pts[i];
-      if (q.leg === undefined || !near(q, 10)) continue;
-      return { kind: "step", leg: q.leg, tile: { z: q.z, x: q.x, y: q.y } };
-    }
-  }
-  // Anywhere on the drawn line: a via point there (not by touch - a finger
-  // panning the map often starts on the line).
-  if (touch) return null;
-  let best = null, bestD = 7 * 7;
+  // Not by touch: a finger panning the map often starts on the line.
+  if (!res || touch) return null;
+  let hit = null, hitD = 7 * 7;
   for (let i = 1; i < res.nodes.length; i++) {
     const a = res.nodes[i - 1], b = res.nodes[i];
     if (a.z !== z || b.z !== z || b.jump) continue;
@@ -5252,30 +5314,31 @@ function pathGrabAt(sx, sy, touch) {
     const dx = bx - ax, dy = by - ay, len2 = dx * dx + dy * dy;
     const t = len2 ? Math.max(0, Math.min(1, ((sx - ax) * dx + (sy - ay) * dy) / len2)) : 0;
     const px = ax + t * dx, py = ay + t * dy, d = (px - sx) * (px - sx) + (py - sy) * (py - sy);
-    if (d <= bestD) {
-      bestD = d;
+    if (d <= hitD) {
+      hitD = d;
       let leg = 0;
       while (leg + 1 < pathState.legStart.length && pathState.legStart[leg + 1] <= i - 1) leg++;
-      best = { kind: "line", leg: leg, tile: { z: z, x: Math.round(a.x + t * (b.x - a.x)), y: Math.round(a.y + t * (b.y - a.y)) } };
+      hit = { kind: "insert", leg: leg, tile: { z: z, x: Math.round(a.x + t * (b.x - a.x)), y: Math.round(a.y + t * (b.y - a.y)) } };
     }
   }
-  return best;
+  return hit;
 }
 function pathDragStart(g) {
-  if (g.kind === "handle" || g.kind === "step" || g.kind === "line") {   // a new via point there, then dragged
-    pathState.vias.splice(g.leg, 0, { z: g.tile.z, x: g.tile.x, y: g.tile.y });
-    g = { kind: "via", i: g.leg, inserted: true };
+  if (g.kind === "insert") {   // a new walk node there, then dragged
+    pathSnapshot();
+    pathState.wps.splice(g.leg + 1, 0, routeMakePoint(g.tile.z, g.tile.x, g.tile.y, ""));
+    g = { kind: "node", i: g.leg + 1, inserted: true };
   }
-  pathState.drag = { g: g, moved: false };
-  pathState.reqId++;   // drop a search still running for the old points
+  pathState.drag = { i: g.i, moved: false, inserted: !!g.inserted };
+  pathState.reqId++;   // drop a search still running for the old nodes
   drawMap();
 }
-function pathDragPoint(g) { return g.kind === "start" ? pathState.start : g.kind === "goal" ? pathState.goal : pathState.vias[g.i]; }
 function pathDragTo(sx, sy) {
   const d = pathState.drag; if (!d) return;
-  const [wx, wy] = screenToWorld(sx, sy), p = pathDragPoint(d.g);
+  const [wx, wy] = screenToWorld(sx, sy), p = pathState.wps[d.i];
   const x = Math.floor(wx), y = Math.floor(wy);
   if (p.x === x && p.y === y && p.z === state.mapFloor) return;
+  if (!d.moved && !d.inserted) pathSnapshot();
   p.x = x; p.y = y; p.z = state.mapFloor; d.moved = true;
   pathState.result = null; pathState.handles = [];
   drawMap();
@@ -5283,7 +5346,8 @@ function pathDragTo(sx, sy) {
 function pathDragEnd() {
   const d = pathState.drag; if (!d) return;
   pathState.drag = null;
-  pathRun(true);
+  pathSyncEnds();
+  if (d.moved || d.inserted) pathRun(true); else drawMap();
 }
 
 function pathShowSegment(i) {
@@ -5308,7 +5372,8 @@ function pathHandleClick(sx, sy) {
   const [wx, wy] = screenToWorld(sx, sy);
   const pt = { z: state.mapFloor, x: Math.floor(wx), y: Math.floor(wy) };
   if (!pathState.start || pathState.goal) {
-    pathState.start = pt; pathState.goal = null; pathState.result = null; pathState.vias = []; pathState.legs = [];
+    pathState.start = pt; pathState.goal = null; pathState.result = null; pathState.wps = null; pathState.history = []; pathState.legs = [];
+    pathRenderNodes();
     pathHint("Start: x" + pt.x + " y" + pt.y + " z" + pt.z + ". Now click the end point (change floor first if it's on another floor).");
     drawMap();
     pathPrepare();
@@ -5348,7 +5413,8 @@ function pathToggle() {
   if (!pathState.active && routeState.mode === "edit") routeClose();
   pathState.active = !pathState.active;
   pathState.start = pathState.goal = pathState.result = null;
-  pathState.vias = []; pathState.legs = []; pathState.handles = []; pathState.drag = null;
+  pathState.wps = null; pathState.history = []; pathState.legs = []; pathState.handles = []; pathState.drag = null;
+  pathRenderNodes();
   pathState.busy = false;
   pathState.reqId++;
   document.getElementById("map-path-bar").style.display = pathState.active ? "" : "none";
@@ -5421,7 +5487,7 @@ function drawPathOverlay(w, h) {
   // middle sits right on a point).
   pathState.handles = [];
   if (res && !pathState.drag) {
-    const pts = [pathState.start].concat(pathState.vias, [pathState.goal]);
+    const pts = pathState.wps || [];
     pathState.legs.forEach(function (nodes, k) {
       const tiles = botLegTiles(nodes);
       const t = tiles[Math.floor(tiles.length / 2)];
@@ -5440,9 +5506,11 @@ function drawPathOverlay(w, h) {
       mapCtx.lineWidth = 2; mapCtx.strokeStyle = "#ff2bd6"; mapCtx.stroke();
     });
   }
+  // Without the bot route, the nodes in between are white numbered dots
+  // (with it, drawPathBotWaypoints draws them in their type's colour).
   mapCtx.font = "700 10px 'Segoe UI', sans-serif"; mapCtx.textAlign = "center"; mapCtx.textBaseline = "middle";
-  pathState.vias.forEach(function (v, i) {
-    if (v.z !== z) return;
+  if (!botPathFlag && pathState.wps) pathState.wps.forEach(function (v, i) {
+    if (v.z !== z || i === 0 || i === pathState.wps.length - 1) return;
     const [vx, vy] = worldToScreen(v.x + 0.5, v.y + 0.5);
     mapCtx.beginPath(); mapCtx.arc(vx, vy, 8, 0, Math.PI * 2);
     mapCtx.fillStyle = "#fff"; mapCtx.fill(); mapCtx.lineWidth = 2; mapCtx.strokeStyle = "#ff2bd6"; mapCtx.stroke();
@@ -7086,7 +7154,6 @@ function routeDragEnd() {
 }
 
 function routeAddPoint(sx, sy) {
-  routeState.fromPath = false;
   if (routeState.points.length >= ROUTE_MAX_POINTS) return;
   const [wx, wy] = screenToWorld(sx, sy);
   const pt = routeMakePoint(state.mapFloor, Math.floor(wx), Math.floor(wy), "");
@@ -7168,7 +7235,7 @@ function routeLoadFromHash() {
   const r = routeDecode(m[1]);
   if (!r) return false;
   if (pathState.active) pathToggle();
-  routeState.title = r.title; routeState.loop = r.loop; routeState.points = r.points; routeState.fromPath = false;
+  routeState.title = r.title; routeState.loop = r.loop; routeState.points = r.points;
   routeState.mode = "view"; routeState.fromLink = true;
   state.tab = "map";
   refreshTabChrome();
@@ -7505,7 +7572,7 @@ function initMap() {
     } else {
       mapTooltip.style.display = "none";
       const pg = pathGrabAt(sx, sy);
-      const pgAdd = pg && (pg.kind === "handle" || pg.kind === "line");
+      const pgAdd = pg && pg.kind === "insert";
       mapCanvas.style.cursor = routePointAt(sx, sy) >= 0 || (pg && !pgAdd) ? "move" : (routeHandleAt(sx, sy) >= 0 || pgAdd ? "copy" : "grab");
     }
   });
@@ -7679,7 +7746,7 @@ function initMap() {
     if (upq.i < upq.items.length - 1) { upq.i++; upqShow(); return; }
     if (upq.items.every(function (it) { return it.get(); })) upqFinish(); else upqClose();
   });
-  document.getElementById("path-bot-spacing").addEventListener("change", function () { pathBotRender(); drawMap(); });
+  document.getElementById("path-bot-spacing").addEventListener("change", function () { pathRespace(); });
   const pathUnpickedBlock = function () {
     const pb = pathBotPoints();
     const unp = pb ? botUnpicked(pb.points) : [];
@@ -7704,7 +7771,7 @@ function initMap() {
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
   });
-  document.getElementById("path-bot-edit").addEventListener("click", function () { pathToRouteBuilder(false); });
+  document.getElementById("path-bot-edit").addEventListener("click", function () { pathToRouteBuilder(); });
   document.getElementById("route-bot-import-toggle").addEventListener("click", function () {
     const box = document.getElementById("route-bot-import");
     box.hidden = !box.hidden;
@@ -7715,7 +7782,7 @@ function initMap() {
     const r = botImport(ta.value);
     if (r.error) { botRenderMessages(r.error); return; }
     if (routeState.points.length) routeSnapshot();
-    routeState.points = r.points; routeState.loop = r.loop; routeState.undoFill = null; routeState.open.clear(); routeState.fromPath = false;
+    routeState.points = r.points; routeState.loop = r.loop; routeState.undoFill = null; routeState.open.clear();
     document.getElementById("route-loop").checked = r.loop;
     document.getElementById("route-bot-unfill").style.display = "none";
     document.getElementById("route-bot-import").hidden = true;
