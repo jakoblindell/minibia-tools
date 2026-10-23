@@ -787,7 +787,7 @@
         </section>
         <section class="mapx-panel" data-panel="path" hidden>
           <div class="mapx-h">Find path</div>
-          <p class="mapx-p">Click a start point, then an end point (change floor in between if needed). Routes only walk walkable ground and change floor at stairs, ladders and holes. Then the path's nodes are listed below: drag any node on the map to move it, grab the line (or a +) to add one, and change a node's type or remove it in the list.</p>
+          <p class="mapx-p">Click a start point, then an end point (change floor in between if needed). Routes only walk walkable ground and change floor at stairs, ladders and holes. Then the path's nodes are listed below: drag any node on the map to move it, drag a yellow ↑/↓ onto other stairs to change floor there, grab the line (or a +) to add a node, and change a node's type or remove it in the list.</p>
           <div class="cc-box" data-cc></div>
           <div class="map-path-bar" id="map-path-bar" style="display:none;">
             <span id="map-path-status"></span>
@@ -4191,6 +4191,59 @@ const PATH_WORKER_SRC = function () {
     r.dryTried = tryDry;
     return r;
   }
+  // A route that has to change floor at one given stairs/ladder/hole tile v
+  // (Find path, when you drag its floor change there): walk from s to beside
+  // v, step onto it, take it, then on to g.
+  function pathLen(path) {   // steps walked (a floor change counts 1)
+    let len = 0;
+    for (let i = 1; i < path.length; i++) len += path[i][0] === path[i - 1][0] ? octile(Math.abs(path[i][1] - path[i - 1][1]), Math.abs(path[i][2] - path[i - 1][2])) : 1;
+    return len;
+  }
+  function findVia(s, v, g) {
+    const vi = (v[0] * H + v[2]) * W + v[1], fw = portals.get(vi) || [], targets = [];
+    for (let k = 0; k < fw.length; k += 2) if (fw[k + 1] === 0) targets.push(fw[k]);
+    if (!targets.length) return { ok: false, reason: "nostairs" };
+    let pre;
+    const dist = Math.max(Math.abs(s[1] - v[1]), Math.abs(s[2] - v[2]));
+    if (s[0] === v[0] && dist === 0) pre = { ok: true, path: [], doors: [], jumps: [], expanded: 0 };
+    else if (s[0] === v[0] && dist === 1) pre = { ok: true, path: [[s[0], s[1], s[2]]], doors: [], jumps: [], expanded: 0 };
+    else {
+      // Step onto it from whichever side is the shortest walk from s.
+      let preLen = Infinity, expandedPre = 0;
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+        if ((!dx && !dy) || !walk(v[0], v[1] + dx, v[2] + dy)) continue;
+        const r = findRoute(s[0], s[1], s[2], v[0], v[1] + dx, v[2] + dy);
+        expandedPre += r.expanded || 0;
+        if (!r.ok) continue;
+        const e = r.path[r.path.length - 1];
+        if (e[0] !== v[0] || e[1] !== v[1] + dx || e[2] !== v[2] + dy) continue;
+        const len = pathLen(r.path);
+        if (len < preLen) { preLen = len; pre = r; }
+      }
+      if (!pre) return { ok: false, reason: "can't walk up to that stairs tile", expanded: expandedPre };
+      pre.expanded = expandedPre;
+    }
+    let best = null, bestLen = Infinity, expanded = pre.expanded || 0;
+    targets.forEach(function (tn) {
+      const tx = tn % W, t = (tn - tx) / W, ty = t % H, tz = (t - ty) / H;
+      const r = findRoute(tz, tx, ty, g[0], g[1], g[2]);
+      expanded += r.expanded || 0;
+      if (!r.ok) return;
+      const len = pathLen(r.path);
+      if (len < bestLen) { bestLen = len; best = { r: r, land: [tz, tx, ty] }; }
+    });
+    if (!best) return { ok: false, reason: "no route from where that stairs tile leads", expanded: expanded };
+    const r = best.r, path = pre.path.concat([[v[0], v[1], v[2]]]);
+    const p0 = r.path[0], lands = p0[0] === best.land[0] && p0[1] === best.land[1] && p0[2] === best.land[2];
+    if (!lands) path.push(best.land);   // a landing on stairs: the search starts beside it
+    const base = path.length, jumpAt = lands ? base : base - 1;
+    const all = path.concat(r.path);
+    const doors = pre.doors.slice(), jumps = pre.jumps.slice();
+    jumps.push(jumpAt);
+    r.doors.forEach(function (d) { doors.push(d + base); });
+    r.jumps.forEach(function (j) { jumps.push(j + base); });
+    return { ok: true, path: all, doors: doors, jumps: jumps, expanded: expanded, viaAt: pre.path.length };
+  }
   function routeWithDoors(sz, sx, sy, gz, gx, gy) {
     const s = snap(sz, sx, sy), g = snap(gz, gx, gy);
     let mode = 2;
@@ -4234,7 +4287,7 @@ const PATH_WORKER_SRC = function () {
       self.postMessage({ type: "custom-ready", id: m.id });
     } else if (m.type === "find") {
       const t0 = performance.now();
-      const r = findRoute(m.s[0], m.s[1], m.s[2], m.g[0], m.g[1], m.g[2]);
+      const r = m.via ? findVia(m.s, m.via, m.g) : findRoute(m.s[0], m.s[1], m.s[2], m.g[0], m.g[1], m.g[2]);
       r.ms = performance.now() - t0;
       r.type = "result"; r.id = m.id;
       self.postMessage(r);
@@ -4323,7 +4376,7 @@ const PATH_WORKER_SRC = function () {
 }.toString();
 
 const pathState = { active: false, start: null, goal: null, result: null, busy: false, worker: null, ready: null, grid: null, reqId: 0, hint: "",
-  wps: null, history: [], legs: [], legStart: [], handles: [], drag: null, askUps: false };
+  wps: null, history: [], legs: [], legStart: [], handles: [], drag: null, askUps: false, flash: "", fillLegs: null };
 
 // The instruction for whatever the user should do next; shown after any
 // transient message (like the one-time terrain prep progress) clears.
@@ -4554,6 +4607,7 @@ function upqFinish() {
   if (kind === "path") pathBotRender(msg + " - ready to copy.");
   else if (kind === "rot") { rotRender(); document.getElementById("rot-msg").textContent = msg + " - ready to copy."; }
   else botRenderMessages(msg + ".");
+  if (kind === "path") return;   // Find path: the route stays in view, to edit
   const r = btn.getBoundingClientRect();
   if (r.top < 0 || r.bottom > window.innerHeight) btn.scrollIntoView({ block: "center", behavior: "smooth" });
 }
@@ -5041,13 +5095,15 @@ function pathReportPrep(text) {
 // asks for one per leg), each matched back to its caller by id.
 const pathPending = new Map();
 let pathMsgSeq = 0;
-function pathRequest(a, b) {
+// via: a stairs/ladder/hole tile the route must change floor at (optional).
+function pathRequest(a, b, via) {
   return pathPrepare().then(function () {
     return new Promise(function (resolve) {
       const id = ++pathMsgSeq, gr = pathState.grid;
       pathPending.set(id, resolve);
       pathState.worker.postMessage({ type: "find", id: id,
-        s: [a.z, a.x - gr.minX, a.y - gr.minY], g: [b.z, b.x - gr.minX, b.y - gr.minY] });
+        s: [a.z, a.x - gr.minX, a.y - gr.minY], g: [b.z, b.x - gr.minX, b.y - gr.minY],
+        via: via ? [via.z, via.x - gr.minX, via.y - gr.minY] : null });
     });
   });
 }
@@ -5095,10 +5151,11 @@ function pathRun(keepView) {
   let ms = 0, expanded = 0;
   (async function () {
     for (let i = 1; i < pts.length; i++) {
-      const a = pts[i - 1], b = pts[i], key = routeLegKey(a, b);
+      const a = pts[i - 1], b = pts[i], key = routeLegKey(a, b) + (a.stair ? "@" + a.stair.x + "," + a.stair.y : "");
       let leg = routeLegCache.get(key);
       if (!leg) {
-        const r = await pathRequest(a, b);
+        const r = await pathRequest(a, b, a.stair || null);
+        if (!r.ok && r.reason === "nostairs") r.reason = "x" + a.stair.x + " y" + a.stair.y + " z" + a.stair.z + " isn't a known stairs, ladder or hole";
         if (token !== pathState.reqId || !pathState.active) return;
         ms += r.ms || 0; expanded += r.expanded || 0;
         leg = r.ok ? { ok: true, nodes: r.nodes, doors: r.doors || [] } : { ok: false, reason: r.reason };
@@ -5123,6 +5180,8 @@ function pathRun(keepView) {
       return ln;
     });
     pathState.legStart = legStart;
+    pathSyncStairDirs();
+    if (pathFillFloors()) { pathRun(true); return; }
     const first = !pathState.wps;
     pathShowResult({ ok: true, nodes: nodes, doors: doors, ms: ms, expanded: expanded }, keepView);
     // First search: its waypoints become the nodes, then walk node to node.
@@ -5180,11 +5239,12 @@ function pathRespace() {
   if (!pathState.wps || !pathState.result || !botPathFlag) return;
   pathSnapshot();
   const set = {};   // types the user set by hand stay on their tiles
-  pathState.wps.forEach(function (p) { if (p.userType) set[p.z + "," + p.x + "," + p.y] = p; });
+  pathState.wps.forEach(function (p) { if (p.userType || p.stair) set[p.z + "," + p.x + "," + p.y] = p; });
   pathState.wps = pathBotGenerate();
   pathState.wps.forEach(function (p) {
     const o = set[p.z + "," + p.x + "," + p.y];
-    if (o) { botSetType(p, o.t); p.params = botClone(o.params); p.userType = true; p.picked = o.picked; }
+    if (o && o.stair) p.stair = o.stair;
+    if (o && o.userType) { botSetType(p, o.t); p.params = botClone(o.params); p.userType = true; p.picked = o.picked; }
   });
   pathSyncEnds();
   pathRun(true);
@@ -5211,7 +5271,9 @@ function pathShowResult(r, keepView) {
   const chips = segs.map(function (sg, i) {
     return '<button class="chip" type="button" data-path-seg="' + i + '" title="' + esc(mapFloorLabel(sg.z)) + '"><span class="fl-long">' + esc(mapFloorLabel(sg.z)) + '</span><span class="fl-short">z' + sg.z + '</span></button>';
   }).join(" → ");
-  pathSetStatus("Route: ~" + fmt(steps) + " steps, " + changes + " floor change" + (changes === 1 ? "" : "s") +
+  const flash = pathState.flash ? "⚠ " + pathState.flash + " " : "";
+  pathState.flash = "";
+  pathSetStatus(flash + "Route: ~" + fmt(steps) + " steps, " + changes + " floor change" + (changes === 1 ? "" : "s") +
     (st.teleports ? ", " + st.teleports + " teleport" + (st.teleports === 1 ? "" : "s") : "") +
     (doors.length ? ", passes " + doors.length + " assumed door" + (doors.length === 1 ? "" : "s") + " (white squares - walls the minimap draws with no door, check these)" : "") +
     (r.ms ? " (" + Math.round(r.ms) + " ms, " + fmt(r.expanded) + " jump points)" : "") + ".", chips);
@@ -5263,7 +5325,7 @@ function pathRenderNodes() {
   undo.addEventListener("click", pathUndo);
   head.appendChild(t); head.appendChild(undo); box.appendChild(head);
   const help = document.createElement("p"); help.className = "cc-help";
-  help.textContent = "Drag a node on the map to move it; grab the line or a + to add one.";
+  help.textContent = "Drag a node on the map to move it, or the yellow ↑/↓ to take other stairs there; grab the line or a + to add a node.";
   box.appendChild(help);
   const ol = document.createElement("ol"); ol.className = "route-points path-node-list";
   w.forEach(function (p, i) {
@@ -5310,12 +5372,23 @@ function pathGrabAt(sx, sy, touch) {
     const d = (px - sx) * (px - sx) + (py - sy) * (py - sy);
     if (d < bestD) { bestD = d; best = i; }
   }
+  // The floor changes (the yellow ↑/↓ on the stairs tile the path takes)
+  // drag too - whichever is nearer, it or a node.
+  const res = pathState.result;
+  let stair = -1, stairD = 12 * 12 + 1;
+  if (res) for (let i = 1; i < res.nodes.length; i++) {
+    const a = res.nodes[i - 1];
+    if (a.z === res.nodes[i].z || a.z !== z) continue;
+    const [px, py] = worldToScreen(a.x + 0.5, a.y + 0.5);
+    const d = (px - sx) * (px - sx) + (py - sy) * (py - sy);
+    if (d < stairD) { stairD = d; stair = i - 1; }
+  }
+  if (stair >= 0 && stairD <= bestD) return { kind: "stair", m: stair };
   if (best >= 0) return { kind: "node", i: best };
   for (let k = 0; k < pathState.handles.length; k++) {
     const h = pathState.handles[k];
     if ((h.sx - sx) * (h.sx - sx) + (h.sy - sy) * (h.sy - sy) <= 11 * 11) return { kind: "insert", leg: h.leg, tile: h.tile };
   }
-  const res = pathState.result;
   // Not by touch: a finger panning the map often starts on the line.
   if (!res || touch) return null;
   let hit = null, hitD = 7 * 7;
@@ -5336,6 +5409,18 @@ function pathGrabAt(sx, sy, touch) {
   return hit;
 }
 function pathDragStart(g) {
+  if (g.kind === "stair") {
+    const res = pathState.result, ls = pathState.legStart, m = g.m, t = res.nodes[m];
+    let leg = 0;
+    while (leg + 1 < ls.length && ls[leg + 1] <= m) leg++;
+    // The node that takes these stairs: the one standing right before them
+    // at the start of this leg (with #bot-path, its floor-change waypoint).
+    const sb = m > 0 ? res.nodes[m - 1] : null, n = pathState.wps[leg];
+    const j = sb && ls[leg] === m - 1 && n.z === sb.z && n.x === sb.x && n.y === sb.y ? leg : -1;
+    pathState.drag = { kind: "stair", m: m, leg: leg, j: j, from: { z: t.z, x: t.x, y: t.y }, tile: { z: t.z, x: t.x, y: t.y }, moved: false };
+    drawMap();
+    return;
+  }
   if (g.kind === "insert") {   // a new walk node there, then dragged
     pathSnapshot();
     pathState.wps.splice(g.leg + 1, 0, routeMakePoint(g.tile.z, g.tile.x, g.tile.y, ""));
@@ -5347,6 +5432,13 @@ function pathDragStart(g) {
 }
 function pathDragTo(sx, sy) {
   const d = pathState.drag; if (!d) return;
+  if (d.kind === "stair") {   // stays on its floor
+    const [wx, wy] = screenToWorld(sx, sy), x = Math.floor(wx), y = Math.floor(wy);
+    if (state.mapFloor !== d.tile.z || (d.tile.x === x && d.tile.y === y)) return;
+    d.tile.x = x; d.tile.y = y; d.moved = true;
+    drawMap();
+    return;
+  }
   const [wx, wy] = screenToWorld(sx, sy), p = pathState.wps[d.i];
   const x = Math.floor(wx), y = Math.floor(wy);
   if (p.x === x && p.y === y && p.z === state.mapFloor) return;
@@ -5358,8 +5450,82 @@ function pathDragTo(sx, sy) {
 function pathDragEnd() {
   const d = pathState.drag; if (!d) return;
   pathState.drag = null;
+  if (d.kind === "stair") {
+    if (d.moved && (d.tile.x !== d.from.x || d.tile.y !== d.from.y)) pathStairDrop(d); else drawMap();
+    return;
+  }
+  // A node moved off the stairs it was pinned to lets the search pick again.
+  const p = pathState.wps[d.i];
+  if (d.moved && p && p.stair && (p.z !== p.stair.z || Math.max(Math.abs(p.x - p.stair.x), Math.abs(p.y - p.stair.y)) !== 1)) delete p.stair;
   pathSyncEnds();
   if (d.moved || d.inserted) pathRun(true); else drawMap();
+}
+// The floor change dropped on tile t: the path must take the stairs there.
+// Its node moves to the tile the path steps onto them from (a new node
+// there if it had none), pinned to them.
+async function pathStairDrop(d) {
+  const w = pathState.wps, t = d.tile;
+  const prev = d.j > 0 ? w[d.j - 1] : w[d.j >= 0 ? d.j : d.leg], next = w[(d.j >= 0 ? d.j : d.leg) + 1];
+  if (!next) { drawMap(); return; }
+  const token = ++pathState.reqId;
+  pathState.busy = true; pathHint("Calculating route…");
+  const r = await pathRequest(prev, next, t);
+  if (token !== pathState.reqId || !pathState.active) return;
+  const at = "x" + t.x + " y" + t.y + " z" + t.z;
+  if (!r.ok) {
+    pathState.flash = r.reason === "nostairs" ? at + " isn't a known stairs, ladder or hole - add it under Your stairs & holes to use it." : "Can't use the stairs at " + at + ": " + r.reason + ".";
+    pathRun(true);
+    return;
+  }
+  const k = r.viaAt, stand = k > 0 ? r.nodes[k - 1] : r.nodes[0], land = r.nodes[k + 1];
+  pathSnapshot();
+  let p;
+  if (d.j >= 0) p = w[d.j];
+  else { p = routeMakePoint(stand.z, stand.x, stand.y, ""); w.splice(d.leg + 1, 0, p); }
+  p.z = stand.z; p.x = stand.x; p.y = stand.y;
+  p.stair = { z: t.z, x: t.x, y: t.y };
+  pathState.fillLegs = d.j >= 0 ? [d.j - 1, d.j] : [d.leg, d.leg + 1];
+  if (botPathFlag && land && land.z !== t.z) {
+    const up = land.z < t.z;
+    if (up ? !(p.t === "up" || BOT_UP_CHOICES.indexOf(p.t) >= 0) : p.t !== "floor-down") botSetType(p, up ? "up" : "floor-down");
+  }
+  pathSyncEnds();
+  pathRun(true);
+}
+// After the stairs moved (with #bot-path): any other floor change on the
+// legs next to it gets its waypoint(s) too, as a fresh path would.
+function pathFillFloors() {
+  const legsTo = pathState.fillLegs, w = pathState.wps;
+  pathState.fillLegs = null;
+  if (!legsTo || !w || !botPathFlag) return false;
+  let added = false;
+  legsTo.slice().sort(function (a, b) { return b - a; }).forEach(function (j) {
+    const ln = pathState.legs[j];
+    if (!ln || j < 0) return;
+    const tmp = [routeMakePoint(ln[0].z, ln[0].x, ln[0].y, "")];
+    botLegFill(tmp, ln, 0);   // no walk spacing: floor changes only
+    const near = [w[j - 1], w[j], w[j + 1]].filter(Boolean);
+    const add = tmp.slice(1).filter(function (p) {
+      delete p.fill;
+      return !near.some(function (q) { return q.z === p.z && q.x === p.x && q.y === p.y; });
+    });
+    if (add.length) { w.splice.apply(w, [j + 1, 0].concat(add)); added = true; }
+  });
+  if (added) pathSyncEnds();
+  return added;
+}
+// With #bot-path, a floor-change waypoint points at the stairs its leg
+// actually steps onto (after a node or the stairs moved).
+function pathSyncStairDirs() {
+  const w = pathState.wps;
+  if (!w || !botPathFlag) return;
+  pathState.legs.forEach(function (ln, j) {
+    const p = w[j], ck = p && BOT_CHECKS[p.t];
+    if (!ck || !ck.dirKey || ln.length < 3) return;
+    const s0 = ln[0], t = ln[1], n = ln[2];
+    if (t.z !== s0.z || !(n.z !== t.z || n.jump) || Math.max(Math.abs(t.x - s0.x), Math.abs(t.y - s0.y)) !== 1) return;
+    if (p.params[ck.dirKey] !== "here") p.params[ck.dirKey] = botDirTo(s0, t);
+  });
 }
 
 function pathShowSegment(i) {
@@ -5482,12 +5648,14 @@ function drawPathOverlay(w, h) {
     }
     mapCtx.font = "700 11px 'Segoe UI', sans-serif";
     mapCtx.textAlign = "center"; mapCtx.textBaseline = "middle";
+    const sd = pathState.drag && pathState.drag.kind === "stair" ? pathState.drag : null;
     for (let i = 1; i < nodes.length; i++) {
       const a = nodes[i - 1], b = nodes[i];
       if (a.z === b.z) continue;
+      const at = sd && sd.m === i - 1 ? sd.tile : a;   // being dragged: where it would go
       if (a.z === z && !upqHides(a.z, a.x, a.y)) {
-        dot(a.x, a.y, "#ffd600");
-        const [sx, sy] = worldToScreen(a.x + 0.5, a.y + 0.5);
+        dot(at.x, at.y, "#ffd600");
+        const [sx, sy] = worldToScreen(at.x + 0.5, at.y + 0.5);
         mapCtx.fillStyle = "#000"; mapCtx.fillText(b.z < a.z ? "↑" : "↓", sx, sy + 0.5);
       }
       if (b.z === z) dot(b.x, b.y, "#ffd600");
