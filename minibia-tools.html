@@ -4323,7 +4323,7 @@ const PATH_WORKER_SRC = function () {
 }.toString();
 
 const pathState = { active: false, start: null, goal: null, result: null, busy: false, worker: null, ready: null, grid: null, reqId: 0, hint: "",
-  wps: null, history: [], legs: [], legStart: [], handles: [], drag: null };
+  wps: null, history: [], legs: [], legStart: [], handles: [], drag: null, askUps: false };
 
 // The instruction for whatever the user should do next; shown after any
 // transient message (like the one-time terrain prep progress) clears.
@@ -4490,6 +4490,7 @@ function upqStart(kind, at) {
   let i = typeof at === "number" ? at : items.findIndex(function (it) { return !it.get(); });
   upq.i = Math.max(0, Math.min(items.length - 1, i));
   document.getElementById("upq").hidden = false;
+  if (kind === "path") pathRenderNodes();
   const wrap = document.querySelector(".map-canvas-wrap");
   wrap.classList.add("upq-on");
   document.getElementById("map-layers").hidden = true;
@@ -4500,10 +4501,12 @@ function upqStart(kind, at) {
 }
 function upqClose() {
   if (!upq.active) return;
+  const kind = upq.kind;
   upq.active = false; upq.items = [];
   document.getElementById("upq").hidden = true;
   document.querySelector(".map-canvas-wrap").classList.remove("upq-on");
-  drawMap();
+  if (kind === "path" && pathState.active && pathState.result) { pathRenderNodes(); pathShowSegment(0); }
+  else drawMap();
 }
 function upqShow() {
   const it = upq.items[upq.i], n = upq.items.length;
@@ -5126,6 +5129,7 @@ function pathRun(keepView) {
     if (first) {
       pathState.wps = botPathFlag ? pathBotGenerate() : [routeMakePoint(pathState.start.z, pathState.start.x, pathState.start.y, ""), routeMakePoint(pathState.goal.z, pathState.goal.x, pathState.goal.y, "")];
       pathState.history = [];
+      pathState.askUps = botPathFlag;   // a new path: ask its ways up first
       pathSyncEnds();
       pathRun(true);
     }
@@ -5189,6 +5193,7 @@ function pathRespace() {
 function pathShowResult(r, keepView) {
   pathState.busy = false;
   if (!r.ok) {
+    pathState.askUps = false;
     pathSetStatus("No path found: " + r.reason + "." + (pathState.wps && pathState.wps.length > 2 ? " Move or remove that node (list below)." : ""));
     pathRenderNodes();
     drawMap();
@@ -5212,6 +5217,13 @@ function pathShowResult(r, keepView) {
     (r.ms ? " (" + Math.round(r.ms) + " ms, " + fmt(r.expanded) + " jump points)" : "") + ".", chips);
   pathRenderNodes();
   if (keepView) drawMap(); else pathShowSegment(0);
+  // A new path asks what each way up is straight away (the step-by-step
+  // picker); the node list and the whole route show once that's done.
+  if (pathState.askUps && pathState.wps) {
+    pathState.askUps = false;
+    const pb = pathBotPoints();
+    if (pb && botUnpicked(pb.points).length) { pathBotRender(); upqStart("path"); }
+  }
 }
 
 // The found path's waypoints as a route in the Route builder (Edit in Route
@@ -5242,7 +5254,7 @@ function pathRenderNodes() {
   if (!box) return;
   const w = pathState.wps;
   box.textContent = "";
-  box.hidden = !pathState.active || !w || !w.length;
+  box.hidden = !pathState.active || !w || !w.length || (upq.active && upq.kind === "path");
   if (box.hidden) return;
   const head = document.createElement("div"); head.className = "cc-head";
   const t = document.createElement("b"); t.textContent = "Nodes (" + w.length + ")";
@@ -5372,7 +5384,7 @@ function pathHandleClick(sx, sy) {
   const [wx, wy] = screenToWorld(sx, sy);
   const pt = { z: state.mapFloor, x: Math.floor(wx), y: Math.floor(wy) };
   if (!pathState.start || pathState.goal) {
-    pathState.start = pt; pathState.goal = null; pathState.result = null; pathState.wps = null; pathState.history = []; pathState.legs = [];
+    pathState.start = pt; pathState.goal = null; pathState.result = null; pathState.wps = null; pathState.history = []; pathState.askUps = false; pathState.legs = [];
     pathRenderNodes();
     pathHint("Start: x" + pt.x + " y" + pt.y + " z" + pt.z + ". Now click the end point (change floor first if it's on another floor).");
     drawMap();
@@ -5413,7 +5425,7 @@ function pathToggle() {
   if (!pathState.active && routeState.mode === "edit") routeClose();
   pathState.active = !pathState.active;
   pathState.start = pathState.goal = pathState.result = null;
-  pathState.wps = null; pathState.history = []; pathState.legs = []; pathState.handles = []; pathState.drag = null;
+  pathState.wps = null; pathState.history = []; pathState.askUps = false; pathState.legs = []; pathState.handles = []; pathState.drag = null;
   pathRenderNodes();
   pathState.busy = false;
   pathState.reqId++;
