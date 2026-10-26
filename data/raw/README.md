@@ -13,6 +13,8 @@ everything the site loads is generated into `data/derived/` by the scripts.
 | `npc-poi.json` | https://minibia.com/play/npc-poi.json | Not used by the pages yet |
 | `minimap.bin.gz` | https://minibia.com/data/{version}/minimap.bin.gz - keep it gzipped | Map terrain, stairs, pathfinding |
 | `constants.json` | https://minibia.com/data/{version}/constants.json (optional) | Not used by the pages yet |
+| `Minibia.dat` | https://minibia.com/data/{version}/Minibia.dat (optional) | Item icons (`scripts/gen-icons.py`) |
+| `Minibia.patch.spr` | https://minibia.com/data/{version}/Minibia.patch.spr (optional) | Item icons for the newest items (`gen-icons.py --base-count`); the ~50MB base `Minibia.spr` is too big for the repo - keep it outside and pass `--spr` |
 
 `{version}` is the client's server version (760 at the time of writing): look
 for `/data/<number>/` in the Network tab on minibia.com/play.

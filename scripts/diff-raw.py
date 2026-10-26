@@ -56,6 +56,8 @@ EXPECTED = [
     ("minimap.bin.gz", True),
     ("npc-poi.json", False),
     ("constants.json", False),
+    ("Minibia.dat", False),         # client object data - item icons (gen-icons.py)
+    ("Minibia.patch.spr", False),   # client sprite patch - item icons (gen-icons.py)
 ]
 NOT_DOWNLOADS = {"README.md"}
 

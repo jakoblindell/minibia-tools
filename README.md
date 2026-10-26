@@ -71,6 +71,10 @@ The Spawn Map tab is one workspace: the map with a mode switch above it - **Spaw
 ```
 python scripts/gen-icons.py --spr path/Minibia.spr --patch path/Minibia.patch.spr --dat path/Minibia.dat --virtual-items path/virtual-items.js
 ```
+The newest items' sprites live in the small patch file, so with just `data/raw/Minibia.dat` and `data/raw/Minibia.patch.spr` (both small enough for the repo) `--base-count 47704` in place of `--spr` renders those (47704 is `Minibia.spr`'s sprite count - the count the existing icons re-render pixel-identical with); items that need a base sprite are listed as skipped, and an item that shares its `.dat` object with one that has an icon gets the same icon:
+```
+python scripts/gen-icons.py --base-count 47704 --patch data/raw/Minibia.patch.spr --dat data/raw/Minibia.dat
+```
 It only adds icons for items that don't have one, leaving existing icons as they are (`--all` re-renders everything). Each item's `sid` is its `.dat` object id. Items whose `sid` is 30000+ are recolors the client makes itself, defined in its `src/data/virtual-items.js`. Pass that file with `--virtual-items` to render them; only exact color-map recipes are supported. See the script's docstring for the file formats.
 
 Because the page fetches JSON at runtime, it needs to be served over HTTP (e.g. GitHub Pages, or `python3 -m http.server` locally) rather than opened directly as a `file://` URL.

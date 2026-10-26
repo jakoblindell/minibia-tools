@@ -7,6 +7,18 @@ passed in from wherever they live:
   python scripts/gen-icons.py --spr path/Minibia.spr --patch path/Minibia.patch.spr \
       --dat path/Minibia.dat [--virtual-items path/virtual-items.js] [--all]
 
+Without the big Minibia.spr, --base-count N (its sprite count) instead of --spr
+renders the items drawn only from the patch file (the newest ones; the .dat and
+patch file are small enough for data/raw/):
+
+  python scripts/gen-icons.py --base-count 47704 --patch data/raw/Minibia.patch.spr \
+      --dat data/raw/Minibia.dat
+
+47704 is the count the existing icons re-render pixel-identical with (2026-10-26);
+items that need a sprite from the base file are listed as skipped. Either way,
+an item whose .dat object (sid) another item with an icon already shares gets
+that icon (same sprite).
+
 Where to get them (SERVER_VERSION is 760 at the time of writing, see fetch-live.py):
   Minibia.spr / Minibia.patch.spr / Minibia.dat
       https://minibia.com/data/760/<name>?v=<SPR_VERSION / SPR_PATCH_VERSION / DAT_VERSION>
@@ -74,16 +86,23 @@ class SpriteFile:
         return Image.frombytes("RGBA", (32, 32), bytes(px))
 
 
+class MissingSprite(Exception):
+    pass
+
+
 class Sprites:
-    def __init__(self, spr_path, patch_path):
-        self.base = SpriteFile(spr_path)
+    def __init__(self, spr_path, patch_path, base_count=None):
+        self.base = SpriteFile(spr_path) if spr_path else None
+        self.base_count = self.base.count if self.base else base_count
         self.patch = SpriteFile(patch_path) if patch_path else None
 
     def image(self, sprite_id):
-        if sprite_id <= self.base.count:
+        if sprite_id <= self.base_count:
+            if not self.base:
+                raise MissingSprite(sprite_id)
             return self.base.image(sprite_id)
         if self.patch:
-            return self.patch.image(sprite_id - self.base.count)
+            return self.patch.image(sprite_id - self.base_count)
         return None
 
 
@@ -181,15 +200,18 @@ def png_b64(img):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    ap.add_argument("--spr", required=True)
+    ap.add_argument("--spr")
+    ap.add_argument("--base-count", type=int, help="Minibia.spr's sprite count, to go without it (see above)")
     ap.add_argument("--patch")
     ap.add_argument("--dat", required=True)
     ap.add_argument("--virtual-items")
     ap.add_argument("--all", action="store_true", help="re-render every item, not just missing ones")
     ap.add_argument("--dump", help="also write each new icon as <dir>/<cid>.png for eyeballing")
     a = ap.parse_args()
+    if not a.spr and not a.base_count:
+        ap.error("pass --spr, or --base-count with --patch")
 
-    sprites = Sprites(a.spr, a.patch)
+    sprites = Sprites(a.spr, a.patch, a.base_count)
     dat = read_dat_items(a.dat)
     virtual = read_virtual_maps(a.virtual_items)
     items = json.load(open(LIBRARY, encoding="utf-8"))["items"]
@@ -209,7 +231,16 @@ def main():
             skipped.append("%s (sid %s: not in .dat%s)" % (it["name"], it["sid"],
                            "" if a.virtual_items or it["sid"] < 30000 else ", pass --virtual-items"))
             continue
-        img = render(dat[sid], sprites)
+        try:
+            img = render(dat[sid], sprites)
+        except MissingSprite as e:
+            twin = next((o for o in items if o["sid"] == it["sid"] and str(o["cid"]) in icons and o is not it), None)
+            if twin:   # same .dat object, same picture
+                icons[key] = icons[str(twin["cid"])]
+                added.append("%s (as %s)" % (it["name"], twin["name"]))
+            else:
+                skipped.append("%s (sid %s: sprite %s is in Minibia.spr, pass --spr)" % (it["name"], it["sid"], e))
+            continue
         if cmap:
             img = recolor(img, cmap)
         if not img.getbbox():
