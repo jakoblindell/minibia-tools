@@ -4125,6 +4125,12 @@
                     "probability": 0.04042,
                     "min": 1,
                     "max": 1
+                },
+                {
+                    "name": "smugglers' cargo tag",
+                    "probability": 0.025,
+                    "min": 1,
+                    "max": 1
                 }
             ]
         },
@@ -7227,6 +7233,12 @@
                     "max": 1
                 },
                 {
+                    "name": "marauders' cargo tag",
+                    "probability": 0.025,
+                    "min": 1,
+                    "max": 1
+                },
+                {
                     "name": "hook",
                     "probability": 0.006,
                     "min": 1,
@@ -9003,6 +9015,12 @@
                     "max": 1
                 },
                 {
+                    "name": "cutthroats' cargo tag",
+                    "probability": 0.025,
+                    "min": 1,
+                    "max": 1
+                },
+                {
                     "name": "hook",
                     "probability": 0.006,
                     "min": 1,
@@ -10467,6 +10485,12 @@
                 {
                     "name": "battle shield",
                     "probability": 0.0385,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "buccaneers' cargo tag",
+                    "probability": 0.025,
                     "min": 1,
                     "max": 1
                 },
@@ -17384,6 +17408,12 @@
                     "max": 54
                 },
                 {
+                    "name": "death ring",
+                    "probability": 0.003,
+                    "min": 1,
+                    "max": 1
+                },
+                {
                     "name": "spirit container",
                     "probability": 0.00143,
                     "min": 1,
@@ -19259,6 +19289,12 @@
                     "max": 1
                 },
                 {
+                    "name": "death ring",
+                    "probability": 0.0028,
+                    "min": 1,
+                    "max": 1
+                },
+                {
                     "name": "stealth ring",
                     "probability": 0.0019,
                     "min": 1,
@@ -20198,6 +20234,12 @@
                     "probability": 0.03695,
                     "min": 1,
                     "max": 2
+                },
+                {
+                    "name": "death ring",
+                    "probability": 0.02831,
+                    "min": 1,
+                    "max": 1
                 },
                 {
                     "name": "small diamond",
@@ -22242,6 +22284,12 @@
                     "max": 1
                 },
                 {
+                    "name": "death ring",
+                    "probability": 0.0141,
+                    "min": 1,
+                    "max": 1
+                },
+                {
                     "name": "blue robe",
                     "probability": 0.005,
                     "min": 1,
@@ -22669,19 +22717,19 @@
                 {
                     "name": "melee",
                     "min": 0,
-                    "max": 300,
+                    "max": 660,
                     "element": null
                 },
                 {
                     "name": "fire",
-                    "min": 350,
-                    "max": 700,
+                    "min": 770,
+                    "max": 1540,
                     "element": null
                 },
                 {
                     "name": "firecondition",
-                    "min": 100,
-                    "max": 200,
+                    "min": 220,
+                    "max": 440,
                     "element": null
                 },
                 {
@@ -22707,7 +22755,74 @@
                 "invisible": true,
                 "fire": true
             },
-            "loot": []
+            "loot": [
+                {
+                    "name": "gold coin",
+                    "probability": 1,
+                    "min": 1,
+                    "max": 100
+                },
+                {
+                    "name": "platinum coin",
+                    "probability": 0.8,
+                    "min": 1,
+                    "max": 9
+                },
+                {
+                    "name": "scarab coin",
+                    "probability": 0.15,
+                    "min": 1,
+                    "max": 3
+                },
+                {
+                    "name": "ankh",
+                    "probability": 0.1,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "small ruby",
+                    "probability": 0.1,
+                    "min": 1,
+                    "max": 3
+                },
+                {
+                    "name": "ancient amulet",
+                    "probability": 0.04,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "red gem",
+                    "probability": 0.03,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "wand of inferno",
+                    "probability": 0.015,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "yellow gem",
+                    "probability": 0.015,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "fire sword",
+                    "probability": 0.012,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "magma helmet",
+                    "probability": 0.0005,
+                    "min": 1,
+                    "max": 1
+                }
+            ]
         },
         {
             "name": "Draken Abomination",
@@ -24294,19 +24409,19 @@
                 {
                     "name": "melee",
                     "min": 0,
-                    "max": 450,
+                    "max": 810,
                     "element": null
                 },
                 {
                     "name": "fire",
-                    "min": 300,
-                    "max": 600,
+                    "min": 540,
+                    "max": 1080,
                     "element": null
                 },
                 {
                     "name": "firecondition",
-                    "min": 100,
-                    "max": 200,
+                    "min": 180,
+                    "max": 360,
                     "element": null
                 },
                 {
@@ -24329,7 +24444,80 @@
                 "invisible": true,
                 "fire": true
             },
-            "loot": []
+            "loot": [
+                {
+                    "name": "gold coin",
+                    "probability": 1,
+                    "min": 1,
+                    "max": 100
+                },
+                {
+                    "name": "platinum coin",
+                    "probability": 0.85,
+                    "min": 1,
+                    "max": 11
+                },
+                {
+                    "name": "scarab coin",
+                    "probability": 0.18,
+                    "min": 1,
+                    "max": 4
+                },
+                {
+                    "name": "small ruby",
+                    "probability": 0.12,
+                    "min": 1,
+                    "max": 4
+                },
+                {
+                    "name": "small emerald",
+                    "probability": 0.1,
+                    "min": 1,
+                    "max": 3
+                },
+                {
+                    "name": "ancient amulet",
+                    "probability": 0.05,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "scarab shield",
+                    "probability": 0.03,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "red gem",
+                    "probability": 0.02,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "scarab amulet",
+                    "probability": 0.015,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "daramanian waraxe",
+                    "probability": 0.01,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "gold ring",
+                    "probability": 0.01,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "scarab helmet",
+                    "probability": 0.0005,
+                    "min": 1,
+                    "max": 1
+                }
+            ]
         },
         {
             "name": "Hand Of Cursed Fate",
@@ -24707,13 +24895,13 @@
                 {
                     "name": "melee",
                     "min": 0,
-                    "max": 450,
+                    "max": 810,
                     "element": null
                 },
                 {
                     "name": "fire",
-                    "min": 300,
-                    "max": 650,
+                    "min": 540,
+                    "max": 1170,
                     "element": null
                 },
                 {
@@ -24739,7 +24927,80 @@
                 "paralyze": true,
                 "invisible": true
             },
-            "loot": []
+            "loot": [
+                {
+                    "name": "gold coin",
+                    "probability": 1,
+                    "min": 1,
+                    "max": 100
+                },
+                {
+                    "name": "platinum coin",
+                    "probability": 0.9,
+                    "min": 1,
+                    "max": 10
+                },
+                {
+                    "name": "blank rune",
+                    "probability": 0.3,
+                    "min": 1,
+                    "max": 3
+                },
+                {
+                    "name": "black pearl",
+                    "probability": 0.15,
+                    "min": 1,
+                    "max": 3
+                },
+                {
+                    "name": "small ruby",
+                    "probability": 0.12,
+                    "min": 1,
+                    "max": 3
+                },
+                {
+                    "name": "demonic essence",
+                    "probability": 0.08,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "stone skin amulet",
+                    "probability": 0.03,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "red gem",
+                    "probability": 0.02,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "fire sword",
+                    "probability": 0.02,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "skull staff",
+                    "probability": 0.015,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "tower shield",
+                    "probability": 0.012,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "magma helmet",
+                    "probability": 0.0005,
+                    "min": 1,
+                    "max": 1
+                }
+            ]
         },
         {
             "name": "Carrion Scarab",
@@ -24751,19 +25012,19 @@
                 {
                     "name": "melee",
                     "min": 0,
-                    "max": 550,
+                    "max": 880,
                     "element": null
                 },
                 {
                     "name": "death",
-                    "min": 300,
-                    "max": 650,
+                    "min": 480,
+                    "max": 1040,
                     "element": null
                 },
                 {
                     "name": "poisoncondition",
-                    "min": 100,
-                    "max": 200,
+                    "min": 160,
+                    "max": 320,
                     "element": null
                 },
                 {
@@ -24786,7 +25047,80 @@
                 "paralyze": true,
                 "invisible": true
             },
-            "loot": []
+            "loot": [
+                {
+                    "name": "gold coin",
+                    "probability": 1,
+                    "min": 1,
+                    "max": 100
+                },
+                {
+                    "name": "platinum coin",
+                    "probability": 0.9,
+                    "min": 1,
+                    "max": 12
+                },
+                {
+                    "name": "scarab coin",
+                    "probability": 0.18,
+                    "min": 1,
+                    "max": 4
+                },
+                {
+                    "name": "small amethyst",
+                    "probability": 0.14,
+                    "min": 1,
+                    "max": 4
+                },
+                {
+                    "name": "black pearl",
+                    "probability": 0.1,
+                    "min": 1,
+                    "max": 3
+                },
+                {
+                    "name": "ancient amulet",
+                    "probability": 0.05,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "scarab shield",
+                    "probability": 0.025,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "scarab amulet",
+                    "probability": 0.015,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "daramanian waraxe",
+                    "probability": 0.012,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "platinum amulet",
+                    "probability": 0.012,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "violet gem",
+                    "probability": 0.004,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "scarab helmet",
+                    "probability": 0.0005,
+                    "min": 1,
+                    "max": 1
+                }
+            ]
         },
         {
             "name": "Son of Verminor",
@@ -24841,19 +25175,19 @@
                 {
                     "name": "melee",
                     "min": 0,
-                    "max": 500,
+                    "max": 800,
                     "element": null
                 },
                 {
                     "name": "death",
-                    "min": 200,
-                    "max": 450,
+                    "min": 320,
+                    "max": 720,
                     "element": null
                 },
                 {
                     "name": "lifedrain",
-                    "min": 300,
-                    "max": 700,
+                    "min": 480,
+                    "max": 1120,
                     "element": null
                 },
                 {
@@ -24879,7 +25213,74 @@
                 "paralyze": true,
                 "invisible": true
             },
-            "loot": []
+            "loot": [
+                {
+                    "name": "gold coin",
+                    "probability": 1,
+                    "min": 1,
+                    "max": 100
+                },
+                {
+                    "name": "platinum coin",
+                    "probability": 0.9,
+                    "min": 1,
+                    "max": 12
+                },
+                {
+                    "name": "blank rune",
+                    "probability": 0.35,
+                    "min": 1,
+                    "max": 3
+                },
+                {
+                    "name": "black pearl",
+                    "probability": 0.18,
+                    "min": 1,
+                    "max": 3
+                },
+                {
+                    "name": "white pearl",
+                    "probability": 0.15,
+                    "min": 1,
+                    "max": 3
+                },
+                {
+                    "name": "demonic essence",
+                    "probability": 0.1,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "stone skin amulet",
+                    "probability": 0.035,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "skull staff",
+                    "probability": 0.018,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "platinum amulet",
+                    "probability": 0.015,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "tower shield",
+                    "probability": 0.012,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "skull helmet",
+                    "probability": 0.0005,
+                    "min": 1,
+                    "max": 1
+                }
+            ]
         },
         {
             "name": "Demodras",
@@ -25231,19 +25632,19 @@
                 {
                     "name": "melee",
                     "min": 0,
-                    "max": 600,
+                    "max": 870,
                     "element": null
                 },
                 {
                     "name": "death",
-                    "min": 350,
-                    "max": 700,
+                    "min": 508,
+                    "max": 1015,
                     "element": null
                 },
                 {
                     "name": "cursecondition",
-                    "min": 150,
-                    "max": 300,
+                    "min": 218,
+                    "max": 435,
                     "element": null
                 },
                 {
@@ -25266,7 +25667,80 @@
                 "paralyze": true,
                 "invisible": true
             },
-            "loot": []
+            "loot": [
+                {
+                    "name": "gold coin",
+                    "probability": 1,
+                    "min": 1,
+                    "max": 100
+                },
+                {
+                    "name": "platinum coin",
+                    "probability": 0.9,
+                    "min": 1,
+                    "max": 12
+                },
+                {
+                    "name": "scarab coin",
+                    "probability": 0.2,
+                    "min": 1,
+                    "max": 5
+                },
+                {
+                    "name": "small amethyst",
+                    "probability": 0.14,
+                    "min": 1,
+                    "max": 4
+                },
+                {
+                    "name": "small emerald",
+                    "probability": 0.12,
+                    "min": 1,
+                    "max": 4
+                },
+                {
+                    "name": "ancient amulet",
+                    "probability": 0.06,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "scarab shield",
+                    "probability": 0.03,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "scarab amulet",
+                    "probability": 0.02,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "daramanian waraxe",
+                    "probability": 0.015,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "gold ring",
+                    "probability": 0.01,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "violet gem",
+                    "probability": 0.004,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "scarab helmet",
+                    "probability": 0.0005,
+                    "min": 1,
+                    "max": 1
+                }
+            ]
         },
         {
             "name": "Hellhound",
@@ -25617,19 +26091,19 @@
                 {
                     "name": "melee",
                     "min": 0,
-                    "max": 550,
+                    "max": 798,
                     "element": null
                 },
                 {
                     "name": "earth",
-                    "min": 400,
-                    "max": 850,
+                    "min": 580,
+                    "max": 1232,
                     "element": null
                 },
                 {
                     "name": "lifedrain",
-                    "min": 300,
-                    "max": 600,
+                    "min": 435,
+                    "max": 870,
                     "element": null
                 },
                 {
@@ -25655,7 +26129,74 @@
                 "paralyze": true,
                 "invisible": true
             },
-            "loot": []
+            "loot": [
+                {
+                    "name": "gold coin",
+                    "probability": 1,
+                    "min": 1,
+                    "max": 100
+                },
+                {
+                    "name": "platinum coin",
+                    "probability": 0.9,
+                    "min": 1,
+                    "max": 14
+                },
+                {
+                    "name": "black pearl",
+                    "probability": 0.18,
+                    "min": 1,
+                    "max": 3
+                },
+                {
+                    "name": "small emerald",
+                    "probability": 0.15,
+                    "min": 1,
+                    "max": 4
+                },
+                {
+                    "name": "white pearl",
+                    "probability": 0.14,
+                    "min": 1,
+                    "max": 3
+                },
+                {
+                    "name": "demonic essence",
+                    "probability": 0.12,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "stone skin amulet",
+                    "probability": 0.04,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "green gem",
+                    "probability": 0.03,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "skull staff",
+                    "probability": 0.02,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "platinum amulet",
+                    "probability": 0.01,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "vizier legs",
+                    "probability": 0.0005,
+                    "min": 1,
+                    "max": 1
+                }
+            ]
         },
         {
             "name": "Embalmed Dragon",
@@ -25667,25 +26208,25 @@
                 {
                     "name": "melee",
                     "min": 0,
-                    "max": 650,
+                    "max": 812,
                     "element": null
                 },
                 {
                     "name": "death",
-                    "min": 400,
-                    "max": 850,
+                    "min": 500,
+                    "max": 1062,
                     "element": null
                 },
                 {
                     "name": "death",
-                    "min": 250,
-                    "max": 450,
+                    "min": 312,
+                    "max": 562,
                     "element": null
                 },
                 {
                     "name": "cursecondition",
-                    "min": 150,
-                    "max": 300,
+                    "min": 188,
+                    "max": 375,
                     "element": null
                 }
             ],
@@ -25704,7 +26245,68 @@
                 "poison": true,
                 "lifedrain": true
             },
-            "loot": []
+            "loot": [
+                {
+                    "name": "gold coin",
+                    "probability": 1,
+                    "min": 1,
+                    "max": 100
+                },
+                {
+                    "name": "platinum coin",
+                    "probability": 0.85,
+                    "min": 1,
+                    "max": 15
+                },
+                {
+                    "name": "dragon ham",
+                    "probability": 0.6,
+                    "min": 1,
+                    "max": 3
+                },
+                {
+                    "name": "small sapphire",
+                    "probability": 0.14,
+                    "min": 1,
+                    "max": 4
+                },
+                {
+                    "name": "life crystal",
+                    "probability": 0.03,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "royal helmet",
+                    "probability": 0.013,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "dragon slayer",
+                    "probability": 0.012,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "dragonbone staff",
+                    "probability": 0.012,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "dragon scale mail",
+                    "probability": 0.004,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "medjay legs",
+                    "probability": 0.0005,
+                    "min": 1,
+                    "max": 1
+                }
+            ]
         },
         {
             "name": "Lapis Drake",
@@ -25716,19 +26318,19 @@
                 {
                     "name": "melee",
                     "min": 0,
-                    "max": 700,
+                    "max": 1190,
                     "element": null
                 },
                 {
                     "name": "energy",
-                    "min": 500,
-                    "max": 1000,
+                    "min": 850,
+                    "max": 1700,
                     "element": null
                 },
                 {
                     "name": "energy",
-                    "min": 250,
-                    "max": 450,
+                    "min": 425,
+                    "max": 765,
                     "element": null
                 },
                 {
@@ -25751,7 +26353,189 @@
                 "earth": true,
                 "poison": true
             },
-            "loot": []
+            "loot": [
+                {
+                    "name": "gold coin",
+                    "probability": 1,
+                    "min": 1,
+                    "max": 100
+                },
+                {
+                    "name": "platinum coin",
+                    "probability": 0.9,
+                    "min": 1,
+                    "max": 16
+                },
+                {
+                    "name": "dragon ham",
+                    "probability": 0.6,
+                    "min": 1,
+                    "max": 3
+                },
+                {
+                    "name": "small sapphire",
+                    "probability": 0.2,
+                    "min": 1,
+                    "max": 5
+                },
+                {
+                    "name": "energy ring",
+                    "probability": 0.06,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "blue gem",
+                    "probability": 0.04,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "royal helmet",
+                    "probability": 0.012,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "dragon slayer",
+                    "probability": 0.012,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "dragon scale mail",
+                    "probability": 0.005,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "pharaoh helmet",
+                    "probability": 0.0005,
+                    "min": 1,
+                    "max": 1
+                }
+            ]
+        },
+        {
+            "name": "Royal Hydra",
+            "health": 13000,
+            "experience": 9800,
+            "speed": 60,
+            "armor": 45,
+            "attacks": [
+                {
+                    "name": "melee",
+                    "min": 0,
+                    "max": 1190,
+                    "element": null
+                },
+                {
+                    "name": "energy",
+                    "min": 765,
+                    "max": 1530,
+                    "element": null
+                },
+                {
+                    "name": "energy",
+                    "min": 510,
+                    "max": 935,
+                    "element": null
+                },
+                {
+                    "name": "earth",
+                    "min": 340,
+                    "max": 850,
+                    "element": null
+                },
+                {
+                    "name": "speed",
+                    "min": 0,
+                    "max": 0,
+                    "element": null
+                }
+            ],
+            "elements": {
+                "energy": 100,
+                "ice": 50,
+                "holy": 30,
+                "physical": -5,
+                "earth": 100,
+                "fire": -10
+            },
+            "immunities": {
+                "poison": true,
+                "lifedrain": true,
+                "paralyze": true,
+                "invisible": true
+            },
+            "loot": [
+                {
+                    "name": "gold coin",
+                    "probability": 1,
+                    "min": 1,
+                    "max": 100
+                },
+                {
+                    "name": "platinum coin",
+                    "probability": 0.9,
+                    "min": 1,
+                    "max": 17
+                },
+                {
+                    "name": "ham",
+                    "probability": 0.5,
+                    "min": 1,
+                    "max": 3
+                },
+                {
+                    "name": "small sapphire",
+                    "probability": 0.15,
+                    "min": 1,
+                    "max": 5
+                },
+                {
+                    "name": "knight armor",
+                    "probability": 0.05,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "ring of healing",
+                    "probability": 0.03,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "warrior helmet",
+                    "probability": 0.03,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "medusa shield",
+                    "probability": 0.015,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "royal helmet",
+                    "probability": 0.011,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "boots of haste",
+                    "probability": 0.003,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "pharaoh helmet",
+                    "probability": 0.0005,
+                    "min": 1,
+                    "max": 1
+                }
+            ]
         },
         {
             "name": "Golgordan",
@@ -26716,25 +27500,25 @@
                 {
                     "name": "melee",
                     "min": 0,
-                    "max": 1100,
+                    "max": 1375,
                     "element": null
                 },
                 {
                     "name": "physical",
-                    "min": 300,
-                    "max": 700,
+                    "min": 375,
+                    "max": 875,
                     "element": null
                 },
                 {
                     "name": "physical",
-                    "min": 200,
-                    "max": 500,
+                    "min": 250,
+                    "max": 625,
                     "element": null
                 },
                 {
                     "name": "energy",
-                    "min": 250,
-                    "max": 450,
+                    "min": 312,
+                    "max": 562,
                     "element": null
                 }
             ],
@@ -26751,7 +27535,68 @@
                 "drown": true,
                 "poison": true
             },
-            "loot": []
+            "loot": [
+                {
+                    "name": "gold coin",
+                    "probability": 1,
+                    "min": 1,
+                    "max": 100
+                },
+                {
+                    "name": "platinum coin",
+                    "probability": 0.9,
+                    "min": 1,
+                    "max": 18
+                },
+                {
+                    "name": "small diamond",
+                    "probability": 0.15,
+                    "min": 1,
+                    "max": 5
+                },
+                {
+                    "name": "small emerald",
+                    "probability": 0.12,
+                    "min": 1,
+                    "max": 4
+                },
+                {
+                    "name": "power ring",
+                    "probability": 0.08,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "gold ring",
+                    "probability": 0.03,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "golden armor",
+                    "probability": 0.025,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "blue gem",
+                    "probability": 0.025,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "golden legs",
+                    "probability": 0.002,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "pharaoh legs",
+                    "probability": 0.0005,
+                    "min": 1,
+                    "max": 1
+                }
+            ]
         },
         {
             "name": "Juggernaut",
@@ -26924,13 +27769,13 @@
                 {
                     "name": "melee",
                     "min": 0,
-                    "max": 900,
+                    "max": 1395,
                     "element": null
                 },
                 {
                     "name": "earth",
-                    "min": 500,
-                    "max": 1000,
+                    "min": 775,
+                    "max": 1550,
                     "element": null
                 },
                 {
@@ -26960,7 +27805,468 @@
                 "earth": true,
                 "invisible": true
             },
-            "loot": []
+            "loot": [
+                {
+                    "name": "gold coin",
+                    "probability": 1,
+                    "min": 1,
+                    "max": 100
+                },
+                {
+                    "name": "platinum coin",
+                    "probability": 0.9,
+                    "min": 1,
+                    "max": 18
+                },
+                {
+                    "name": "small emerald",
+                    "probability": 0.16,
+                    "min": 1,
+                    "max": 5
+                },
+                {
+                    "name": "demonic essence",
+                    "probability": 0.15,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "knight axe",
+                    "probability": 0.06,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "war axe",
+                    "probability": 0.03,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "green gem",
+                    "probability": 0.03,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "crown legs",
+                    "probability": 0.015,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "giant sword",
+                    "probability": 0.015,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "steel boots",
+                    "probability": 0.004,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "golden legs",
+                    "probability": 0.002,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "reaper's axe",
+                    "probability": 0.0005,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "vizier legs",
+                    "probability": 0.0005,
+                    "min": 1,
+                    "max": 1
+                }
+            ]
+        },
+        {
+            "name": "Cinder Hand",
+            "health": 17000,
+            "experience": 12500,
+            "speed": 160,
+            "armor": 65,
+            "attacks": [
+                {
+                    "name": "melee",
+                    "min": 0,
+                    "max": 950,
+                    "element": null
+                },
+                {
+                    "name": "manadrain",
+                    "min": 0,
+                    "max": 1000,
+                    "element": null
+                },
+                {
+                    "name": "drunk",
+                    "min": 0,
+                    "max": 0,
+                    "element": null
+                },
+                {
+                    "name": "lifedrain",
+                    "min": 400,
+                    "max": 950,
+                    "element": null
+                },
+                {
+                    "name": "fire",
+                    "min": 500,
+                    "max": 1050,
+                    "element": null
+                },
+                {
+                    "name": "firefield",
+                    "min": 0,
+                    "max": 0,
+                    "element": null
+                }
+            ],
+            "elements": {
+                "ice": -25,
+                "holy": -15
+            },
+            "immunities": {
+                "poison": true,
+                "paralyze": true,
+                "invisible": true,
+                "fire": true
+            },
+            "loot": [
+                {
+                    "name": "gold coin",
+                    "probability": 1,
+                    "min": 1,
+                    "max": 100
+                },
+                {
+                    "name": "platinum coin",
+                    "probability": 0.95,
+                    "min": 1,
+                    "max": 22
+                },
+                {
+                    "name": "small ruby",
+                    "probability": 0.16,
+                    "min": 1,
+                    "max": 5
+                },
+                {
+                    "name": "fire sword",
+                    "probability": 0.05,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "red gem",
+                    "probability": 0.04,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "fire axe",
+                    "probability": 0.03,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "wand of inferno",
+                    "probability": 0.02,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "crown armor",
+                    "probability": 0.02,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "giant sword",
+                    "probability": 0.01,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "boots of haste",
+                    "probability": 0.003,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "magma broadsword",
+                    "probability": 0.0005,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "magma helmet",
+                    "probability": 0.0005,
+                    "min": 1,
+                    "max": 1
+                }
+            ]
+        },
+        {
+            "name": "Embalmed Hand",
+            "health": 17000,
+            "experience": 12500,
+            "speed": 160,
+            "armor": 65,
+            "attacks": [
+                {
+                    "name": "melee",
+                    "min": 0,
+                    "max": 1092,
+                    "element": null
+                },
+                {
+                    "name": "manadrain",
+                    "min": 0,
+                    "max": 1150,
+                    "element": null
+                },
+                {
+                    "name": "drunk",
+                    "min": 0,
+                    "max": 0,
+                    "element": null
+                },
+                {
+                    "name": "lifedrain",
+                    "min": 460,
+                    "max": 1092,
+                    "element": null
+                },
+                {
+                    "name": "death",
+                    "min": 575,
+                    "max": 1208,
+                    "element": null
+                }
+            ],
+            "elements": {
+                "fire": -20,
+                "holy": -25
+            },
+            "immunities": {
+                "poison": true,
+                "paralyze": true,
+                "invisible": true,
+                "death": true
+            },
+            "loot": [
+                {
+                    "name": "gold coin",
+                    "probability": 1,
+                    "min": 1,
+                    "max": 100
+                },
+                {
+                    "name": "platinum coin",
+                    "probability": 0.95,
+                    "min": 1,
+                    "max": 22
+                },
+                {
+                    "name": "mind stone",
+                    "probability": 0.15,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "small sapphire",
+                    "probability": 0.15,
+                    "min": 1,
+                    "max": 4
+                },
+                {
+                    "name": "protection amulet",
+                    "probability": 0.1,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "ankh",
+                    "probability": 0.08,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "knight armor",
+                    "probability": 0.05,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "platinum amulet",
+                    "probability": 0.02,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "crown armor",
+                    "probability": 0.02,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "royal helmet",
+                    "probability": 0.01,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "boots of haste",
+                    "probability": 0.003,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "medjay helmet",
+                    "probability": 0.0005,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "bonebreaker",
+                    "probability": 0.0005,
+                    "min": 1,
+                    "max": 1
+                }
+            ]
+        },
+        {
+            "name": "Gilded Hand",
+            "health": 17000,
+            "experience": 12500,
+            "speed": 160,
+            "armor": 65,
+            "attacks": [
+                {
+                    "name": "melee",
+                    "min": 0,
+                    "max": 1092,
+                    "element": null
+                },
+                {
+                    "name": "manadrain",
+                    "min": 0,
+                    "max": 1150,
+                    "element": null
+                },
+                {
+                    "name": "drunk",
+                    "min": 0,
+                    "max": 0,
+                    "element": null
+                },
+                {
+                    "name": "lifedrain",
+                    "min": 460,
+                    "max": 1092,
+                    "element": null
+                },
+                {
+                    "name": "energy",
+                    "min": 575,
+                    "max": 1208,
+                    "element": null
+                }
+            ],
+            "elements": {
+                "holy": 20,
+                "ice": -10,
+                "death": -20
+            },
+            "immunities": {
+                "poison": true,
+                "paralyze": true,
+                "invisible": true,
+                "energy": true
+            },
+            "loot": [
+                {
+                    "name": "gold coin",
+                    "probability": 1,
+                    "min": 1,
+                    "max": 100
+                },
+                {
+                    "name": "platinum coin",
+                    "probability": 0.95,
+                    "min": 1,
+                    "max": 22
+                },
+                {
+                    "name": "small diamond",
+                    "probability": 0.15,
+                    "min": 1,
+                    "max": 5
+                },
+                {
+                    "name": "energy ring",
+                    "probability": 0.04,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "blue gem",
+                    "probability": 0.03,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "gold ring",
+                    "probability": 0.03,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "golden armor",
+                    "probability": 0.02,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "crown armor",
+                    "probability": 0.02,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "violet gem",
+                    "probability": 0.01,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "boots of haste",
+                    "probability": 0.003,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "pharaoh helmet",
+                    "probability": 0.0005,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "pharaoh legs",
+                    "probability": 0.0005,
+                    "min": 1,
+                    "max": 1
+                }
+            ]
         },
         {
             "name": "Annihilon",
@@ -27581,6 +28887,171 @@
                     "max": 5
                 }
             ]
+        },
+        {
+            "name": "Osrahet",
+            "health": 20000,
+            "experience": 15000,
+            "speed": 190,
+            "armor": 70,
+            "attacks": [
+                {
+                    "name": "melee",
+                    "min": 0,
+                    "max": 1200,
+                    "element": null
+                },
+                {
+                    "name": "death",
+                    "min": 660,
+                    "max": 1260,
+                    "element": null
+                },
+                {
+                    "name": "cursecondition",
+                    "min": 360,
+                    "max": 600,
+                    "element": null
+                },
+                {
+                    "name": "physical",
+                    "min": 480,
+                    "max": 960,
+                    "element": null
+                },
+                {
+                    "name": "speed",
+                    "min": 0,
+                    "max": 0,
+                    "element": null
+                }
+            ],
+            "elements": {
+                "physical": 25,
+                "death": 100,
+                "holy": -15,
+                "fire": 10,
+                "ice": 20,
+                "energy": 20,
+                "earth": 20
+            },
+            "immunities": {
+                "death": true,
+                "poison": true,
+                "paralyze": true,
+                "invisible": true
+            },
+            "loot": []
+        },
+        {
+            "name": "Sekhmanu",
+            "health": 22000,
+            "experience": 16500,
+            "speed": 190,
+            "armor": 70,
+            "attacks": [
+                {
+                    "name": "melee",
+                    "min": 0,
+                    "max": 1260,
+                    "element": null
+                },
+                {
+                    "name": "earth",
+                    "min": 780,
+                    "max": 1380,
+                    "element": null
+                },
+                {
+                    "name": "poisoncondition",
+                    "min": 480,
+                    "max": 840,
+                    "element": null
+                },
+                {
+                    "name": "poisonfield",
+                    "min": 0,
+                    "max": 0,
+                    "element": null
+                },
+                {
+                    "name": "earth",
+                    "min": 540,
+                    "max": 1080,
+                    "element": null
+                }
+            ],
+            "elements": {
+                "physical": 20,
+                "earth": 100,
+                "death": 30,
+                "holy": -15,
+                "fire": -15,
+                "ice": 15,
+                "energy": 15
+            },
+            "immunities": {
+                "earth": true,
+                "poison": true,
+                "paralyze": true,
+                "invisible": true
+            },
+            "loot": []
+        },
+        {
+            "name": "Desheret",
+            "health": 24000,
+            "experience": 18000,
+            "speed": 190,
+            "armor": 75,
+            "attacks": [
+                {
+                    "name": "melee",
+                    "min": 0,
+                    "max": 1210,
+                    "element": "lifedrain"
+                },
+                {
+                    "name": "lifedrain",
+                    "min": 660,
+                    "max": 1210,
+                    "element": null
+                },
+                {
+                    "name": "bleedcondition",
+                    "min": 440,
+                    "max": 770,
+                    "element": null
+                },
+                {
+                    "name": "lifedrain",
+                    "min": 550,
+                    "max": 990,
+                    "element": null
+                },
+                {
+                    "name": "fire",
+                    "min": 495,
+                    "max": 935,
+                    "element": null
+                }
+            ],
+            "elements": {
+                "physical": 20,
+                "death": 100,
+                "fire": 50,
+                "holy": -15,
+                "ice": -10,
+                "earth": 20,
+                "energy": 20
+            },
+            "immunities": {
+                "death": true,
+                "poison": true,
+                "paralyze": true,
+                "invisible": true
+            },
+            "loot": []
         },
         {
             "name": "Orshabaal",
@@ -28272,11 +29743,44 @@
     ],
     "npcs": [
         {
+            "name": "A Cobra Statue",
+            "position": {
+                "x": 32665,
+                "y": 32097,
+                "z": 14
+            },
+            "keywords": [],
+            "sells": [],
+            "buys": []
+        },
+        {
+            "name": "A Ghostly Guardian",
+            "position": {
+                "x": 32569,
+                "y": 32313,
+                "z": 15
+            },
+            "keywords": [],
+            "sells": [],
+            "buys": []
+        },
+        {
             "name": "A Ghostly Woman",
             "position": {
                 "x": 32191,
                 "y": 31811,
                 "z": 5
+            },
+            "keywords": [],
+            "sells": [],
+            "buys": []
+        },
+        {
+            "name": "A Ghostly Woman",
+            "position": {
+                "x": 32469,
+                "y": 32336,
+                "z": 15
             },
             "keywords": [],
             "sells": [],
@@ -28340,7 +29844,7 @@
             "name": "A Sealed Sarcophagus",
             "position": {
                 "x": 33483,
-                "y": 32008,
+                "y": 32007,
                 "z": 15
             },
             "keywords": [],
@@ -29402,6 +30906,17 @@
                 "orc",
                 "food"
             ],
+            "sells": [],
+            "buys": []
+        },
+        {
+            "name": "An Ancient Statue",
+            "position": {
+                "x": 33484,
+                "y": 31995,
+                "z": 14
+            },
+            "keywords": [],
             "sells": [],
             "buys": []
         },
@@ -36765,9 +38280,16 @@
                 "z": 7
             },
             "keywords": [
-                "name"
+                "name",
+                "fire bug",
+                "job"
             ],
-            "sells": [],
+            "sells": [
+                {
+                    "name": "Fire Bug",
+                    "price": 100
+                }
+            ],
             "buys": []
         },
         {
@@ -40790,9 +42312,7 @@
                 "name",
                 "job",
                 "eremo",
-                "wisdom",
                 "pilgrimage",
-                "blessing",
                 "full blessing",
                 "amulet of loss"
             ],
@@ -44779,6 +46299,20 @@
                 "vocation",
                 "rune",
                 "spell"
+            ],
+            "sells": [],
+            "buys": []
+        },
+        {
+            "name": "Nadjib",
+            "position": {
+                "x": 33151,
+                "y": 32544,
+                "z": 1
+            },
+            "keywords": [
+                "name",
+                "job"
             ],
             "sells": [],
             "buys": []
@@ -51427,6 +52961,17 @@
             "buys": []
         },
         {
+            "name": "The Bone Master",
+            "position": {
+                "x": 32623,
+                "y": 32307,
+                "z": 15
+            },
+            "keywords": [],
+            "sells": [],
+            "buys": []
+        },
+        {
             "name": "The Crone",
             "position": {
                 "x": 33229,
@@ -51441,6 +52986,17 @@
                 "tomb",
                 "melody"
             ],
+            "sells": [],
+            "buys": []
+        },
+        {
+            "name": "The Dream Master",
+            "position": {
+                "x": 32596,
+                "y": 32307,
+                "z": 15
+            },
+            "keywords": [],
             "sells": [],
             "buys": []
         },
@@ -54929,6 +56485,20 @@
             "buys": []
         },
         {
+            "name": "Zahir",
+            "position": {
+                "x": 33093,
+                "y": 32602,
+                "z": 1
+            },
+            "keywords": [
+                "name",
+                "job"
+            ],
+            "sells": [],
+            "buys": []
+        },
+        {
             "name": "Zaidal",
             "position": {
                 "x": 32621,
@@ -55283,8 +56853,24 @@
             "sid": 3025,
             "droppedBy": [
                 {
+                    "name": "Cursed Scarab",
+                    "p": 0.06
+                },
+                {
                     "name": "Orshabaal",
                     "p": 0.05556
+                },
+                {
+                    "name": "Sacred Scarab",
+                    "p": 0.05
+                },
+                {
+                    "name": "Carrion Scarab",
+                    "p": 0.05
+                },
+                {
+                    "name": "Burnt Offering",
+                    "p": 0.04
                 },
                 {
                     "name": "Ancient Scarab",
@@ -55308,6 +56894,25 @@
                     "region": "main"
                 }
             ]
+        },
+        {
+            "cid": 22202,
+            "sid": 12879,
+            "droppedBy": [],
+            "name": "ancient book of Thoth",
+            "article": "the",
+            "weight": 2850,
+            "attack": 0,
+            "defense": 27,
+            "armor": 0,
+            "weaponType": "shield",
+            "slotType": null,
+            "description": "Thoth wrote every spell in its pages.",
+            "vocations": "druid,sorcerer",
+            "bonuses": [
+                "Magic Level +3"
+            ],
+            "category": "shield"
         },
         {
             "cid": 2348,
@@ -55416,6 +57021,14 @@
             "cid": 2193,
             "sid": 3077,
             "droppedBy": [
+                {
+                    "name": "Burnt Offering",
+                    "p": 0.1
+                },
+                {
+                    "name": "Embalmed Hand",
+                    "p": 0.08
+                },
                 {
                     "name": "Mummy",
                     "p": 0.03
@@ -55545,6 +57158,25 @@
             "slotType": "two-handed",
             "description": "It is enchanted with ancient magic that renders a weak staff into a powerful weapon.",
             "category": "melee"
+        },
+        {
+            "cid": 22201,
+            "sid": 12878,
+            "droppedBy": [],
+            "name": "armor of Ra",
+            "article": "the",
+            "weight": 7500,
+            "attack": 0,
+            "defense": 0,
+            "armor": 17,
+            "weaponType": null,
+            "slotType": "body",
+            "description": "Ra's light still burns in its gold.",
+            "vocations": "knight,paladin",
+            "resists": [
+                "Physical 5%"
+            ],
+            "category": "armor"
         },
         {
             "cid": 2544,
@@ -55763,6 +57395,21 @@
                     "region": "main"
                 }
             ]
+        },
+        {
+            "cid": 22198,
+            "sid": 12875,
+            "droppedBy": [],
+            "name": "axe of Sekhmet",
+            "article": "the",
+            "weight": 8800,
+            "attack": 52,
+            "defense": 29,
+            "armor": 0,
+            "weaponType": "axe",
+            "slotType": null,
+            "description": "Khamuret's axe. It burns with Sekhmet's rage.",
+            "category": "melee"
         },
         {
             "cid": 2208,
@@ -57073,6 +58720,14 @@
                     "p": 0.2
                 },
                 {
+                    "name": "Bound Soul",
+                    "p": 0.18
+                },
+                {
+                    "name": "Forsaken Soul",
+                    "p": 0.18
+                },
+                {
                     "name": "Latrivan",
                     "p": 0.15814
                 },
@@ -57081,12 +58736,20 @@
                     "p": 0.15439
                 },
                 {
+                    "name": "Condemned Soul",
+                    "p": 0.15
+                },
+                {
                     "name": "Hellgorak",
                     "p": 0.14148
                 },
                 {
                     "name": "Morgaroth",
                     "p": 0.13636
+                },
+                {
+                    "name": "Carrion Scarab",
+                    "p": 0.1
                 },
                 {
                     "name": "Hellhound",
@@ -57268,6 +58931,10 @@
                     "p": 0.36842
                 },
                 {
+                    "name": "Bound Soul",
+                    "p": 0.35
+                },
+                {
                     "name": "Dwarf Geomancer",
                     "p": 0.33
                 },
@@ -57277,6 +58944,10 @@
                 },
                 {
                     "name": "Hellfire Fighter",
+                    "p": 0.3
+                },
+                {
+                    "name": "Condemned Soul",
                     "p": 0.3
                 },
                 {
@@ -57453,6 +59124,18 @@
                 {
                     "name": "Zugurosh",
                     "p": 0.04444
+                },
+                {
+                    "name": "Lapis Drake",
+                    "p": 0.04
+                },
+                {
+                    "name": "Gilded Hand",
+                    "p": 0.03
+                },
+                {
+                    "name": "Temple Colossus",
+                    "p": 0.025
                 },
                 {
                     "name": "Dipthrah",
@@ -57899,6 +59582,26 @@
             "category": "melee"
         },
         {
+            "cid": 7428,
+            "sid": 7428,
+            "droppedBy": [
+                {
+                    "name": "Embalmed Hand",
+                    "p": 0.0005
+                }
+            ],
+            "name": "bonebreaker",
+            "article": "a",
+            "weight": 12000,
+            "attack": 46,
+            "defense": 15,
+            "armor": 0,
+            "weaponType": "club",
+            "slotType": "two-handed",
+            "description": "This weapon has to be swung in both hands and requires a lot of strength.",
+            "category": "melee"
+        },
+        {
             "cid": 21058,
             "sid": 30031,
             "droppedBy": [
@@ -57973,6 +59676,22 @@
                 {
                     "name": "Black Knight",
                     "p": 0.00404
+                },
+                {
+                    "name": "Royal Hydra",
+                    "p": 0.003
+                },
+                {
+                    "name": "Embalmed Hand",
+                    "p": 0.003
+                },
+                {
+                    "name": "Gilded Hand",
+                    "p": 0.003
+                },
+                {
+                    "name": "Cinder Hand",
+                    "p": 0.003
                 },
                 {
                     "name": "Nightmare",
@@ -58971,6 +60690,26 @@
             "weaponType": null,
             "slotType": null,
             "description": "",
+            "category": "other"
+        },
+        {
+            "cid": 22291,
+            "sid": 3507,
+            "droppedBy": [
+                {
+                    "name": "Pirate Buccaneer",
+                    "p": 0.025
+                }
+            ],
+            "name": "buccaneers' cargo tag",
+            "article": "a",
+            "weight": 10,
+            "attack": 0,
+            "defense": 0,
+            "armor": 0,
+            "weaponType": null,
+            "slotType": null,
+            "description": "A tag that marks a buccaneers' barrel, stamped with two crossed sabres.",
             "category": "other"
         },
         {
@@ -60693,6 +62432,25 @@
             ]
         },
         {
+            "cid": 22200,
+            "sid": 12877,
+            "droppedBy": [],
+            "name": "crossbow of Wadjet",
+            "article": "the",
+            "weight": 12000,
+            "attack": 6,
+            "defense": 0,
+            "armor": 0,
+            "weaponType": "distance",
+            "slotType": "two-handed",
+            "description": "Tutheres's crossbow. Its bolts bite like a cobra.",
+            "bonuses": [
+                "Min. Damage +18%"
+            ],
+            "range": 4,
+            "category": "distance"
+        },
+        {
             "cid": 2416,
             "sid": 3304,
             "droppedBy": [
@@ -60745,6 +62503,18 @@
                 {
                     "name": "Hellgorak",
                     "p": 0.18435
+                },
+                {
+                    "name": "Embalmed Hand",
+                    "p": 0.02
+                },
+                {
+                    "name": "Gilded Hand",
+                    "p": 0.02
+                },
+                {
+                    "name": "Cinder Hand",
+                    "p": 0.02
                 },
                 {
                     "name": "Ashmunrah",
@@ -60845,6 +62615,10 @@
                 {
                     "name": "Hellgorak",
                     "p": 0.09914
+                },
+                {
+                    "name": "Executioner",
+                    "p": 0.015
                 },
                 {
                     "name": "Hero",
@@ -61244,6 +63018,26 @@
             ]
         },
         {
+            "cid": 22292,
+            "sid": 3507,
+            "droppedBy": [
+                {
+                    "name": "Pirate Cutthroat",
+                    "p": 0.025
+                }
+            ],
+            "name": "cutthroats' cargo tag",
+            "article": "a",
+            "weight": 10,
+            "attack": 0,
+            "defense": 0,
+            "armor": 0,
+            "weaponType": null,
+            "slotType": null,
+            "description": "A tag that marks a cutthroats' chest. It is stained dark at one edge.",
+            "category": "other"
+        },
+        {
             "cid": 2379,
             "sid": 3267,
             "droppedBy": [
@@ -61403,6 +63197,18 @@
             "cid": 2440,
             "sid": 3328,
             "droppedBy": [
+                {
+                    "name": "Cursed Scarab",
+                    "p": 0.015
+                },
+                {
+                    "name": "Carrion Scarab",
+                    "p": 0.012
+                },
+                {
+                    "name": "Sacred Scarab",
+                    "p": 0.01
+                },
                 {
                     "name": "Ancient Scarab",
                     "p": 0.003
@@ -61623,6 +63429,38 @@
             "armor": 0,
             "weaponType": null,
             "slotType": null,
+            "description": "",
+            "category": "other"
+        },
+        {
+            "cid": 6300,
+            "sid": 6299,
+            "droppedBy": [
+                {
+                    "name": "Defiler",
+                    "p": 0.02831
+                },
+                {
+                    "name": "Blightwalker",
+                    "p": 0.0141
+                },
+                {
+                    "name": "Souleater",
+                    "p": 0.003
+                },
+                {
+                    "name": "Spectre",
+                    "p": 0.0028
+                }
+            ],
+            "name": "death ring",
+            "article": "a",
+            "weight": 80,
+            "attack": 0,
+            "defense": 0,
+            "armor": 0,
+            "weaponType": null,
+            "slotType": "ring",
             "description": "",
             "category": "other"
         },
@@ -61879,8 +63717,16 @@
                     "p": 0.15
                 },
                 {
+                    "name": "Executioner",
+                    "p": 0.15
+                },
+                {
                     "name": "Hellfire Fighter",
                     "p": 0.145
+                },
+                {
+                    "name": "Forsaken Soul",
+                    "p": 0.12
                 },
                 {
                     "name": "Nightmare",
@@ -61895,7 +63741,15 @@
                     "p": 0.1
                 },
                 {
+                    "name": "Bound Soul",
+                    "p": 0.1
+                },
+                {
                     "name": "Ungreez",
+                    "p": 0.08
+                },
+                {
+                    "name": "Condemned Soul",
                     "p": 0.08
                 },
                 {
@@ -62421,6 +64275,14 @@
                     "p": 0.6
                 },
                 {
+                    "name": "Embalmed Dragon",
+                    "p": 0.6
+                },
+                {
+                    "name": "Lapis Drake",
+                    "p": 0.6
+                },
+                {
                     "name": "Wyrm",
                     "p": 0.34875
                 }
@@ -62577,6 +64439,14 @@
                     "p": 0.0114503
                 },
                 {
+                    "name": "Lapis Drake",
+                    "p": 0.005
+                },
+                {
+                    "name": "Embalmed Dragon",
+                    "p": 0.004
+                },
+                {
                     "name": "Magma Dragon",
                     "p": 0.0014
                 },
@@ -62683,6 +64553,14 @@
             "sid": 7402,
             "droppedBy": [
                 {
+                    "name": "Embalmed Dragon",
+                    "p": 0.012
+                },
+                {
+                    "name": "Lapis Drake",
+                    "p": 0.012
+                },
+                {
                     "name": "Undead Dragon",
                     "p": 0.006
                 },
@@ -62721,6 +64599,10 @@
             "cid": 7430,
             "sid": 7430,
             "droppedBy": [
+                {
+                    "name": "Embalmed Dragon",
+                    "p": 0.012
+                },
                 {
                     "name": "Wyrm",
                     "p": 0.0065
@@ -63064,7 +64946,7 @@
             "armor": 0,
             "weaponType": "axe",
             "slotType": "two-handed",
-            "description": "",
+            "description": "Forged in Gydron's black fire, its blade gleams like the rim of an eclipse.",
             "category": "melee"
         },
         {
@@ -63329,6 +65211,10 @@
                     "p": 0.09091
                 },
                 {
+                    "name": "Lapis Drake",
+                    "p": 0.06
+                },
+                {
                     "name": "Serpent Spawn",
                     "p": 0.05968
                 },
@@ -63343,6 +65229,10 @@
                 {
                     "name": "Frost Dragon",
                     "p": 0.04952
+                },
+                {
+                    "name": "Gilded Hand",
+                    "p": 0.04
                 },
                 {
                     "name": "Storm Dragon",
@@ -63534,6 +65424,10 @@
                     "p": 0.04
                 },
                 {
+                    "name": "Cinder Hand",
+                    "p": 0.03
+                },
+                {
                     "name": "Magma Dragon",
                     "p": 0.008
                 },
@@ -63572,6 +65466,21 @@
                     "region": "main"
                 }
             ]
+        },
+        {
+            "cid": 5468,
+            "sid": 5467,
+            "droppedBy": [],
+            "name": "fire bug",
+            "article": "a",
+            "weight": 3050,
+            "attack": 0,
+            "defense": 0,
+            "armor": 0,
+            "weaponType": null,
+            "slotType": null,
+            "description": "This strange creature has the tendency to set certain things on fire.",
+            "category": "other"
         },
         {
             "cid": 2795,
@@ -63622,6 +65531,10 @@
                     "p": 0.06422
                 },
                 {
+                    "name": "Cinder Hand",
+                    "p": 0.05
+                },
+                {
                     "name": "Hellfire Fighter",
                     "p": 0.0414
                 },
@@ -63630,8 +65543,16 @@
                     "p": 0.02
                 },
                 {
+                    "name": "Condemned Soul",
+                    "p": 0.02
+                },
+                {
                     "name": "Demodras",
                     "p": 0.01709
+                },
+                {
+                    "name": "Burnt Offering",
+                    "p": 0.012
                 },
                 {
                     "name": "Massive Fire Elemental",
@@ -64218,11 +66139,19 @@
                     "p": 0.02
                 },
                 {
+                    "name": "Executioner",
+                    "p": 0.015
+                },
+                {
                     "name": "Destroyer",
                     "p": 0.01248
                 },
                 {
                     "name": "Forge Giant",
+                    "p": 0.01
+                },
+                {
+                    "name": "Cinder Hand",
                     "p": 0.01
                 },
                 {
@@ -64391,6 +66320,66 @@
                 },
                 {
                     "name": "Koshei The Deathless",
+                    "p": 1
+                },
+                {
+                    "name": "Condemned Soul",
+                    "p": 1
+                },
+                {
+                    "name": "Burnt Offering",
+                    "p": 1
+                },
+                {
+                    "name": "Sacred Scarab",
+                    "p": 1
+                },
+                {
+                    "name": "Embalmed Dragon",
+                    "p": 1
+                },
+                {
+                    "name": "Bound Soul",
+                    "p": 1
+                },
+                {
+                    "name": "Carrion Scarab",
+                    "p": 1
+                },
+                {
+                    "name": "Royal Hydra",
+                    "p": 1
+                },
+                {
+                    "name": "Temple Colossus",
+                    "p": 1
+                },
+                {
+                    "name": "Lapis Drake",
+                    "p": 1
+                },
+                {
+                    "name": "Executioner",
+                    "p": 1
+                },
+                {
+                    "name": "Forsaken Soul",
+                    "p": 1
+                },
+                {
+                    "name": "Cursed Scarab",
+                    "p": 1
+                },
+                {
+                    "name": "Embalmed Hand",
+                    "p": 1
+                },
+                {
+                    "name": "Gilded Hand",
+                    "p": 1
+                },
+                {
+                    "name": "Cinder Hand",
                     "p": 1
                 },
                 {
@@ -65286,12 +67275,28 @@
                     "p": 0.06512
                 },
                 {
+                    "name": "Temple Colossus",
+                    "p": 0.03
+                },
+                {
+                    "name": "Gilded Hand",
+                    "p": 0.03
+                },
+                {
                     "name": "Blightwalker",
                     "p": 0.0187
                 },
                 {
                     "name": "Demon",
                     "p": 0.011
+                },
+                {
+                    "name": "Sacred Scarab",
+                    "p": 0.01
+                },
+                {
+                    "name": "Cursed Scarab",
+                    "p": 0.01
                 },
                 {
                     "name": "Koshei The Deathless",
@@ -65349,8 +67354,16 @@
                     "p": 0.08333
                 },
                 {
+                    "name": "Temple Colossus",
+                    "p": 0.025
+                },
+                {
                     "name": "Hellgorak",
                     "p": 0.02036
+                },
+                {
+                    "name": "Gilded Hand",
+                    "p": 0.02
                 },
                 {
                     "name": "Undead Dragon",
@@ -65429,6 +67442,14 @@
                 {
                     "name": "Hellgorak",
                     "p": 0.00643
+                },
+                {
+                    "name": "Temple Colossus",
+                    "p": 0.002
+                },
+                {
+                    "name": "Executioner",
+                    "p": 0.002
                 },
                 {
                     "name": "Fury",
@@ -65720,6 +67741,14 @@
                 {
                     "name": "Orshabaal",
                     "p": 0.05556
+                },
+                {
+                    "name": "Executioner",
+                    "p": 0.03
+                },
+                {
+                    "name": "Forsaken Soul",
+                    "p": 0.03
                 },
                 {
                     "name": "Juggernaut",
@@ -66228,6 +68257,10 @@
                 {
                     "name": "Polar Bear",
                     "p": 0.50166
+                },
+                {
+                    "name": "Royal Hydra",
+                    "p": 0.5
                 },
                 {
                     "name": "Juggernaut",
@@ -67388,6 +69421,21 @@
             ]
         },
         {
+            "cid": 22197,
+            "sid": 12874,
+            "droppedBy": [],
+            "name": "khopesh of Ra",
+            "article": "the",
+            "weight": 4100,
+            "attack": 50,
+            "defense": 34,
+            "armor": 0,
+            "weaponType": "sword",
+            "slotType": null,
+            "description": "Nephrenkhet conceived it in the light of Ra.",
+            "category": "melee"
+        },
+        {
             "cid": 2403,
             "sid": 3291,
             "droppedBy": [
@@ -67437,6 +69485,14 @@
                 {
                     "name": "The Old Widow",
                     "p": 0.42
+                },
+                {
+                    "name": "Royal Hydra",
+                    "p": 0.05
+                },
+                {
+                    "name": "Embalmed Hand",
+                    "p": 0.05
                 },
                 {
                     "name": "Undead Dragon",
@@ -67547,6 +69603,10 @@
                 {
                     "name": "Hellhound",
                     "p": 0.07486
+                },
+                {
+                    "name": "Executioner",
+                    "p": 0.06
                 },
                 {
                     "name": "Forge Giant",
@@ -68425,6 +70485,10 @@
                     "p": 0.09091
                 },
                 {
+                    "name": "Embalmed Dragon",
+                    "p": 0.03
+                },
+                {
                     "name": "Undead Dragon",
                     "p": 0.01588
                 },
@@ -69232,6 +71296,26 @@
             "category": "armor"
         },
         {
+            "cid": 22127,
+            "sid": 12811,
+            "droppedBy": [
+                {
+                    "name": "Cinder Hand",
+                    "p": 0.0005
+                }
+            ],
+            "name": "magma broadsword",
+            "article": "a",
+            "weight": 2300,
+            "attack": 45,
+            "defense": 24,
+            "armor": 0,
+            "weaponType": "sword",
+            "slotType": null,
+            "description": "",
+            "category": "melee"
+        },
+        {
             "cid": 22129,
             "sid": 12813,
             "droppedBy": [
@@ -69257,6 +71341,34 @@
                     "region": "main"
                 }
             ]
+        },
+        {
+            "cid": 22130,
+            "sid": 12814,
+            "droppedBy": [
+                {
+                    "name": "Condemned Soul",
+                    "p": 0.0005
+                },
+                {
+                    "name": "Burnt Offering",
+                    "p": 0.0005
+                },
+                {
+                    "name": "Cinder Hand",
+                    "p": 0.0005
+                }
+            ],
+            "name": "magma helmet",
+            "article": "a",
+            "weight": 6800,
+            "attack": 0,
+            "defense": 0,
+            "armor": 9,
+            "weaponType": null,
+            "slotType": "head",
+            "description": "",
+            "category": "armor"
         },
         {
             "cid": 7463,
@@ -69361,6 +71473,26 @@
             "weaponType": null,
             "slotType": null,
             "description": "This rare root is often used for shamanic medicines.",
+            "category": "other"
+        },
+        {
+            "cid": 22290,
+            "sid": 3507,
+            "droppedBy": [
+                {
+                    "name": "Pirate Marauder",
+                    "p": 0.025
+                }
+            ],
+            "name": "marauders' cargo tag",
+            "article": "a",
+            "weight": 10,
+            "attack": 0,
+            "defense": 0,
+            "armor": 0,
+            "weaponType": null,
+            "slotType": null,
+            "description": "A tag that marks a marauders' crate. Someone has scratched a skull into it.",
             "category": "other"
         },
         {
@@ -69728,12 +71860,56 @@
             ]
         },
         {
+            "cid": 22030,
+            "sid": 12683,
+            "droppedBy": [
+                {
+                    "name": "Embalmed Hand",
+                    "p": 0.0005
+                }
+            ],
+            "name": "medjay helmet",
+            "article": "a",
+            "weight": 2500,
+            "attack": 0,
+            "defense": 0,
+            "armor": 9,
+            "weaponType": null,
+            "slotType": "head",
+            "description": "",
+            "category": "armor"
+        },
+        {
+            "cid": 22032,
+            "sid": 12685,
+            "droppedBy": [
+                {
+                    "name": "Embalmed Dragon",
+                    "p": 0.0005
+                }
+            ],
+            "name": "medjay legs",
+            "article": "a",
+            "weight": 4500,
+            "attack": 0,
+            "defense": 0,
+            "armor": 8,
+            "weaponType": null,
+            "slotType": "legs",
+            "description": "",
+            "category": "armor"
+        },
+        {
             "cid": 2536,
             "sid": 3436,
             "droppedBy": [
                 {
                     "name": "Medusa",
                     "p": 0.0228
+                },
+                {
+                    "name": "Royal Hydra",
+                    "p": 0.015
                 },
                 {
                     "name": "Venomous Dragon",
@@ -69871,6 +72047,10 @@
                 {
                     "name": "Hand Of Cursed Fate",
                     "p": 0.15373
+                },
+                {
+                    "name": "Embalmed Hand",
+                    "p": 0.15
                 },
                 {
                     "name": "Latrivan",
@@ -70991,6 +73171,64 @@
             "category": "other"
         },
         {
+            "cid": 22039,
+            "sid": 12692,
+            "droppedBy": [
+                {
+                    "name": "Royal Hydra",
+                    "p": 0.0005
+                },
+                {
+                    "name": "Lapis Drake",
+                    "p": 0.0005
+                },
+                {
+                    "name": "Gilded Hand",
+                    "p": 0.0005
+                }
+            ],
+            "name": "pharaoh helmet",
+            "article": "a",
+            "weight": 2500,
+            "attack": 0,
+            "defense": 0,
+            "armor": 9,
+            "weaponType": null,
+            "slotType": "head",
+            "description": "",
+            "resists": [
+                "Physical 1%"
+            ],
+            "category": "armor"
+        },
+        {
+            "cid": 22041,
+            "sid": 12694,
+            "droppedBy": [
+                {
+                    "name": "Temple Colossus",
+                    "p": 0.0005
+                },
+                {
+                    "name": "Gilded Hand",
+                    "p": 0.0005
+                }
+            ],
+            "name": "pharaoh legs",
+            "article": "a",
+            "weight": 4500,
+            "attack": 0,
+            "defense": 0,
+            "armor": 8,
+            "weaponType": null,
+            "slotType": "legs",
+            "description": "",
+            "resists": [
+                "Physical 1%"
+            ],
+            "category": "armor"
+        },
+        {
             "cid": 2446,
             "sid": 3334,
             "droppedBy": [
@@ -71721,8 +73959,24 @@
                     "p": 0.02333
                 },
                 {
+                    "name": "Embalmed Hand",
+                    "p": 0.02
+                },
+                {
                     "name": "Koshei The Deathless",
                     "p": 0.01666
+                },
+                {
+                    "name": "Bound Soul",
+                    "p": 0.015
+                },
+                {
+                    "name": "Carrion Scarab",
+                    "p": 0.012
+                },
+                {
+                    "name": "Forsaken Soul",
+                    "p": 0.01
                 },
                 {
                     "name": "Hand Of Cursed Fate",
@@ -71832,8 +74086,56 @@
                     "p": 0.95455
                 },
                 {
+                    "name": "Embalmed Hand",
+                    "p": 0.95
+                },
+                {
+                    "name": "Gilded Hand",
+                    "p": 0.95
+                },
+                {
+                    "name": "Cinder Hand",
+                    "p": 0.95
+                },
+                {
                     "name": "General Murius",
                     "p": 0.93333
+                },
+                {
+                    "name": "Condemned Soul",
+                    "p": 0.9
+                },
+                {
+                    "name": "Bound Soul",
+                    "p": 0.9
+                },
+                {
+                    "name": "Carrion Scarab",
+                    "p": 0.9
+                },
+                {
+                    "name": "Royal Hydra",
+                    "p": 0.9
+                },
+                {
+                    "name": "Temple Colossus",
+                    "p": 0.9
+                },
+                {
+                    "name": "Lapis Drake",
+                    "p": 0.9
+                },
+                {
+                    "name": "Executioner",
+                    "p": 0.9
+                },
+                {
+                    "name": "Forsaken Soul",
+                    "p": 0.9
+                },
+                {
+                    "name": "Cursed Scarab",
+                    "p": 0.9
                 },
                 {
                     "name": "Phantasm",
@@ -71842,6 +74144,18 @@
                 {
                     "name": "Juggernaut",
                     "p": 0.85549
+                },
+                {
+                    "name": "Sacred Scarab",
+                    "p": 0.85
+                },
+                {
+                    "name": "Embalmed Dragon",
+                    "p": 0.85
+                },
+                {
+                    "name": "Burnt Offering",
+                    "p": 0.8
                 },
                 {
                     "name": "Medusa",
@@ -72239,6 +74553,10 @@
                     "p": 0.42308
                 },
                 {
+                    "name": "Temple Colossus",
+                    "p": 0.08
+                },
+                {
                     "name": "Stone Golem",
                     "p": 0.05137
                 },
@@ -72296,6 +74614,10 @@
                 {
                     "name": "Hand Of Cursed Fate",
                     "p": 0.10249
+                },
+                {
+                    "name": "Embalmed Hand",
+                    "p": 0.1
                 },
                 {
                     "name": "Latrivan",
@@ -72669,6 +74991,26 @@
             "category": "melee"
         },
         {
+            "cid": 7420,
+            "sid": 7420,
+            "droppedBy": [
+                {
+                    "name": "Executioner",
+                    "p": 0.0005
+                }
+            ],
+            "name": "reaper's axe",
+            "article": "a",
+            "weight": 5900,
+            "attack": 46,
+            "defense": 27,
+            "armor": 0,
+            "weaponType": "axe",
+            "slotType": null,
+            "description": "",
+            "category": "melee"
+        },
+        {
             "cid": 2674,
             "sid": 3585,
             "droppedBy": [
@@ -72767,7 +75109,23 @@
                     "p": 0.0461
                 },
                 {
+                    "name": "Cinder Hand",
+                    "p": 0.04
+                },
+                {
+                    "name": "Burnt Offering",
+                    "p": 0.03
+                },
+                {
                     "name": "Mahrdis",
+                    "p": 0.02
+                },
+                {
+                    "name": "Condemned Soul",
+                    "p": 0.02
+                },
+                {
+                    "name": "Sacred Scarab",
                     "p": 0.02
                 },
                 {
@@ -73030,6 +75388,10 @@
                 {
                     "name": "Rahemos",
                     "p": 0.1
+                },
+                {
+                    "name": "Royal Hydra",
+                    "p": 0.03
                 },
                 {
                     "name": "Lich",
@@ -73537,6 +75899,22 @@
                 {
                     "name": "Ushuriel",
                     "p": 0.16947
+                },
+                {
+                    "name": "Embalmed Dragon",
+                    "p": 0.013
+                },
+                {
+                    "name": "Lapis Drake",
+                    "p": 0.012
+                },
+                {
+                    "name": "Royal Hydra",
+                    "p": 0.011
+                },
+                {
+                    "name": "Embalmed Hand",
+                    "p": 0.01
                 },
                 {
                     "name": "Undead Dragon",
@@ -74079,6 +76457,18 @@
             "sid": 3018,
             "droppedBy": [
                 {
+                    "name": "Cursed Scarab",
+                    "p": 0.02
+                },
+                {
+                    "name": "Sacred Scarab",
+                    "p": 0.015
+                },
+                {
+                    "name": "Carrion Scarab",
+                    "p": 0.015
+                },
+                {
                     "name": "Ancient Scarab",
                     "p": 0.005
                 }
@@ -74106,6 +76496,22 @@
             "sid": 3042,
             "droppedBy": [
                 {
+                    "name": "Cursed Scarab",
+                    "p": 0.2
+                },
+                {
+                    "name": "Sacred Scarab",
+                    "p": 0.18
+                },
+                {
+                    "name": "Carrion Scarab",
+                    "p": 0.18
+                },
+                {
+                    "name": "Burnt Offering",
+                    "p": 0.15
+                },
+                {
                     "name": "Ancient Scarab",
                     "p": 0.05
                 }
@@ -74129,9 +76535,49 @@
             ]
         },
         {
+            "cid": 22042,
+            "sid": 12695,
+            "droppedBy": [
+                {
+                    "name": "Sacred Scarab",
+                    "p": 0.0005
+                },
+                {
+                    "name": "Carrion Scarab",
+                    "p": 0.0005
+                },
+                {
+                    "name": "Cursed Scarab",
+                    "p": 0.0005
+                }
+            ],
+            "name": "scarab helmet",
+            "article": "a",
+            "weight": 2500,
+            "attack": 0,
+            "defense": 0,
+            "armor": 9,
+            "weaponType": null,
+            "slotType": "head",
+            "description": "",
+            "category": "armor"
+        },
+        {
             "cid": 2540,
             "sid": 3440,
             "droppedBy": [
+                {
+                    "name": "Sacred Scarab",
+                    "p": 0.03
+                },
+                {
+                    "name": "Cursed Scarab",
+                    "p": 0.03
+                },
+                {
+                    "name": "Carrion Scarab",
+                    "p": 0.025
+                },
                 {
                     "name": "Ancient Scarab",
                     "p": 0.005
@@ -74178,6 +76624,21 @@
             "slotType": "necklace",
             "description": "",
             "category": "armor"
+        },
+        {
+            "cid": 22199,
+            "sid": 12876,
+            "droppedBy": [],
+            "name": "sceptre of Osiris",
+            "article": "the",
+            "weight": 6500,
+            "attack": 51,
+            "defense": 31,
+            "armor": 0,
+            "weaponType": "club",
+            "slotType": null,
+            "description": "Senefris rules the dead with it.",
+            "category": "melee"
         },
         {
             "cid": 2419,
@@ -75110,6 +77571,10 @@
                 {
                     "name": "Sea Serpent",
                     "p": 0.002
+                },
+                {
+                    "name": "Bound Soul",
+                    "p": 0.0005
                 }
             ],
             "name": "skull helmet",
@@ -75147,8 +77612,20 @@
                     "p": 0.03044
                 },
                 {
+                    "name": "Forsaken Soul",
+                    "p": 0.02
+                },
+                {
+                    "name": "Bound Soul",
+                    "p": 0.018
+                },
+                {
                     "name": "Blightwalker",
                     "p": 0.0152
+                },
+                {
+                    "name": "Condemned Soul",
+                    "p": 0.015
                 },
                 {
                     "name": "Dipthrah",
@@ -75260,6 +77737,14 @@
                 {
                     "name": "Phantasm",
                     "p": 0.14286
+                },
+                {
+                    "name": "Carrion Scarab",
+                    "p": 0.14
+                },
+                {
+                    "name": "Cursed Scarab",
+                    "p": 0.14
                 },
                 {
                     "name": "Juggernaut",
@@ -75444,6 +77929,14 @@
                 {
                     "name": "Omruc",
                     "p": 0.2
+                },
+                {
+                    "name": "Temple Colossus",
+                    "p": 0.15
+                },
+                {
+                    "name": "Gilded Hand",
+                    "p": 0.15
                 },
                 {
                     "name": "Hellgorak",
@@ -75638,12 +78131,28 @@
                     "p": 0.16
                 },
                 {
+                    "name": "Executioner",
+                    "p": 0.16
+                },
+                {
+                    "name": "Forsaken Soul",
+                    "p": 0.15
+                },
+                {
                     "name": "Juggernaut",
                     "p": 0.13654
                 },
                 {
                     "name": "Latrivan",
                     "p": 0.12558
+                },
+                {
+                    "name": "Temple Colossus",
+                    "p": 0.12
+                },
+                {
+                    "name": "Cursed Scarab",
+                    "p": 0.12
                 },
                 {
                     "name": "Hellgorak",
@@ -75660,6 +78169,10 @@
                 {
                     "name": "Demon",
                     "p": 0.11
+                },
+                {
+                    "name": "Sacred Scarab",
+                    "p": 0.1
                 },
                 {
                     "name": "Killer Caiman",
@@ -75849,6 +78362,10 @@
                     "p": 0.2
                 },
                 {
+                    "name": "Cinder Hand",
+                    "p": 0.16
+                },
+                {
                     "name": "Hellgorak",
                     "p": 0.1313
                 },
@@ -75857,11 +78374,23 @@
                     "p": 0.12821
                 },
                 {
+                    "name": "Condemned Soul",
+                    "p": 0.12
+                },
+                {
+                    "name": "Sacred Scarab",
+                    "p": 0.12
+                },
+                {
                     "name": "Phantasm",
                     "p": 0.11576
                 },
                 {
                     "name": "Cave Dragon",
+                    "p": 0.1
+                },
+                {
+                    "name": "Burnt Offering",
                     "p": 0.1
                 },
                 {
@@ -76017,8 +78546,24 @@
                     "p": 0.2
                 },
                 {
+                    "name": "Lapis Drake",
+                    "p": 0.2
+                },
+                {
+                    "name": "Royal Hydra",
+                    "p": 0.15
+                },
+                {
+                    "name": "Embalmed Hand",
+                    "p": 0.15
+                },
+                {
                     "name": "Hand Of Cursed Fate",
                     "p": 0.14413
+                },
+                {
+                    "name": "Embalmed Dragon",
+                    "p": 0.14
                 },
                 {
                     "name": "Latrivan",
@@ -76273,6 +78818,26 @@
             "weaponType": null,
             "slotType": null,
             "description": "",
+            "category": "other"
+        },
+        {
+            "cid": 22289,
+            "sid": 3507,
+            "droppedBy": [
+                {
+                    "name": "Smuggler",
+                    "p": 0.025
+                }
+            ],
+            "name": "smugglers' cargo tag",
+            "article": "a",
+            "weight": 10,
+            "attack": 0,
+            "defense": 0,
+            "armor": 0,
+            "weaponType": null,
+            "slotType": null,
+            "description": "A tarred tag that marks a smugglers' bale. One corner is cut in the shape of a hook.",
             "category": "other"
         },
         {
@@ -77212,6 +79777,10 @@
                     "p": 0.00434
                 },
                 {
+                    "name": "Executioner",
+                    "p": 0.004
+                },
+                {
                     "name": "Forge Giant",
                     "p": 0.003125
                 },
@@ -77558,6 +80127,18 @@
                 {
                     "name": "Hellgorak",
                     "p": 0.09753
+                },
+                {
+                    "name": "Forsaken Soul",
+                    "p": 0.04
+                },
+                {
+                    "name": "Bound Soul",
+                    "p": 0.035
+                },
+                {
+                    "name": "Condemned Soul",
+                    "p": 0.03
                 },
                 {
                     "name": "Lost Soul",
@@ -78932,6 +81513,14 @@
                     "p": 0.10081
                 },
                 {
+                    "name": "Condemned Soul",
+                    "p": 0.012
+                },
+                {
+                    "name": "Bound Soul",
+                    "p": 0.012
+                },
+                {
                     "name": "Lizard Chosen",
                     "p": 0.01118
                 },
@@ -79550,8 +82139,20 @@
                     "p": 0.01001
                 },
                 {
+                    "name": "Gilded Hand",
+                    "p": 0.01
+                },
+                {
                     "name": "Juggernaut",
                     "p": 0.00942
+                },
+                {
+                    "name": "Carrion Scarab",
+                    "p": 0.004
+                },
+                {
+                    "name": "Cursed Scarab",
+                    "p": 0.004
                 },
                 {
                     "name": "Vampire",
@@ -79575,6 +82176,30 @@
                     "region": "main"
                 }
             ]
+        },
+        {
+            "cid": 22051,
+            "sid": 12704,
+            "droppedBy": [
+                {
+                    "name": "Executioner",
+                    "p": 0.0005
+                },
+                {
+                    "name": "Forsaken Soul",
+                    "p": 0.0005
+                }
+            ],
+            "name": "vizier legs",
+            "article": "a",
+            "weight": 4500,
+            "attack": 0,
+            "defense": 0,
+            "armor": 8,
+            "weaponType": null,
+            "slotType": "legs",
+            "description": "",
+            "category": "armor"
         },
         {
             "cid": 2185,
@@ -79759,8 +82384,16 @@
                     "p": 0.02
                 },
                 {
+                    "name": "Cinder Hand",
+                    "p": 0.02
+                },
+                {
                     "name": "Draken Spellweaver",
                     "p": 0.0166
+                },
+                {
+                    "name": "Burnt Offering",
+                    "p": 0.015
                 },
                 {
                     "name": "Dragon Lord",
@@ -79873,6 +82506,10 @@
             "cid": 2454,
             "sid": 3342,
             "droppedBy": [
+                {
+                    "name": "Executioner",
+                    "p": 0.03
+                },
                 {
                     "name": "Juggernaut",
                     "p": 0.01594
@@ -80050,6 +82687,10 @@
                 {
                     "name": "Black Knight",
                     "p": 0.04703
+                },
+                {
+                    "name": "Royal Hydra",
+                    "p": 0.03
                 },
                 {
                     "name": "Hellspawn",
@@ -80320,8 +82961,16 @@
                     "p": 0.15814
                 },
                 {
+                    "name": "Bound Soul",
+                    "p": 0.15
+                },
+                {
                     "name": "Lost Soul",
                     "p": 0.14035
+                },
+                {
+                    "name": "Forsaken Soul",
+                    "p": 0.14
                 },
                 {
                     "name": "Morgaroth",
@@ -80831,6 +83480,10 @@
                 {
                     "name": "Defiler",
                     "p": 0.01787
+                },
+                {
+                    "name": "Burnt Offering",
+                    "p": 0.015
                 },
                 {
                     "name": "Lizard Dragon Priest",
@@ -81743,6 +84396,20 @@
         {
             "id": 68,
             "name": "Dedicated Courier",
+            "monster": "Unknown",
+            "required": 1,
+            "alpha": false
+        },
+        {
+            "id": 69,
+            "name": "Seal Breaker",
+            "monster": "Unknown",
+            "required": 1,
+            "alpha": false
+        },
+        {
+            "id": 70,
+            "name": "What's a King to a God?",
             "monster": "Unknown",
             "required": 1,
             "alpha": false
