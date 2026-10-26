@@ -491,6 +491,7 @@
   .cc-box { display: flex; flex-direction: column; gap: 6px; margin: 4px 0 10px; padding: 8px 10px; border: 1px dashed var(--border); border-radius: 8px; }
   .cc-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
   .cc-head b { font-size: 12.5px; color: var(--text-primary); }
+  .cc-head .map-btn { flex: none; white-space: nowrap; }
   .cc-help { font-size: 12px; color: var(--text-muted); margin: 0; }
   .cc-list { display: flex; flex-direction: column; gap: 4px; margin: 0; padding: 0; list-style: none; }
   .cc-item { display: flex; align-items: center; gap: 8px; font-size: 12.5px; min-width: 0; }
@@ -736,10 +737,10 @@
               <button class="map-btn" id="upq-skip" type="button">Skip ›</button>
             </div>
           </div>
-          <div class="map-ovl upq cc-card" id="cc-card" hidden role="dialog" aria-label="Add your own stairs, hole or teleport">
+          <div class="map-ovl upq cc-card" id="cc-card" hidden role="dialog" aria-label="Add your own stairs, hole, teleport or door">
             <div class="upq-head">
               <span class="route-num cc-glyph" aria-hidden="true">+</span>
-              <div class="upq-title"><b>Add your own stairs, hole or teleport</b><small id="cc-where"></small></div>
+              <div class="upq-title"><b>Add your own stairs, hole, teleport or door</b><small id="cc-where"></small></div>
               <button class="map-btn upq-x" id="cc-close" type="button" aria-label="Cancel" title="Cancel (Esc)">✕</button>
             </div>
             <div class="upq-q" id="cc-q"></div>
@@ -4340,6 +4341,10 @@ const PATH_WORKER_SRC = function () {
     for (let i = 0; i + 5 < list.length; i += 6) own.add((list[i] * H + list[i + 2]) * W + list[i + 1]);
     for (let i = 0; i + 5 < list.length; i += 6) {
       const z = list[i], x = list[i + 1], y = list[i + 2], tz = list[i + 3], tx = list[i + 4], ty = list[i + 5];
+      if (tz < 0) {   // a door you use: its tile is walkable (your word), nothing more
+        if (x >= 0 && y >= 0 && x < W && y < H && floors[z] && !bit(floors, z, x, y)) { forced.push([z, y * W + x]); setBit(floors, z, y * W + x, true); }
+        continue;
+      }
       if (x < 0 || y < 0 || x >= W || y >= H || tx < 0 || ty < 0 || tx >= W || ty >= H || !floors[z] || !floors[tz]) continue;
       if (!bit(floors, z, x, y)) { forced.push([z, y * W + x]); setBit(floors, z, y * W + x, true); }
       let best = -1, bestD = Infinity;
@@ -4866,7 +4871,7 @@ function pathPrepare() {
   return pathState.ready;
 }
 
-// --- Your own stairs & holes: connections the minimap doesn't show (a hole
+// --- Your own stairs, holes & doors: connections the minimap doesn't show (a hole
 // you open with a shovel, holes you fall through, a rope spot...). Each is
 // one way, from the tile you mark to the same spot one floor down or up
 // (the nearest walkable tile within 2, as for the map's own). The
@@ -4883,15 +4888,21 @@ const CC_KINDS = {
   "rope": { label: "Rope spot", dz: -1, glyph: "↑" },
   "ladder": { label: "Ladder", dz: -1, glyph: "↑" },
   "stairs-up": { label: "Stairs up", dz: -1, glyph: "↑" },
-  "teleport": { label: "Teleport", dz: 0, glyph: "✦", picksTarget: true }
+  "teleport": { label: "Teleport", dz: 0, glyph: "✦", picksTarget: true },
+  // A door that only opens when used (quest doors...): no floor change -
+  // routes walk through its tile and the bot uses it on the way.
+  "door": { label: "Use door", dz: 0, glyph: "Π", door: true }
 };
 // Where one leads: the tile it was given (teleport), else straight down/up.
+// (A door leads nowhere: null.)
 function ccTarget(c) {
+  if (CC_KINDS[c.k].door) return null;
   return c.k === "teleport" ? { z: c.tz, x: c.tx, y: c.ty } : { z: c.z + CC_KINDS[c.k].dz, x: c.x, y: c.y };
 }
 function ccValid(c) {
   if (!c || !CC_KINDS[c.k] || ![c.z, c.x, c.y].every(Number.isInteger) || c.z < MAP_FLOOR_MIN || c.z > MAP_FLOOR_MAX) return false;
   if (c.k === "teleport" && ![c.tz, c.tx, c.ty].every(Number.isInteger)) return false;
+  if (CC_KINDS[c.k].door) return true;
   const t = ccTarget(c);
   return t.z >= MAP_FLOOR_MIN && t.z <= MAP_FLOOR_MAX && !(t.z === c.z && t.x === c.x && t.y === c.y);
 }
@@ -4916,7 +4927,7 @@ function ccPost() {
   const gr = pathState.grid, arr = new Int32Array(ccList.length * 6);
   ccList.forEach(function (c, i) {
     const t = ccTarget(c);
-    arr.set([c.z, c.x - gr.minX, c.y - gr.minY, t.z, t.x - gr.minX, t.y - gr.minY], i * 6);
+    arr.set(t ? [c.z, c.x - gr.minX, c.y - gr.minY, t.z, t.x - gr.minX, t.y - gr.minY] : [c.z, c.x - gr.minX, c.y - gr.minY, -1, -1, -1], i * 6);
   });
   pathState.worker.postMessage({ type: "custom", list: arr });
 }
@@ -4942,21 +4953,25 @@ function ccChanged() {
   ccPost();
   ccRender();
   if (routeState.mode !== "off") { routeRecompute(); routeRenderList(); botRenderMessages(); }
-  if (pathState.active && pathState.start && pathState.goal) pathRun();
+  if (pathState.active && pathState.start && pathState.goal) {
+    // The path's nodes get the waypoints your new door/stairs need (with #bot-path).
+    if (pathState.wps) pathState.fillLegs = pathState.wps.map(function (p, i) { return i; }).slice(0, -1);
+    pathRun();
+  }
   else drawMap();
 }
 function ccRender() {
   document.querySelectorAll("[data-cc]").forEach(function (box) {
     box.textContent = "";
     const head = document.createElement("div"); head.className = "cc-head";
-    const t = document.createElement("b"); t.textContent = "Your stairs & holes" + (ccList.length ? " (" + ccList.length + ")" : "");
+    const t = document.createElement("b"); t.textContent = "Your stairs, holes & doors" + (ccList.length ? " (" + ccList.length + ")" : "");
     const add = document.createElement("button"); add.type = "button"; add.className = "map-btn"; add.textContent = "+ Add";
-    add.title = "Mark a hole, shovel hole, rope spot, ladder, stairs or teleport the map doesn't know, so routes can use it";
+    add.title = "Mark a hole, shovel hole, rope spot, ladder, stairs, teleport or a door you open by using it, so routes can use it";
     add.addEventListener("click", ccStart);
     head.appendChild(t); head.appendChild(add); box.appendChild(head);
     if (!ccList.length) {
       const p = document.createElement("p"); p.className = "cc-help";
-      p.textContent = "Missing a way down or up (a hole you open with a shovel, holes you fall through) or a teleport? Add it and routes will use it.";
+      p.textContent = "Missing a way down or up (a hole you open with a shovel, holes you fall through), a teleport, or a door that opens when you use it (quest doors)? Add it and routes will use it.";
       box.appendChild(p);
       return;
     }
@@ -4969,7 +4984,7 @@ function ccRender() {
       tx.appendChild(document.createTextNode(k.label + " "));
       const to = ccTarget(c);
       const sm = document.createElement("small");
-      sm.textContent = "x" + c.x + " y" + c.y + " z" + c.z + " → " + (c.k === "teleport" ? "x" + to.x + " y" + to.y + " z" + to.z : "z" + to.z);
+      sm.textContent = "x" + c.x + " y" + c.y + " z" + c.z + (!to ? "" : " → " + (c.k === "teleport" ? "x" + to.x + " y" + to.y + " z" + to.z : "z" + to.z));
       tx.appendChild(sm);
       tx.addEventListener("click", function () { ccShow(c); });
       const del = document.createElement("button"); del.type = "button"; del.className = "map-btn"; del.textContent = "×";
@@ -5015,7 +5030,7 @@ function ccShowCard() {
   }
   if (!cc.tile) {
     where.textContent = "Switch to its floor with ▲/▼ first";
-    q.textContent = "Click the tile with the hole, rope spot, ladder, stairs or teleport.";
+    q.textContent = "Click the tile with the hole, rope spot, ladder, stairs, teleport or door.";
     ch.hidden = true;
     return;
   }
@@ -5028,7 +5043,7 @@ function ccShowCard() {
     if (to < MAP_FLOOR_MIN || to > MAP_FLOOR_MAX) return;
     const b = document.createElement("button"); b.type = "button";
     b.textContent = d.glyph + " " + d.label;
-    b.title = d.picksTarget ? "Teleport - then click where it takes you" : d.label + " to " + mapFloorLabel(to);
+    b.title = d.picksTarget ? "Teleport - then click where it takes you" : d.door ? "A door that opens when used - routes walk through it, the bot uses it first" : d.label + " to " + mapFloorLabel(to);
     b.setAttribute("aria-pressed", old && old.k === k ? "true" : "false");
     b.addEventListener("click", function () { ccPick(k); });
     ch.appendChild(b);
@@ -5156,7 +5171,13 @@ function pathNodeStats(nodes) {
     if (b.jump && a.z === b.z) teleports++;
     else if (a.z === b.z) steps += Math.max(Math.abs(b.x - a.x), Math.abs(b.y - a.y)); else changes++;
   }
-  return { steps: steps, changes: changes, teleports: teleports };
+  // Your doors (Use door) it walks through.
+  let useDoors = 0;
+  if (ccList.some(function (c) { return CC_KINDS[c.k].door; })) botLegTiles(nodes).forEach(function (t) {
+    const c = !t.portal && ccAt(t.z, t.x, t.y);
+    if (c && CC_KINDS[c.k].door) useDoors++;
+  });
+  return { steps: steps, changes: changes, teleports: teleports, useDoors: useDoors };
 }
 
 // --- Find path's nodes. The first search (start -> end) gives the path;
@@ -5302,6 +5323,7 @@ function pathShowResult(r, keepView) {
   pathState.flash = "";
   pathSetStatus(flash + "Route: ~" + fmt(steps) + " steps, " + changes + " floor change" + (changes === 1 ? "" : "s") +
     (st.teleports ? ", " + st.teleports + " teleport" + (st.teleports === 1 ? "" : "s") : "") +
+    (st.useDoors ? ", uses " + st.useDoors + " of your doors" : "") +
     (doors.length ? ", passes " + doors.length + " assumed door" + (doors.length === 1 ? "" : "s") + " (white squares - walls the minimap draws with no door, check these)" : "") +
     (r.ms ? " (" + Math.round(r.ms) + " ms, " + fmt(r.expanded) + " jump points)" : "") + ".", chips);
   pathRenderNodes();
@@ -5500,7 +5522,7 @@ async function pathStairDrop(d) {
   if (token !== pathState.reqId || !pathState.active) return;
   const at = "x" + t.x + " y" + t.y + " z" + t.z;
   if (!r.ok) {
-    pathState.flash = r.reason === "nostairs" ? at + " isn't a known stairs, ladder or hole - add it under Your stairs & holes to use it." : "Can't use the stairs at " + at + ": " + r.reason + ".";
+    pathState.flash = r.reason === "nostairs" ? at + " isn't a known stairs, ladder or hole - add it under Your stairs, holes & doors to use it." : "Can't use the stairs at " + at + ": " + r.reason + ".";
     pathRun(true);
     return;
   }
@@ -5519,8 +5541,9 @@ async function pathStairDrop(d) {
   pathSyncEnds();
   pathRun(true);
 }
-// After the stairs moved (with #bot-path): any other floor change on the
-// legs next to it gets its waypoint(s) too, as a fresh path would.
+// After the stairs moved, or your stairs/doors changed (with #bot-path): any
+// floor change or door of yours on those legs without its waypoint(s) gets
+// them, as a fresh path would.
 function pathFillFloors() {
   const legsTo = pathState.fillLegs, w = pathState.wps;
   pathState.fillLegs = null;
@@ -6987,7 +7010,7 @@ function botLegFill(out, nodes, spacing) {
       const dir = before ? botDirTo(before, marker) : null;
       // One of your own stairs/holes: its kind says what to write.
       const own = ccAt(marker.z, marker.x, marker.y);
-      const steps = own && ccTarget(own).z === t.z ? CC_BOT_STEPS[own.k] : [[t.z > marker.z ? "floor-down" : "up", "transitionTarget"]];
+      const steps = own && ccTarget(own) && ccTarget(own).z === t.z ? CC_BOT_STEPS[own.k] : [[t.z > marker.z ? "floor-down" : "up", "transitionTarget"]];
       // A walk sample on the stand tile itself would be redundant.
       const last = out[out.length - 1];
       if (last && last.t === "walk" && last.fill && last.z === at.z && last.x === at.x && last.y === at.y) { out.pop(); added--; }
@@ -7003,6 +7026,18 @@ function botLegFill(out, nodes, spacing) {
       continue;
     }
     walked++;
+    // One of your doors: use it (on the door, as the bot records a use),
+    // then walk on through.
+    const door = ccAt(t.z, t.x, t.y);
+    if (door && CC_KINDS[door.k].door && k < tiles.length - 1) {
+      const last = out[out.length - 1];
+      if (last && last.t === "walk" && last.fill && last.z === t.z && last.x === t.x && last.y === t.y) { out.pop(); added--; }
+      const wp = routeMakePoint(t.z, t.x, t.y, "", { t: "use" });
+      wp.params.targetOffset = "here";
+      out.push(wp); wp.fill = true; added++;
+      walked = 0;
+      continue;
+    }
     if (spacing > 0 && walked >= spacing && k < tiles.length - 1) {
       const end = tiles[tiles.length - 1];
       if (end.z === t.z && Math.max(Math.abs(end.x - t.x), Math.abs(end.y - t.y)) <= 2) continue;
