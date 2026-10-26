@@ -20,6 +20,7 @@ default origin/main, i.e. what the live site was built from) and records:
   - npc-trades.json / npc-poi.json: counts;
   - the minimap: tiles changed per floor, how many newly explored, and the
     areas where it happened.
+  - data/icons.json: item icons added, redrawn or removed (by item name).
 
 Writes data/derived/changes.json (the site's "Versions" page - every update
 is kept, newest first; re-running on the same day replaces that day's
@@ -100,6 +101,24 @@ def old_file(ref, name):
 def new_file(name):
     p = os.path.join(RAW, name)
     return open(p, "rb").read() if os.path.exists(p) else None
+
+
+def new_icons():
+    p = os.path.join(ROOT, "data", "icons.json")
+    return open(p, "rb").read() if os.path.exists(p) else None
+
+
+def diff_icons(old, new, lib):
+    """Item icons (data/icons.json, keyed by cid) added/redrawn, by item name."""
+    if new is None:
+        return None
+    old = old or {}
+    names = {str(it.get("cid")): it.get("name") for it in (lib.get("items") or [])}
+    name = lambda k: names.get(k) or "cid " + k
+    return {"before": len(old), "after": len(new),
+            "added": sorted((name(k) for k in new if k not in old), key=norm),
+            "changed": sorted((name(k) for k in new if k in old and new[k] != old[k]), key=norm),
+            "removed": sorted((name(k) for k in old if k not in new), key=norm)}
 
 
 def as_json(blob):
@@ -373,6 +392,12 @@ def markdown(u):
         out.append("- `%s`: %s" % (f["name"], f["status"]))
     for e in u.get("unexpectedFiles", []):
         out.append("- `%s`: not a download - hand-made inputs go in `data/manual/`" % e)
+    ic = u.get("icons")
+    if ic and (ic["added"] or ic["changed"] or ic["removed"]):
+        out += ["", "## Item icons", "- %d → %d" % (ic["before"], ic["after"])]
+        for k in ("added", "changed", "removed"):
+            if ic[k]:
+                out.append("  - %s: %s" % ("redrawn" if k == "changed" else k, ", ".join(ic[k])))
     out += ["", "## Library"]
     for s in u["library"]:
         if not (s["added"] or s["removed"] or s["changed"]):
@@ -485,6 +510,7 @@ def main():
             defs_n, defs_o, [m.get("name") for m in (lib_n.get("monsters") or [])],
             spawn_spellings(sp_n_raw) if sp_n_raw is not None else set())
     u["map"] = diff_minimap(old_file(args.ref, "minimap.bin.gz"), new_file("minimap.bin.gz"))
+    u["icons"] = diff_icons(as_json(git_show(args.ref, "data/icons.json")), as_json(new_icons()), lib_n)
 
     text = markdown(u)
     print(text)

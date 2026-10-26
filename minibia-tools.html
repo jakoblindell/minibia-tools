@@ -578,6 +578,9 @@
   .vx-entry { border-top: 1px solid var(--border); padding-top: 8px; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
   .vx-entry-name { font-size: 13.5px; font-weight: 600; color: var(--text-primary); }
   .vx-line { font-size: 13px; color: var(--text-secondary); overflow-wrap: anywhere; }
+  .vx-icons { line-height: 1.9; }
+  .vx-icons .mini-icon { margin-right: 3px; }
+  .vx-icons a { white-space: nowrap; }
   .vx-line b { color: var(--text-primary); font-weight: 600; }
   .vx-add { color: var(--good, #16a34a); }
   .vx-del { color: var(--bad, #dc2626); }
@@ -1635,6 +1638,30 @@ function renderVersions() {
       r.textContent = "Spelled differently in this export (same monsters, matched anyway): " + sp.respelled.map(function (x) { return x.old + " → " + x.new; }).join(", ");
       sec.body.appendChild(r);
     }
+    body.appendChild(sec.el);
+  }
+
+  // Item icons (data/icons.json)
+  const ic = u.icons;
+  if (ic && (ic.added.length || ic.changed.length || ic.removed.length)) {
+    const sec = vxDetails("Item icons", fmt(ic.before) + " → " + fmt(ic.after), false);
+    [["added", "New", "vx-add"], ["changed", "Redrawn", ""], ["removed", "Removed", "vx-del"]].forEach(function (g) {
+      if (!ic[g[0]].length) return;
+      const row = document.createElement("div"); row.className = "vx-line vx-icons";
+      const b = document.createElement("b"); b.textContent = g[1] + " (" + ic[g[0]].length + ") "; row.appendChild(b);
+      ic[g[0]].forEach(function (name, i) {
+        if (i) row.appendChild(document.createTextNode(", "));
+        const it = findItemByName(name), b64 = it && typeof ICONS !== "undefined" ? ICONS[String(it.cid)] : null;
+        const a = vxLink("items", name);
+        if (g[2]) a.className = g[2];
+        if (b64 && g[0] !== "removed") {
+          const img = document.createElement("img"); img.className = "mini-icon"; img.alt = ""; img.src = "data:image/png;base64," + b64;
+          a.insertBefore(img, a.firstChild);
+        }
+        row.appendChild(a);
+      });
+      sec.body.appendChild(row);
+    });
     body.appendChild(sec.el);
   }
 
