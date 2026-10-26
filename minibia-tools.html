@@ -491,6 +491,7 @@
   .cc-box { display: flex; flex-direction: column; gap: 6px; margin: 4px 0 10px; padding: 8px 10px; border: 1px dashed var(--border); border-radius: 8px; }
   .cc-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
   .cc-head b { font-size: 12.5px; color: var(--text-primary); }
+  .cc-head .map-btn { flex: none; white-space: nowrap; }
   .cc-help { font-size: 12px; color: var(--text-muted); margin: 0; }
   .cc-list { display: flex; flex-direction: column; gap: 4px; margin: 0; padding: 0; list-style: none; }
   .cc-item { display: flex; align-items: center; gap: 8px; font-size: 12.5px; min-width: 0; }
@@ -4870,7 +4871,7 @@ function pathPrepare() {
   return pathState.ready;
 }
 
-// --- Your own stairs & holes: connections the minimap doesn't show (a hole
+// --- Your own stairs, holes & doors: connections the minimap doesn't show (a hole
 // you open with a shovel, holes you fall through, a rope spot...). Each is
 // one way, from the tile you mark to the same spot one floor down or up
 // (the nearest walkable tile within 2, as for the map's own). The
@@ -4963,7 +4964,7 @@ function ccRender() {
   document.querySelectorAll("[data-cc]").forEach(function (box) {
     box.textContent = "";
     const head = document.createElement("div"); head.className = "cc-head";
-    const t = document.createElement("b"); t.textContent = "Your stairs & holes" + (ccList.length ? " (" + ccList.length + ")" : "");
+    const t = document.createElement("b"); t.textContent = "Your stairs, holes & doors" + (ccList.length ? " (" + ccList.length + ")" : "");
     const add = document.createElement("button"); add.type = "button"; add.className = "map-btn"; add.textContent = "+ Add";
     add.title = "Mark a hole, shovel hole, rope spot, ladder, stairs, teleport or a door you open by using it, so routes can use it";
     add.addEventListener("click", ccStart);
@@ -5521,7 +5522,7 @@ async function pathStairDrop(d) {
   if (token !== pathState.reqId || !pathState.active) return;
   const at = "x" + t.x + " y" + t.y + " z" + t.z;
   if (!r.ok) {
-    pathState.flash = r.reason === "nostairs" ? at + " isn't a known stairs, ladder or hole - add it under Your stairs & holes to use it." : "Can't use the stairs at " + at + ": " + r.reason + ".";
+    pathState.flash = r.reason === "nostairs" ? at + " isn't a known stairs, ladder or hole - add it under Your stairs, holes & doors to use it." : "Can't use the stairs at " + at + ": " + r.reason + ".";
     pathRun(true);
     return;
   }
