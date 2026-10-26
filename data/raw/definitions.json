@@ -22956,9 +22956,7 @@
    "article": "a",
    "name": "burning heart",
    "description": "It is still beating with unholy life. It seems to be rotting rapidly.",
-   "weight": 400,
-   "decayTo": 0,
-   "duration": 86400
+   "weight": 400
   }
  },
  "2354": {
@@ -59689,7 +59687,7 @@
    "name": "dead troll",
    "article": "a",
    "containerSize": 10,
-   "decayTo": "14008",
+   "decayTo": "2806",
    "duration": 10,
    "corpseType": "blood",
    "fluidSource": "blood",
@@ -59704,7 +59702,7 @@
    "name": "dead spider",
    "article": "a",
    "containerSize": 6,
-   "decayTo": 3068,
+   "decayTo": 2807,
    "duration": 10,
    "corpseType": "venom",
    "fluidSource": "slime",
@@ -59774,7 +59772,7 @@
    "name": "dead orc",
    "article": "a",
    "containerSize": 10,
-   "decayTo": 3080,
+   "decayTo": 2820,
    "duration": 10,
    "corpseType": "blood",
    "fluidSource": "blood",
@@ -59864,7 +59862,7 @@
    "name": "slain skeleton",
    "article": "a",
    "containerSize": 10,
-   "decayTo": 3103,
+   "decayTo": 2809,
    "duration": 10,
    "corpseType": "undead",
    "type": "corpse"
@@ -63597,9 +63595,8 @@
    "weight": 80,
    "slotType": "ring",
    "transformEquipTo": 6301,
-   "stopduration": 1,
-   "showduration": 1,
-   "absorbPercentDeath": "5"
+   "stopduration": true,
+   "showduration": true
   }
  },
  "6301": {
@@ -63615,9 +63612,7 @@
    "transformDeEquipTo": 6300,
    "duration": 480,
    "showduration": 1,
-   "armor": 1,
-   "description": "Wearing it makes you feel a little weaker than usual.",
-   "absorbPercentDeath": "5"
+   "armor": 1
   }
  },
  "6302": {
@@ -89881,10 +89876,10 @@
    "name": "skullcracker armor",
    "article": "a",
    "weight": 11000,
-   "armor": 14,
-   "absorbPercentDeath": 5,
-   "absorbPercentHoly": -5,
-   "slotType": "body"
+   "armor": 10,
+   "slotType": "body",
+   "absorbPercentPhysical": 4,
+   "vocations": "knight,paladin"
   }
  },
  "8890": {
@@ -129536,6 +129531,7 @@
   }
  },
  "22021": {
+  "__note": "The Anubis set (owner 2026-10-20: \"add them to anubis as loot, it needs to be rare but kept in mind there is only 1 spawn and the items need to be good\"): one of the 25 hand-drawn sets of 2026-08-15 (jackal until 10-13), now Anubis's own loot (monster 3060). Top of its slot plus 2% physical protection on every piece (owner 10-20: \"give all the items only 2% physical protection\"; the full set about 6%). Helmet and armor for knights and paladins like Mahrdis's armor and the royal draken mail; the legs for every vocation (owner 10-20: \"make the legs for mages too\"). The protection needs its line in equipment-buff-allowlist.json.",
   "id": 12674,
   "flags": 96,
   "group": 5,
@@ -129543,11 +129539,14 @@
    "article": "an",
    "name": "Anubis helmet",
    "weight": 2500,
-   "armor": 6,
-   "slotType": "head"
+   "armor": 12,
+   "slotType": "head",
+   "absorbPercentPhysical": 2,
+   "vocations": "knight,paladin"
   }
  },
  "22022": {
+  "__note": "The Anubis set (owner 2026-10-20: \"add them to anubis as loot, it needs to be rare but kept in mind there is only 1 spawn and the items need to be good\"): one of the 25 hand-drawn sets of 2026-08-15 (jackal until 10-13), now Anubis's own loot (monster 3060). Top of its slot plus 2% physical protection on every piece (owner 10-20: \"give all the items only 2% physical protection\"; the full set about 6%). Helmet and armor for knights and paladins like Mahrdis's armor and the royal draken mail; the legs for every vocation (owner 10-20: \"make the legs for mages too\"). The protection needs its line in equipment-buff-allowlist.json.",
   "id": 12675,
   "flags": 96,
   "group": 5,
@@ -129555,11 +129554,13 @@
    "article": "an",
    "name": "Anubis armor",
    "weight": 8000,
-   "armor": 10,
-   "slotType": "body"
+   "armor": 17,
+   "slotType": "body",
+   "vocations": "knight,paladin"
   }
  },
  "22023": {
+  "__note": "The Anubis set (owner 2026-10-20: \"add them to anubis as loot, it needs to be rare but kept in mind there is only 1 spawn and the items need to be good\"): one of the 25 hand-drawn sets of 2026-08-15 (jackal until 10-13), now Anubis's own loot (monster 3060). Top of its slot plus 2% physical protection on every piece (owner 10-20: \"give all the items only 2% physical protection\"; the full set about 6%). Helmet and armor for knights and paladins like Mahrdis's armor and the royal draken mail; the legs for every vocation (owner 10-20: \"make the legs for mages too\"). The protection needs its line in equipment-buff-allowlist.json.",
   "id": 12676,
   "flags": 96,
   "group": 5,
@@ -129567,8 +129568,9 @@
    "article": "an",
    "name": "Anubis legs",
    "weight": 4500,
-   "armor": 7,
-   "slotType": "legs"
+   "armor": 10,
+   "slotType": "legs",
+   "absorbPercentPhysical": 2
   }
  },
  "22024": {
@@ -129653,7 +129655,7 @@
    "article": "a",
    "name": "medjay helmet",
    "weight": 2500,
-   "armor": 6,
+   "armor": 9,
    "slotType": "head"
   }
  },
@@ -129665,7 +129667,7 @@
    "article": "a",
    "name": "medjay armor",
    "weight": 8000,
-   "armor": 10,
+   "armor": 14,
    "slotType": "body"
   }
  },
@@ -129677,7 +129679,7 @@
    "article": "a",
    "name": "medjay legs",
    "weight": 4500,
-   "armor": 7,
+   "armor": 8,
    "slotType": "legs"
   }
  },
@@ -129761,8 +129763,9 @@
    "article": "a",
    "name": "pharaoh helmet",
    "weight": 2500,
-   "armor": 6,
-   "slotType": "head"
+   "armor": 9,
+   "slotType": "head",
+   "absorbPercentPhysical": 1
   }
  },
  "22040": {
@@ -129773,8 +129776,9 @@
    "article": "a",
    "name": "pharaoh armor",
    "weight": 8000,
-   "armor": 10,
-   "slotType": "body"
+   "armor": 14,
+   "slotType": "body",
+   "absorbPercentPhysical": 1
   }
  },
  "22041": {
@@ -129785,8 +129789,9 @@
    "article": "a",
    "name": "pharaoh legs",
    "weight": 4500,
-   "armor": 7,
-   "slotType": "legs"
+   "armor": 8,
+   "slotType": "legs",
+   "absorbPercentPhysical": 1
   }
  },
  "22042": {
@@ -129797,7 +129802,7 @@
    "article": "a",
    "name": "scarab helmet",
    "weight": 2500,
-   "armor": 6,
+   "armor": 9,
    "slotType": "head"
   }
  },
@@ -129894,7 +129899,7 @@
    "article": "a",
    "name": "vizier armor",
    "weight": 8000,
-   "armor": 10,
+   "armor": 14,
    "slotType": "body"
   }
  },
@@ -129906,7 +129911,7 @@
    "article": "a",
    "name": "vizier legs",
    "weight": 4500,
-   "armor": 7,
+   "armor": 8,
    "slotType": "legs"
   }
  },
@@ -130784,8 +130789,8 @@
    "article": "a",
    "name": "magma axe",
    "weight": 5900,
-   "defense": 21,
-   "attack": 33,
+   "defense": 25,
+   "attack": 45,
    "weaponType": "axe"
   }
  },
@@ -130810,10 +130815,9 @@
    "article": "a",
    "name": "magma broadsword",
    "weight": 2300,
-   "defense": 20,
-   "attack": 35,
-   "weaponType": "sword",
-   "elementFire": "11"
+   "defense": 24,
+   "attack": 45,
+   "weaponType": "sword"
   }
  },
  "22128": {
@@ -130849,7 +130853,7 @@
    "article": "a",
    "name": "magma helmet",
    "weight": 6800,
-   "armor": 8,
+   "armor": 9,
    "slotType": "head"
   }
  },
@@ -131150,6 +131154,7 @@
   "properties": {
    "article": "an",
    "name": "eclipse axe",
+   "description": "Forged in Gydron's black fire, its blade gleams like the rim of an eclipse.",
    "weight": 6800,
    "defense": 38,
    "attack": 53,
@@ -131344,7 +131349,7 @@
    "name": "dead sacred scarab",
    "article": "a",
    "containerSize": 10,
-   "decayTo": 3004,
+   "decayTo": 22238,
    "duration": 10,
    "corpseType": "venom",
    "fluidSource": "slime",
@@ -131429,7 +131434,7 @@
    "name": "dead carrion scarab",
    "article": "a",
    "containerSize": 10,
-   "decayTo": 3004,
+   "decayTo": 22241,
    "duration": 10,
    "corpseType": "venom",
    "fluidSource": "slime",
@@ -131728,13 +131733,13 @@
   }
  },
  "22193": {
-  "__note": "Blood moon hat (owner 2026-10-14): a Halloween item, DORMANT (owner: \"make both the backpacks and hat dormant for now\"): nothing gives it out, it is not in the shop (data/760/shop/catalog.json) until the owner says so. The batwing hat recoloured by the owner in the Sprite Recolor tool (night-blue hat, blood-red wings). Armor 3 (owner: \"give it 3 armor\"), 6.00 oz like the batwing hat, and no magic level, so it is a look item and never a hat of the mad for points. Its look is virtual CID 30071 (client/src/data/virtual-items.js).",
-  "id": 30071,
+  "__note": "Hallowed hat (owner 2026-10-23: \"Hallowed Hat but it needs to replace the other halloween theme hat we made\", \"Like the blood moon hat\"): the owner's own drawing, a witch's hat with a carved jack-o'-lantern face whose glow flickers (2 frames, halloween_hat.rar hat_b_frame_1/2), client id 12914 (tools/dat-spr/add-item-from-frames.js --donor-cid 9103 --frames 2: the batwing hat's flags). It REPLACES the blood moon hat on this SID (that look was virtual CID 30071, a recolour of the batwing hat, now gone). Still a Halloween item and DORMANT (owner 2026-10-14: \"make both the backpacks and hat dormant for now\"): nothing gives it out, no shop row, no loot. Armor 3, 6.00 oz, head, no magic level, so it is a look item and never a hat of the mad for points.",
+  "id": 12914,
   "flags": 96,
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "blood moon hat",
+   "name": "hallowed hat",
    "weight": 600,
    "armor": 3,
    "slotType": "head"
@@ -131788,12 +131793,13 @@
   "flags": 112,
   "group": 0,
   "properties": {
-   "article": "",
-   "name": "Nephrenkhet's blade",
+   "article": "the",
+   "name": "khopesh of Ra",
    "weight": 4100,
    "defense": 34,
    "attack": 50,
-   "weaponType": "sword"
+   "weaponType": "sword",
+   "description": "Nephrenkhet conceived it in the light of Ra."
   }
  },
  "22198": {
@@ -131802,12 +131808,13 @@
   "flags": 112,
   "group": 0,
   "properties": {
-   "article": "",
-   "name": "Khamuret's axe",
+   "article": "the",
+   "name": "axe of Sekhmet",
    "weight": 8800,
    "defense": 29,
    "attack": 52,
-   "weaponType": "axe"
+   "weaponType": "axe",
+   "description": "Khamuret's axe. It burns with Sekhmet's rage."
   }
  },
  "22199": {
@@ -131816,29 +131823,31 @@
   "flags": 112,
   "group": 0,
   "properties": {
-   "article": "",
-   "name": "Senefris's mace",
+   "article": "the",
+   "name": "sceptre of Osiris",
    "weight": 6500,
    "defense": 31,
    "attack": 51,
-   "weaponType": "club"
+   "weaponType": "club",
+   "description": "Senefris rules the dead with it."
   }
  },
  "22200": {
-  "__note": "The Broken Seals reward set (owner 2026-10-18: tomb-themed weapons \"just about stronger than the inquisition rewards\", names one per beaten pharaoh, scheme C), hand-edited sprite in ~/Documents/minibia-item-pixels/tomb-set/tomb-xbow-a.png, client id 12877 (tools/dat-spr/add-item-sprite.js, donor CID 8023 = the royal crossbow, so the dat carries its flags). DORMANT: nothing gives it out (no shop, loot, NPC or quest script) until the owner says so. Two-handed, bolts, attack 7, range 3, minDamagePct 18 (royal crossbow 6/3/17).",
+  "__note": "The Broken Seals reward set (owner 2026-10-18: tomb-themed weapons \"just about stronger than the inquisition rewards\", names one per beaten pharaoh, scheme C), hand-edited sprite in ~/Documents/minibia-item-pixels/tomb-set/tomb-xbow-a.png, client id 12877 (tools/dat-spr/add-item-sprite.js, donor CID 8023 = the royal crossbow, so the dat carries its flags). DORMANT: nothing gives it out (no shop, loot, NPC or quest script) until the owner says so. Two-handed, bolts, attack 6 (owner 2026-10-23, was 7), range 4 (owner 2026-10-23, was 3), minDamagePct 18 (royal crossbow 6/3/17); the +18 needs its line in equipment-buff-allowlist.json.",
   "id": 12877,
   "flags": 96,
   "group": 0,
   "properties": {
-   "article": "",
-   "name": "Tutheres's crossbow",
+   "article": "the",
+   "name": "crossbow of Wadjet",
    "weight": 12000,
    "slotType": "two-handed",
    "weaponType": "distance",
    "ammoType": "bolt",
-   "range": 3,
+   "range": 4,
    "minDamagePct": 18,
-   "attack": 7
+   "attack": 6,
+   "description": "Tutheres's crossbow. Its bolts bite like a cobra."
   }
  },
  "22201": {
@@ -131847,29 +131856,1221 @@
   "flags": 96,
   "group": 0,
   "properties": {
-   "article": "",
-   "name": "Mahrdis's armor",
+   "article": "the",
+   "name": "armor of Ra",
    "armor": 17,
    "slotType": "body",
    "weight": 7500,
    "absorbPercentPhysical": 5,
-   "vocations": "knight,paladin"
+   "vocations": "knight,paladin",
+   "description": "Ra's light still burns in its gold."
   }
  },
  "22202": {
-  "__note": "The Broken Seals reward set (owner 2026-10-18: tomb-themed weapons \"just about stronger than the inquisition rewards\", names one per beaten pharaoh, scheme C), hand-edited sprite in ~/Documents/minibia-item-pixels/tomb-set/tomb-spellbook-c.png, client id 12879 (tools/dat-spr/add-item-sprite.js, donor CID 8090 = the spellbook of dark mysteries, so the dat carries its flags). DORMANT: nothing gives it out (no shop, loot, NPC or quest script) until the owner says so. The Dark Mysteries edit: defense 27, magic level +2, druids and sorcerers (spellbook of dark mysteries 26 +2). The +2 needs its line in equipment-buff-allowlist.json.",
+  "__note": "The Broken Seals reward set (owner 2026-10-18: tomb-themed weapons \"just about stronger than the inquisition rewards\", names one per beaten pharaoh, scheme C), hand-edited sprite in ~/Documents/minibia-item-pixels/tomb-set/tomb-spellbook-c.png, client id 12879 (tools/dat-spr/add-item-sprite.js, donor CID 8090 = the spellbook of dark mysteries, so the dat carries its flags). DORMANT: nothing gives it out (no shop, loot, NPC or quest script) until the owner says so. The Dark Mysteries edit: defense 27, magic level +3 (owner 2026-10-23: +2 was the same as the spellbook of dark mysteries, 26 +2), druids and sorcerers. The bonus needs its line in equipment-buff-allowlist.json.",
   "id": 12879,
   "flags": 96,
   "group": 0,
   "properties": {
    "article": "the",
-   "name": "book of the broken seals",
-   "description": "It shows your spells and can also shield against attacks when worn.",
+   "name": "ancient book of Thoth",
+   "description": "Thoth wrote every spell in its pages.",
    "weight": 2850,
-   "magiclevelpoints": 2,
+   "magiclevelpoints": 3,
    "defense": 27,
    "weaponType": "shield",
    "vocations": "druid,sorcerer"
+  }
+ },
+ "22203": {
+  "__note": "Anubis's corpse chain, stages 22203-22207 (owner 2026-10-19: Anubis on the Behemoth base, \"we will use that one\"); client ids 12880-12884 from tools/dat-spr/add-monster-from-cells.js (cells tools/dat-spr/generated-cells/anubis, donor the Behemoth's chain 5999 > 2931-2934: flags and shapes cloned). DORMANT: monster 3060 has no spawn yet.",
+  "id": 12880,
+  "flags": 64,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "dead anubis",
+   "containerSize": 10,
+   "decayTo": 22204,
+   "duration": 60,
+   "corpseType": "blood",
+   "fluidSource": "blood",
+   "type": "corpse"
+  }
+ },
+ "22204": {
+  "id": 12881,
+  "flags": 64,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "dead anubis",
+   "containerSize": 10,
+   "decayTo": 22205,
+   "duration": 300,
+   "corpseType": "blood",
+   "type": "corpse"
+  }
+ },
+ "22205": {
+  "id": 12882,
+  "flags": 64,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "dead anubis",
+   "containerSize": 10,
+   "decayTo": 22206,
+   "duration": 120,
+   "corpseType": "blood",
+   "type": "corpse"
+  }
+ },
+ "22206": {
+  "id": 12883,
+  "flags": 64,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "dead anubis",
+   "decayTo": 22207,
+   "duration": 120,
+   "corpseType": "blood"
+  }
+ },
+ "22207": {
+  "id": 12884,
+  "flags": 64,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "dead anubis",
+   "decayTo": 0,
+   "duration": 60,
+   "corpseType": "blood"
+  }
+ },
+ "22208": {
+  "__note": "Apep's corpse chain, stages 22208-22211 (owner 2026-10-19: \"I like apep maybe anubis has apep as summons?\"); client ids 12885-12888 from tools/dat-spr/add-monster-from-cells.js (cells tools/dat-spr/generated-cells/apep, donor the Sea Serpent's chain 8307 > 8308 > 8311 > 8312: flags, shapes, weights and timings cloned). Monster 3061, summoned by Anubis (3060), both dormant. 2026-10-23 (owner: \"Apep corpse should be based on wyrm\", picked \"B\"): the four stages are now the dead wyrm's (CIDs 8113-8116) recoloured to Apep's dark coils with red lava cracks, bones kept: client ids 12910-12913 (stage 3 drawn in the right column of a 2x2, which looks the same as the wyrm's 1x2; stage 4 1x1); 12885-12888 unused.",
+  "id": 12910,
+  "flags": 64,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "dead apep",
+   "weight": 60000,
+   "containerSize": 12,
+   "decayTo": 22209,
+   "duration": 10,
+   "corpseType": "blood",
+   "fluidSource": "blood",
+   "type": "corpse"
+  }
+ },
+ "22209": {
+  "id": 12911,
+  "flags": 64,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "dead apep",
+   "weight": 55000,
+   "containerSize": 12,
+   "decayTo": 22210,
+   "duration": 600,
+   "corpseType": "blood",
+   "fluidSource": "blood",
+   "type": "corpse"
+  }
+ },
+ "22210": {
+  "id": 12912,
+  "flags": 64,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "dead apep",
+   "weight": 45000,
+   "containerSize": 12,
+   "decayTo": 22211,
+   "duration": 600,
+   "corpseType": "blood",
+   "type": "corpse"
+  }
+ },
+ "22211": {
+  "id": 12913,
+  "flags": 64,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "dead apep",
+   "weight": 30000,
+   "decayTo": 0,
+   "duration": 600,
+   "corpseType": "blood"
+  }
+ },
+ "22212": {
+  "id": 10336,
+  "flags": 1,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "pile of bones",
+   "type": "magicfield",
+   "decayTo": 0,
+   "duration": 6,
+   "blocking": true
+  }
+ },
+ "22213": {
+  "__note": "The Embalmed Hand's corpse chain, stages 22213-22216 (owner 2026-10-22: Hand of Cursed Fate variants, \"All\"); client ids 12889-12892 from tools/dat-spr/add-monster-from-cells.js (cells tools/dat-spr/generated-cells/embalmed_hand, donor the Hand of Cursed Fate's chain 6311-6314: flags and one-tile shapes cloned, timings 10/900/600/600). No blood splash (undead). DORMANT: the monster has no spawn yet.",
+  "id": 12889,
+  "flags": 64,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "slain embalmed hand",
+   "containerSize": 10,
+   "decayTo": 22214,
+   "duration": 10,
+   "corpseType": "undead",
+   "type": "corpse"
+  }
+ },
+ "22214": {
+  "id": 12890,
+  "flags": 64,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "slain embalmed hand",
+   "containerSize": 10,
+   "decayTo": 22215,
+   "duration": 900,
+   "corpseType": "undead",
+   "type": "corpse"
+  }
+ },
+ "22215": {
+  "id": 12891,
+  "flags": 64,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "slain embalmed hand",
+   "containerSize": 10,
+   "decayTo": 22216,
+   "duration": 600,
+   "corpseType": "undead",
+   "type": "corpse"
+  }
+ },
+ "22216": {
+  "id": 12892,
+  "flags": 64,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "slain embalmed hand",
+   "decayTo": 0,
+   "duration": 600,
+   "corpseType": "undead"
+  }
+ },
+ "22217": {
+  "__note": "The Gilded Hand's corpse chain, stages 22217-22220 (owner 2026-10-22: Hand of Cursed Fate variants, \"All\"); client ids 12893-12896 from tools/dat-spr/add-monster-from-cells.js (cells tools/dat-spr/generated-cells/gilded_hand, donor the Hand of Cursed Fate's chain 6311-6314: flags and one-tile shapes cloned, timings 10/900/600/600). No blood splash (undead). DORMANT: the monster has no spawn yet.",
+  "id": 12893,
+  "flags": 64,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "slain gilded hand",
+   "containerSize": 10,
+   "decayTo": 22218,
+   "duration": 10,
+   "corpseType": "undead",
+   "type": "corpse"
+  }
+ },
+ "22218": {
+  "id": 12894,
+  "flags": 64,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "slain gilded hand",
+   "containerSize": 10,
+   "decayTo": 22219,
+   "duration": 900,
+   "corpseType": "undead",
+   "type": "corpse"
+  }
+ },
+ "22219": {
+  "id": 12895,
+  "flags": 64,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "slain gilded hand",
+   "containerSize": 10,
+   "decayTo": 22220,
+   "duration": 600,
+   "corpseType": "undead",
+   "type": "corpse"
+  }
+ },
+ "22220": {
+  "id": 12896,
+  "flags": 64,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "slain gilded hand",
+   "decayTo": 0,
+   "duration": 600,
+   "corpseType": "undead"
+  }
+ },
+ "22221": {
+  "__note": "The Cinder Hand's corpse chain, stages 22221-22224 (owner 2026-10-22: Hand of Cursed Fate variants, \"All\"); client ids 12897-12900 from tools/dat-spr/add-monster-from-cells.js (cells tools/dat-spr/generated-cells/cinder_hand, donor the Hand of Cursed Fate's chain 6311-6314: flags and one-tile shapes cloned, timings 10/900/600/600). No blood splash (fire). DORMANT: the monster has no spawn yet.",
+  "id": 12897,
+  "flags": 64,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "slain cinder hand",
+   "containerSize": 10,
+   "decayTo": 22222,
+   "duration": 10,
+   "corpseType": "fire",
+   "type": "corpse"
+  }
+ },
+ "22222": {
+  "id": 12898,
+  "flags": 64,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "slain cinder hand",
+   "containerSize": 10,
+   "decayTo": 22223,
+   "duration": 900,
+   "corpseType": "fire",
+   "type": "corpse"
+  }
+ },
+ "22223": {
+  "id": 12899,
+  "flags": 64,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "slain cinder hand",
+   "containerSize": 10,
+   "decayTo": 22224,
+   "duration": 600,
+   "corpseType": "fire",
+   "type": "corpse"
+  }
+ },
+ "22224": {
+  "id": 12900,
+  "flags": 64,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "slain cinder hand",
+   "decayTo": 0,
+   "duration": 600,
+   "corpseType": "fire"
+  }
+ },
+ "22225": {
+  "__note": "God statues (owner 2026-10-22: \"new godly like statues based on the regular sandstone statues\", Anubis, Horus / Ra, Thoth in gold sandstone, \"we only need the edits\", \"keep horus 1\"): sprite-generator edits of the sandstone statue 1451, added with tools/dat-spr/add-item-from-frames.js --donor-cid 2034 (1451's flags and 2x2 shape). Placed by the owner.",
+  "id": 12901,
+  "flags": 8193,
+  "group": 0,
+  "properties": {
+   "article": "an",
+   "name": "Anubis statue"
+  }
+ },
+ "22226": {
+  "id": 12902,
+  "flags": 8193,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "Horus statue"
+  }
+ },
+ "22227": {
+  "id": 12903,
+  "flags": 8193,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "Thoth statue"
+  }
+ },
+ "22228": {
+  "__note": "The giant Anubis statue (owner 2026-10-22: \"can we somehow make a giant anubis statue as well? that covers 4 tiles?\", version A of the edits): one 96x96 picture on a 2x2 base, cut into four pieces, one per base tile, each a 2x2 sprite like the sandstone statue 1451 (donor CID 2034, its flags: blocking). Place them in a square: 22228 top-left, 22229 top-right, 22230 bottom-left, 22231 bottom-right. Each part of the picture is drawn by the piece drawn last that covers it (top-left: the image's top-left corner; top-right: the top row; bottom-left: the left column; bottom-right: the base). Art: ~/Documents/minibia-item-pixels/god-statues/giant, cells tools/dat-spr/generated-cells/god_statues.",
+  "id": 12904,
+  "flags": 8193,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "giant Anubis statue"
+  }
+ },
+ "22229": {
+  "id": 12905,
+  "flags": 8193,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "giant Anubis statue"
+  }
+ },
+ "22230": {
+  "id": 12906,
+  "flags": 8193,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "giant Anubis statue"
+  }
+ },
+ "22231": {
+  "id": 12907,
+  "flags": 8193,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "giant Anubis statue"
+  }
+ },
+ "22232": {
+  "__note": "The ancient statue while Anubis rests (owner 2026-10-22: \"Jackal\", then \"B\"): an edit of the Anubis statue 22225 (gold drained to dark cold stone, cracks, chips at its feet; ~/Documents/minibia-item-pixels/resting-statue/rest_jackal.py), added with tools/dat-spr/add-item-from-frames.js --donor-cid 12901 (22225's flags and 2x2 shape). Only ever the statue NPC's look (ANUBIS.restLook), never placed.",
+  "id": 12908,
+  "flags": 8193,
+  "group": 0,
+  "properties": {
+   "article": "an",
+   "name": "Anubis statue"
+  }
+ },
+ "22233": {
+  "__note": "The heart of Anubis (owner 2026-10-22: \"black burning heart on a pedestal\", \"Use same pedestal as players must stand on\", \"A\", \"creme\"): an edit of the burning heart 3240 (both frames, recoloured to black fire with a dark red glow) set on the pedestal players hold (463 / CID 477) recoloured to cream (~/Documents/minibia-item-pixels/anubis-heart/heart.py --cream), added with tools/dat-spr/add-item-from-frames.js --donor-cid 477 --frames 2. Made bigger 2026-10-23 (owner: \"just use the scale x2 one\"): the heart Scale2x on the same pedestal (~/Documents/minibia-item-pixels/anubis-heart/bigger.py), redrawn in place with tools/dat-spr/replace-patch-sprite.js. Only ever the look of the monster Heart of Anubis (ANUBIS.heart.look), never placed.",
+  "id": 12909,
+  "flags": 12,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "heart of Anubis"
+  }
+ },
+ "22234": {
+  "__note": "The heart of Tutheres (owner 2026-10-23: the seal pharaohs each drop their own burning heart; four on the tables round Anubis's statue wake him, quest/broken-seals.js ANUBIS.hearts): the burning heart 3240 recoloured (client VirtualItems 30072). A sure drop of Tutheres; never rots.",
+  "id": 30072,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "the",
+   "name": "heart of Tutheres",
+   "description": "It still beats, eaten by a green fire of poison.",
+   "weight": 400
+  }
+ },
+ "22235": {
+  "__note": "The heart of Nephrenkhet (owner 2026-10-23: the seal pharaohs each drop their own burning heart; four on the tables round Anubis's statue wake him, quest/broken-seals.js ANUBIS.hearts): the burning heart 3240 recoloured (client VirtualItems 30073). A sure drop of Nephrenkhet; never rots.",
+  "id": 30073,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "the",
+   "name": "heart of Nephrenkhet",
+   "description": "It still beats inside a burning shell of gold.",
+   "weight": 400
+  }
+ },
+ "22236": {
+  "__note": "The heart of Khamuret (owner 2026-10-23: the seal pharaohs each drop their own burning heart; four on the tables round Anubis's statue wake him, quest/broken-seals.js ANUBIS.hearts): the burning heart 3240 recoloured (client VirtualItems 30074). A sure drop of Khamuret; never rots.",
+  "id": 30074,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "the",
+   "name": "heart of Khamuret",
+   "description": "It still beats, charred black, magma glowing through its cracks.",
+   "weight": 400
+  }
+ },
+ "22237": {
+  "__note": "The heart of Senefris (owner 2026-10-23: the seal pharaohs each drop their own burning heart; four on the tables round Anubis's statue wake him, quest/broken-seals.js ANUBIS.hearts): the burning heart 3240 recoloured (client VirtualItems 30075). A sure drop of Senefris; never rots.",
+  "id": 30075,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "the",
+   "name": "heart of Senefris",
+   "description": "It still beats, bone-white, wrapped in a pale and cold flame.",
+   "weight": 400
+  }
+ },
+ "22238": {
+  "__note": "The sacred scarab's corpse stages 2-4 (owner 2026-10-23: the carrion scarab's second decay stage was still an ancient scarab corpse): its stage 1 used to decay into the ancient scarab's chain 3004-3006. Stage 2 is its own stage-1 picture (as the ancient's 4185 is the same picture as its stage 1); stages 3-4 are the ancient's 4186/4187 recoloured to the sacred scarab, client ids 12915/12916 from tools/dat-spr/add-monster-from-cells.js --corpse-only (cells tools/dat-spr/generated-cells/scarab-corpses). Timings and flags as the ancient's chain.",
+  "id": 12843,
+  "flags": 64,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "dead sacred scarab",
+   "containerSize": 10,
+   "decayTo": 22239,
+   "duration": 300,
+   "corpseType": "venom",
+   "fluidSource": "slime",
+   "type": "corpse"
+  }
+ },
+ "22239": {
+  "id": 12915,
+  "flags": 64,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "dead sacred scarab",
+   "containerSize": 10,
+   "decayTo": 22240,
+   "duration": 120,
+   "corpseType": "venom",
+   "type": "corpse"
+  }
+ },
+ "22240": {
+  "id": 12916,
+  "flags": 64,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "dead sacred scarab",
+   "decayTo": 0,
+   "duration": 60,
+   "corpseType": "venom"
+  }
+ },
+ "22241": {
+  "__note": "The carrion scarab's corpse stages 2-4 (owner 2026-10-23: the carrion scarab's second decay stage was still an ancient scarab corpse): its stage 1 used to decay into the ancient scarab's chain 3004-3006. Stage 2 is its own stage-1 picture (as the ancient's 4185 is the same picture as its stage 1); stages 3-4 are the ancient's 4186/4187 recoloured to the carrion scarab, client ids 12917/12918 from tools/dat-spr/add-monster-from-cells.js --corpse-only (cells tools/dat-spr/generated-cells/scarab-corpses). Timings and flags as the ancient's chain.",
+  "id": 12849,
+  "flags": 64,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "dead carrion scarab",
+   "containerSize": 10,
+   "decayTo": 22242,
+   "duration": 300,
+   "corpseType": "venom",
+   "fluidSource": "slime",
+   "type": "corpse"
+  }
+ },
+ "22242": {
+  "id": 12917,
+  "flags": 64,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "dead carrion scarab",
+   "containerSize": 10,
+   "decayTo": 22243,
+   "duration": 120,
+   "corpseType": "venom",
+   "type": "corpse"
+  }
+ },
+ "22243": {
+  "id": 12918,
+  "flags": 64,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "dead carrion scarab",
+   "decayTo": 0,
+   "duration": 60,
+   "corpseType": "venom"
+  }
+ },
+ "22244": {
+  "_note": "The Court Collection (owner 2026-10-24): 32 prestige items for the gauntlet shop rotation, drawn in code (~/Documents/minibia-item-pixels/court-collection), the owner picked them in the Court Collection page. SIDs 22244-22275 = CIDs 12919-12950 (tools/dat-spr/add-item-sprite.js, donors 3011/9389 without the light flag; cells tools/dat-spr/generated-cells/court-collection). Each kind copies its shop twin: masks the ceremonial mask (head, armor 10), crowns the crown (head, no stats), dolls the fan doll of the King, keepsakes the frozen starlight. Sold one per kind per quarter, data/760/gauntlet-shop/catalog.json.",
+  "id": 12919,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "masquerade mask of the court",
+   "description": "Worn only behind the doors of the inner court.",
+   "weight": 700,
+   "armor": 10,
+   "slotType": "head"
+  }
+ },
+ "22245": {
+  "id": 12920,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "crimson ball mask",
+   "description": "No name is spoken at the crimson ball, only the colour of a mask.",
+   "weight": 700,
+   "armor": 10,
+   "slotType": "head"
+  }
+ },
+ "22246": {
+  "id": 12921,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "silver moon mask",
+   "description": "Given to the guests of the midnight gatherings, and taken back at dawn.",
+   "weight": 700,
+   "armor": 10,
+   "slotType": "head"
+  }
+ },
+ "22247": {
+  "id": 12922,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "peacock salon mask",
+   "description": "The salon admits a hundred eyes and remembers none of them.",
+   "weight": 700,
+   "armor": 10,
+   "slotType": "head"
+  }
+ },
+ "22248": {
+  "id": 12923,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "black swan mask",
+   "description": "Its wearer is announced as a swan and nothing more.",
+   "weight": 700,
+   "armor": 10,
+   "slotType": "head"
+  }
+ },
+ "22249": {
+  "id": 12924,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "harlequin mask",
+   "description": "Black and red diamonds, for a guest who plays two sides.",
+   "weight": 700,
+   "armor": 10,
+   "slotType": "head"
+  }
+ },
+ "22250": {
+  "id": 12925,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "mask of the sun king",
+   "description": "The sun king held court at night, behind his own rays.",
+   "weight": 700,
+   "armor": 10,
+   "slotType": "head"
+  }
+ },
+ "22251": {
+  "id": 12926,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "owl mask of the night council",
+   "description": "The night council sees everything and speaks only after midnight.",
+   "weight": 700,
+   "armor": 10,
+   "slotType": "head"
+  }
+ },
+ "22252": {
+  "id": 12927,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "winter court mask",
+   "description": "The winter court gathers once a year, when the snow hides every track.",
+   "weight": 700,
+   "armor": 10,
+   "slotType": "head"
+  }
+ },
+ "22253": {
+  "id": 12928,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "crown of the hidden heir",
+   "description": "Made for an heir whose name the court was never told.",
+   "weight": 600,
+   "slotType": "head"
+  }
+ },
+ "22254": {
+  "id": 12929,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "circlet of the inner court",
+   "description": "Every member of the inner court wears the same silver, so none stands above the others.",
+   "weight": 600,
+   "slotType": "head"
+  }
+ },
+ "22255": {
+  "id": 12930,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "regent's crown",
+   "description": "The regent wore it for a king who never came of age.",
+   "weight": 1500,
+   "slotType": "head"
+  }
+ },
+ "22256": {
+  "id": 12931,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "sun diadem",
+   "description": "The sun king's diadem, too bright to look at for long.",
+   "weight": 900,
+   "slotType": "head"
+  }
+ },
+ "22257": {
+  "id": 12932,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "moon diadem",
+   "description": "The moon diadem passes from queen to queen in secret.",
+   "weight": 800,
+   "slotType": "head"
+  }
+ },
+ "22258": {
+  "id": 12933,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "chancellor's laurel",
+   "description": "The chancellor's laurel says what he cannot: that he holds the real power.",
+   "weight": 400,
+   "slotType": "head"
+  }
+ },
+ "22259": {
+  "id": 12934,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "crown of the old kings",
+   "description": "The crown of the old line, kept in a vault no map shows.",
+   "weight": 1500,
+   "slotType": "head"
+  }
+ },
+ "22260": {
+  "id": 12935,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "doll of the Queen",
+   "description": "Only guests of the Queen's private gatherings were given one.",
+   "weight": 650
+  }
+ },
+ "22261": {
+  "id": 12936,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "doll of the King's heir",
+   "description": "The heir the court kept hidden until his coronation day.",
+   "weight": 650
+  }
+ },
+ "22262": {
+  "id": 12937,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "doll of the Princess",
+   "description": "The Princess was promised to three kingdoms, and chose none.",
+   "weight": 650
+  }
+ },
+ "22263": {
+  "id": 12938,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "doll of the court Jester",
+   "description": "The Jester hears every secret and is believed about none of them.",
+   "weight": 650
+  }
+ },
+ "22264": {
+  "id": 12939,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "doll of the royal Herald",
+   "description": "The Herald announces every guest by a name that is not their own.",
+   "weight": 650
+  }
+ },
+ "22265": {
+  "id": 12940,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "doll of the Queen Mother",
+   "description": "She still decides who is invited.",
+   "weight": 650
+  }
+ },
+ "22266": {
+  "id": 12941,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "doll of the court Mage",
+   "description": "The court Mage reads the guests' fortunes in the candle smoke.",
+   "weight": 650
+  }
+ },
+ "22267": {
+  "id": 12942,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "doll of the royal Guard",
+   "description": "The Guard at the inner door has never once been told the password.",
+   "weight": 650
+  }
+ },
+ "22268": {
+  "id": 12943,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "doll of the White Queen",
+   "description": "The White Queen's court gathers at the first snow.",
+   "weight": 650
+  }
+ },
+ "22269": {
+  "id": 12944,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "doll of the Black Queen",
+   "description": "The Black Queen rules the court that meets below the palace.",
+   "weight": 650
+  }
+ },
+ "22270": {
+  "id": 12945,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "sealed invitation",
+   "description": "An invitation to a gathering that does not exist, on a night that never happened.",
+   "weight": 50
+  }
+ },
+ "22271": {
+  "id": 12946,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "velvet purse of silence",
+   "description": "Whatever is paid from this purse is never spoken of.",
+   "weight": 300
+  }
+ },
+ "22272": {
+  "id": 12947,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "cipher wheel of the court",
+   "description": "Turn it twice to the left to read the court's letters.",
+   "weight": 400
+  }
+ },
+ "22273": {
+  "id": 12948,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "brooch of the inner circle",
+   "description": "Worn on the inside of the cloak, where only the circle can see it.",
+   "weight": 100
+  }
+ },
+ "22274": {
+  "id": 12949,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "key to the secret salon",
+   "description": "The salon behind the library opens to this key and to no other.",
+   "weight": 150
+  }
+ },
+ "22275": {
+  "id": 12950,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "name": "the queen's perfume",
+   "description": "Guests who wear it are let in without a word.",
+   "weight": 300
+  }
+ },
+ "22276": {
+  "_note": "The Hive Collection (owner 2026-10-24): 13 prestige items for the infestation shop rotation, the owner picked them in the Hive Collection page; each is its twin sprite repainted (~/Documents/minibia-item-pixels/hive-collection, variants.py) and copies the twin exactly: hammers = jade hammer 7422, bows = silkweaver bow 8857, armors = swamplair armor 8880, shields = terran shield 8909 (dat flags cloned from the twin, tools/dat-spr/add-item-sprite.js; cells tools/dat-spr/generated-cells/hive-collection). SIDs 22276-22288 = CIDs 12951-12963. Sold one per kind per quarter, data/760/infestation-shop/catalog.json.",
+  "id": 12951,
+  "flags": 112,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "amber hive hammer",
+   "description": "A hive's resin, set around a beetle that never got out.",
+   "weight": 3200,
+   "defense": 21,
+   "attack": 46,
+   "weaponType": "club"
+  }
+ },
+ "22277": {
+  "id": 12952,
+  "flags": 112,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "beetle shell maul",
+   "description": "Its head is the shell of a giant beetle, still harder than any steel the miners found.",
+   "weight": 3200,
+   "defense": 21,
+   "attack": 46,
+   "weaponType": "club"
+  }
+ },
+ "22278": {
+  "id": 12953,
+  "flags": 112,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "bone mallet",
+   "description": "Carved from the knee of something that lived in the swamp before the hive.",
+   "weight": 3200,
+   "defense": 21,
+   "attack": 46,
+   "weaponType": "club"
+  }
+ },
+ "22279": {
+  "id": 12954,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "black widow bow",
+   "description": "The spider on its grip is the reason nobody borrows it.",
+   "weight": 2200,
+   "slotType": "two-handed",
+   "weaponType": "distance",
+   "ammoType": "arrow",
+   "range": 6,
+   "attack": 3
+  }
+ },
+ "22280": {
+  "id": 12955,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "beetle wing bow",
+   "description": "Its limbs flash green and blue when the string is drawn.",
+   "weight": 2200,
+   "slotType": "two-handed",
+   "weaponType": "distance",
+   "ammoType": "arrow",
+   "range": 6,
+   "attack": 3
+  }
+ },
+ "22281": {
+  "id": 12956,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "swamp reed bow",
+   "description": "Reeds from the deepest part of the swamp, and a frog who refused to leave.",
+   "weight": 2200,
+   "slotType": "two-handed",
+   "weaponType": "distance",
+   "ammoType": "arrow",
+   "range": 6,
+   "attack": 3
+  }
+ },
+ "22282": {
+  "id": 12957,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "amber hive armor",
+   "description": "Plates of hardened resin from the hive's oldest walls.",
+   "weight": 8450,
+   "armor": 13,
+   "slotType": "body"
+  }
+ },
+ "22283": {
+  "id": 12958,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "beetle carapace armor",
+   "description": "The shell of a giant beetle, closed over the wearer's chest.",
+   "weight": 8450,
+   "armor": 13,
+   "slotType": "body"
+  }
+ },
+ "22284": {
+  "id": 12959,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "bone ribcage armor",
+   "description": "Worn outside the ribs it once protected.",
+   "weight": 8450,
+   "armor": 13,
+   "slotType": "body"
+  }
+ },
+ "22285": {
+  "id": 12960,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "blood mantis armor",
+   "description": "A red mantis is never seen twice.",
+   "weight": 8450,
+   "armor": 13,
+   "slotType": "body"
+  }
+ },
+ "22286": {
+  "id": 12961,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "amber comb shield",
+   "description": "Amber above, the hive's dark wax below.",
+   "weight": 12000,
+   "defense": 38,
+   "weaponType": "shield"
+  }
+ },
+ "22287": {
+  "id": 12962,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "jade bulwark",
+   "description": "Jade above, bound in gold, and as patient as the stone.",
+   "weight": 12000,
+   "defense": 38,
+   "weaponType": "shield"
+  }
+ },
+ "22288": {
+  "id": 12963,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "bone ward",
+   "description": "Bone above and the swamp's blood-red clay below.",
+   "weight": 12000,
+   "defense": 38,
+   "weaponType": "shield"
+  }
+ },
+ "22289": {
+  "__note": "Beneath Rookgaard (owner 2026-10-24, dormant): a Smuggler's drop; four crews' tags laid on the tally tables of the sewers' landing call Captain Grimwake (quest/beneath-rookgaard.js CARGO). The label's look (client 3507), not readable. Never rots (owner: 'the items should not rot').",
+  "id": 3507,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "smugglers' cargo tag",
+   "description": "A tarred tag that marks a smugglers' bale. One corner is cut in the shape of a hook.",
+   "weight": 10
+  }
+ },
+ "22290": {
+  "__note": "Beneath Rookgaard: a Pirate Marauder's drop (CARGO, see 22289).",
+  "id": 3507,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "marauders' cargo tag",
+   "description": "A tag that marks a marauders' crate. Someone has scratched a skull into it.",
+   "weight": 10
+  }
+ },
+ "22291": {
+  "__note": "Beneath Rookgaard: a Pirate Buccaneer's drop (CARGO, see 22289).",
+  "id": 3507,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "buccaneers' cargo tag",
+   "description": "A tag that marks a buccaneers' barrel, stamped with two crossed sabres.",
+   "weight": 10
+  }
+ },
+ "22292": {
+  "__note": "Beneath Rookgaard: a Pirate Cutthroat's drop (CARGO, see 22289).",
+  "id": 3507,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "cutthroats' cargo tag",
+   "description": "A tag that marks a cutthroats' chest. It is stained dark at one edge.",
+   "weight": 10
+  }
+ },
+ "22293": {
+  "__note": "Beneath Rookgaard: Captain Grimwake's sure drop; the four links on the prison's anvils wake the Hollow Lord (quest/beneath-rookgaard.js LINKS). The piece of iron's look (client 3110). Never rots.",
+  "id": 3110,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "rusted chain link",
+   "description": "A link of the founders' chain, red with the rust of the sewers.",
+   "weight": 600
+  }
+ },
+ "22294": {
+  "__note": "Beneath Rookgaard: the Queen of the Webs' sure drop (LINKS, see 22293).",
+  "id": 3110,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "silk-wound chain link",
+   "description": "A link of the founders' chain, wound so tight in spider silk that it no longer rattles.",
+   "weight": 600
+  }
+ },
+ "22295": {
+  "__note": "Beneath Rookgaard: Gorg the Forgemaster's sure drop (LINKS, see 22293).",
+  "id": 3110,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "new-forged chain link",
+   "description": "A link of the founders' chain, forged again by a cyclops. It is still warm.",
+   "weight": 600
+  }
+ },
+ "22296": {
+  "__note": "Beneath Rookgaard: the Bone Shepherd's sure drop (LINKS, see 22293).",
+  "id": 3110,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "bone-white chain link",
+   "description": "A link of the founders' chain, bleached white in the crypt's ossuary.",
+   "weight": 600
+  }
+ },
+ "22297": {
+  "__note": "Beneath Rookgaard: Sister Maelis gives it to a player Corvin sent; Corvin takes it back (quest/beneath-rookgaard.js PREQUEST). The damaged logbook's look (client 6124). Never rots.",
+  "id": 6124,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "the",
+   "name": "cult's ledger",
+   "description": "Names, boats and dates, page after page, in a small careful hand. Every name is crossed out in black.",
+   "weight": 900
   }
  }
 }
