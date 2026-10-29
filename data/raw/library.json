@@ -35725,7 +35725,8 @@
                 "necromant nectar",
                 "rebellion",
                 "berfasmur is ferumbras",
-                "berfasmur"
+                "berfasmur",
+                "wyat"
             ],
             "sells": [],
             "buys": []
@@ -38754,7 +38755,9 @@
                 "one eyed stranger",
                 "berfasmur",
                 "hengis wulfson",
-                "nexus"
+                "nexus",
+                "chester kahs",
+                "chester"
             ],
             "sells": [
                 {
@@ -39010,7 +39013,6 @@
                 "name",
                 "gamel",
                 "rebellion",
-                "berfasmur",
                 "offer"
             ],
             "sells": [
@@ -48033,7 +48035,8 @@
                 "gamel",
                 "sinister strangers",
                 "goshnar",
-                "necromant nectar"
+                "necromant nectar",
+                "frodo"
             ],
             "sells": [],
             "buys": []
@@ -55995,8 +55998,6 @@
                 "elane",
                 "gorn",
                 "benjamin",
-                "ferumbras",
-                "quest",
                 "god",
                 "banor",
                 "zathroth",
@@ -84410,6 +84411,13 @@
         {
             "id": 70,
             "name": "What's a King to a God?",
+            "monster": "Unknown",
+            "required": 1,
+            "alpha": false
+        },
+        {
+            "id": 76,
+            "name": "Alpha Legend",
             "monster": "Unknown",
             "required": 1,
             "alpha": false
