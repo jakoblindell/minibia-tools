@@ -487,7 +487,7 @@
   .hunt-est-more { align-self: flex-start; }
   .cc-choices { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
   @media (max-width: 480px) { .cc-choices { grid-template-columns: repeat(2, 1fr); } .cc-choices button { white-space: nowrap; } }
-  .cc-choices[hidden] { display: none; }
+  .cc-choices[hidden], .pb-choice[hidden] { display: none; }
   .cc-box { display: flex; flex-direction: column; gap: 6px; margin: 4px 0 10px; padding: 8px 10px; border: 1px dashed var(--border); border-radius: 8px; }
   .cc-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
   .cc-head b { font-size: 12.5px; color: var(--text-primary); }
@@ -509,6 +509,10 @@
   .upq-x { flex: none; width: 34px; height: 34px; padding: 0; }
   .upq-q { font-size: 13.5px; font-weight: 600; color: var(--text-primary); }
   .upq-nav { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .upq-alt { display: flex; gap: 8px; flex-wrap: wrap; }
+  .upq-alt[hidden] { display: none; }
+  .upq-alt .map-btn { flex: 1 1 auto; min-height: 34px; }
+  .upq-alt .map-btn[hidden] { display: none; }
   .upq-nav .map-btn { min-height: 34px; flex: none; white-space: nowrap; }
   .upq-count { flex: 1 1 auto; min-width: 0; font-size: 12.5px; color: var(--text-secondary); text-align: center; }
   .map-canvas-wrap.upq-on .map-ovl-coords, .map-canvas-wrap.upq-on .map-ovl-actions, .map-canvas-wrap.upq-on .map-layers-pop { display: none; }
@@ -725,11 +729,16 @@
               <div class="upq-title"><b id="upq-title"></b><small id="upq-where"></small></div>
               <button class="map-btn upq-x" id="upq-close" type="button" aria-label="Close" title="Close (pick the rest later)">✕</button>
             </div>
-            <div class="upq-q">What's at the ringed spot?</div>
+            <div class="upq-q" id="upq-q">What's at the ringed spot?</div>
             <div class="pb-choice" id="upq-choices">
               <button type="button" data-t="stairs-up">Stairs</button>
               <button type="button" data-t="ladder-up">Ladder</button>
               <button type="button" data-t="rope">Rope</button>
+            </div>
+            <div class="upq-alt" id="upq-alt" hidden>
+              <button class="map-btn" id="upq-none" type="button" title="The map is wrong: there's no way up here - find another">Not a way up</button>
+              <button class="map-btn" id="upq-other" type="button" title="Click the stairs, ladder or rope spot the path should take instead">Use other stairs…</button>
+              <button class="map-btn" id="upq-other-cancel" type="button" hidden>Cancel</button>
             </div>
             <div class="upq-nav">
               <button class="map-btn" id="upq-back" type="button">‹ Back</button>
@@ -4341,8 +4350,8 @@ const PATH_WORKER_SRC = function () {
     for (let i = 0; i + 5 < list.length; i += 6) own.add((list[i] * H + list[i + 2]) * W + list[i + 1]);
     for (let i = 0; i + 5 < list.length; i += 6) {
       const z = list[i], x = list[i + 1], y = list[i + 2], tz = list[i + 3], tx = list[i + 4], ty = list[i + 5];
-      if (tz < 0) {   // a door you use: its tile is walkable (your word), nothing more
-        if (x >= 0 && y >= 0 && x < W && y < H && floors[z] && !bit(floors, z, x, y)) { forced.push([z, y * W + x]); setBit(floors, z, y * W + x, true); }
+      if (tz < 0) {   // -1 a door you use: its tile is walkable (your word); -2 not stairs: only the map's stairs go
+        if (tz === -1 && x >= 0 && y >= 0 && x < W && y < H && floors[z] && !bit(floors, z, x, y)) { forced.push([z, y * W + x]); setBit(floors, z, y * W + x, true); }
         continue;
       }
       if (x < 0 || y < 0 || x >= W || y >= H || tx < 0 || ty < 0 || tx >= W || ty >= H || !floors[z] || !floors[tz]) continue;
@@ -4522,7 +4531,9 @@ function pathBotRenderUps(pts, left) {
 // way up in turn with the spot ringed, a card over the map asks stairs,
 // ladder or rope, and picking moves on to the next one. Works on the Find
 // path bot route ("path") and on Route builder waypoints ("route").
-const upq = { active: false, kind: "", items: [], i: 0 };
+// other: Find path's "Use other stairs" - null, or { tile } once a tile
+// that isn't a known way up was clicked (then it asks what it is).
+const upq = { active: false, kind: "", items: [], i: 0, other: null };
 function upqItems(kind) {
   const out = [];
   if (kind === "path") {
@@ -4532,7 +4543,7 @@ function upqItems(kind) {
       if (p.t !== "up" && !p.picked) return;
       const key = p.z + "," + p.x + "," + p.y, dir = p.params.transitionTarget || p.params.targetOffset;
       out.push({
-        z: p.z, x: p.x, y: p.y,
+        z: p.z, x: p.x, y: p.y, node: p,
         dir: function () { return dir; },
         num: function () {
           const pts = pathState.wps ? pathBotPoints().points : [];
@@ -4571,7 +4582,7 @@ function upqItems(kind) {
 function upqStart(kind, at) {
   const items = upqItems(kind);
   if (!items.length) return;
-  upq.active = true; upq.kind = kind; upq.items = items;
+  upq.active = true; upq.kind = kind; upq.items = items; upq.other = null;
   let i = typeof at === "number" ? at : items.findIndex(function (it) { return !it.get(); });
   upq.i = Math.max(0, Math.min(items.length - 1, i));
   document.getElementById("upq").hidden = false;
@@ -4587,7 +4598,7 @@ function upqStart(kind, at) {
 function upqClose() {
   if (!upq.active) return;
   const kind = upq.kind;
-  upq.active = false; upq.items = [];
+  upq.active = false; upq.items = []; upq.other = null;
   document.getElementById("upq").hidden = true;
   document.querySelector(".map-canvas-wrap").classList.remove("upq-on");
   if (kind === "path" && pathState.active && pathState.result) { pathRenderNodes(); pathShowSegment(0); }
@@ -4607,8 +4618,18 @@ function upqShow() {
   });
   document.querySelectorAll("#upq-choices button").forEach(function (b) { b.setAttribute("aria-pressed", b.getAttribute("data-t") === it.get() ? "true" : "false"); });
   document.getElementById("upq-count").textContent = left ? left + " left" : "All picked ✓";
+  // Find path: the map may be wrong - say so, or point at the right stairs.
+  const o = upq.other, path = upq.kind === "path";
+  document.getElementById("upq-alt").hidden = !path;
+  document.getElementById("upq-none").hidden = document.getElementById("upq-other").hidden = !!o;
+  document.getElementById("upq-other-cancel").hidden = !o;
+  document.getElementById("upq-choices").hidden = o === true;
+  document.getElementById("upq-q").textContent = !o ? "What's at the ringed spot?" :
+    o === true ? "Click the stairs, ladder or rope spot the path should take instead (on " + mapFloorLabel(it.z) + ")." :
+    "x" + o.tile.x + " y" + o.tile.y + " isn't on the map as a way up - what is it? (It's saved under Your stairs, holes & doors.)";
   document.getElementById("upq-back").disabled = upq.i === 0;
   document.getElementById("upq-skip").textContent = upq.i === n - 1 ? (left ? "Close" : "Done") : "Next ›";
+  if (o) { setMapFloor(it.z); drawMap(); return; }   // picking other stairs: leave the view to the user
   // Centre the spot in the part of the map the card doesn't cover.
   setMapFloor(it.z);
   const step = BOT_DIR_STEP[it.dir()] || [0, 0];
@@ -4622,6 +4643,7 @@ function upqShow() {
   drawMap();
 }
 function upqPick(t) {
+  if (upq.other && upq.other.tile) { upqOtherGo(upq.other.tile, t); return; }
   const it = upq.items[upq.i];
   it.set(t);
   const n = upq.items.length;
@@ -4642,6 +4664,72 @@ function upqFinish() {
   if (kind === "path") return;   // Find path: the route stays in view, to edit
   const r = btn.getBoundingClientRect();
   if (r.top < 0 || r.bottom > window.innerHeight) btn.scrollIntoView({ block: "center", behavior: "smooth" });
+}
+// Find path's way up being asked about: its node's index and the stairs
+// tile its leg steps onto.
+function upqPathCtx() {
+  const it = upq.items[upq.i], w = pathState.wps;
+  if (!it || !w) return null;
+  const j = w.indexOf(it.node), ln = pathState.legs[j];
+  if (j < 0) return null;
+  const t = ln && ln.length >= 3 && ln[1].z === ln[0].z && (ln[2].z !== ln[1].z || ln[2].jump) ? ln[1] : null;
+  return { j: j, node: it.node, stairs: t };
+}
+// One of your stairs/holes/doors, added without the full re-run ccChanged
+// does (the caller re-runs the path itself).
+function ccAddQuiet(c) {
+  const old = ccAt(c.z, c.x, c.y);
+  if (old) ccList[ccList.indexOf(old)] = c;
+  else if (ccList.length < CC_MAX) ccList.push(c);
+  else return false;
+  try { localStorage.setItem(CC_KEY, JSON.stringify(ccList)); } catch (e) { /* ignore */ }
+  botMarkerIndex = null;
+  routeLegCache.clear();
+  ccPost();
+  ccRender();
+  return true;
+}
+// "Not a way up": the map's stairs there go (Not stairs, under Your stairs,
+// holes & doors), its floor-change waypoint goes, and the path finds the
+// way up again - asking about the one it takes next.
+function upqNotWayUp() {
+  const c = upqPathCtx();
+  if (!c || !c.stairs) return;
+  const t = c.stairs, w = pathState.wps;
+  if (!ccAddQuiet({ z: t.z, x: t.x, y: t.y, k: "none" })) return;
+  pathSnapshot();
+  if (c.j > 0 && c.j < w.length - 1) { w.splice(c.j, 1); pathState.fillLegs = [c.j - 1]; }
+  else { botSetType(c.node, "walk"); c.node.picked = false; delete c.node.stair; pathState.fillLegs = [c.j]; }
+  pathState.flash = "No way up at x" + t.x + " y" + t.y + " z" + t.z + " (saved under Your stairs, holes & doors).";
+  pathState.askUps = true;
+  upqClose();
+  pathSyncEnds();
+  pathRun(true);
+}
+// "Use other stairs": the next click on the map says where.
+function upqOtherAt(sx, sy) {
+  const it = upq.items[upq.i];
+  if (!it) return;
+  const [wx, wy] = screenToWorld(sx, sy), tile = { z: state.mapFloor, x: Math.floor(wx), y: Math.floor(wy) };
+  if (tile.z !== it.z) { document.getElementById("upq-q").textContent = "That's another floor - the stairs have to be on " + mapFloorLabel(it.z) + "."; return; }
+  const own = ccAt(tile.z, tile.x, tile.y), known = botMarkers().known[tile.z];
+  const isUp = own ? CC_KINDS[own.k].dz < 0 : !!(known && (known.get(tile.x + "," + tile.y) & 1));
+  if (isUp) { upqOtherGo(tile, null); return; }
+  upq.other = { tile: tile };   // not a known way up: ask what it is
+  upqShow();
+}
+// The path takes the way up at tile (kind: what you said it is, for a tile
+// the map didn't know - saved as one of yours).
+async function upqOtherGo(tile, kind) {
+  const c = upqPathCtx();
+  if (!c) return;
+  if (kind && !ccAddQuiet({ z: tile.z, x: tile.x, y: tile.y, k: kind === "ladder-up" ? "ladder" : kind })) return;
+  pathState.askUps = true;
+  upqClose();
+  const before = pathState.history.length;
+  await pathStairDrop({ j: c.j, leg: c.j, tile: tile, from: c.stairs });
+  const p = pathState.wps[c.j];
+  if (kind && p && pathState.history.length > before) { botSetType(p, kind); p.picked = true; pathRenderNodes(); }
 }
 // While asking about a way up, the dots that would sit on top of it (its
 // waypoint, the stairs marker) are left out so the minimap tile shows.
@@ -4891,18 +4979,20 @@ const CC_KINDS = {
   "teleport": { label: "Teleport", dz: 0, glyph: "✦", picksTarget: true },
   // A door that only opens when used (quest doors...): no floor change -
   // routes walk through its tile and the bot uses it on the way.
-  "door": { label: "Use door", dz: 0, glyph: "Π", door: true }
+  "door": { label: "Use door", dz: 0, glyph: "Π", door: true },
+  // The map's stairs/ladder/hole guess here is wrong: routes don't use it.
+  "none": { label: "Not stairs", dz: 0, glyph: "✕", none: true }
 };
 // Where one leads: the tile it was given (teleport), else straight down/up.
 // (A door leads nowhere: null.)
 function ccTarget(c) {
-  if (CC_KINDS[c.k].door) return null;
+  if (CC_KINDS[c.k].door || CC_KINDS[c.k].none) return null;
   return c.k === "teleport" ? { z: c.tz, x: c.tx, y: c.ty } : { z: c.z + CC_KINDS[c.k].dz, x: c.x, y: c.y };
 }
 function ccValid(c) {
   if (!c || !CC_KINDS[c.k] || ![c.z, c.x, c.y].every(Number.isInteger) || c.z < MAP_FLOOR_MIN || c.z > MAP_FLOOR_MAX) return false;
   if (c.k === "teleport" && ![c.tz, c.tx, c.ty].every(Number.isInteger)) return false;
-  if (CC_KINDS[c.k].door) return true;
+  if (CC_KINDS[c.k].door || CC_KINDS[c.k].none) return true;
   const t = ccTarget(c);
   return t.z >= MAP_FLOOR_MIN && t.z <= MAP_FLOOR_MAX && !(t.z === c.z && t.x === c.x && t.y === c.y);
 }
@@ -4927,7 +5017,8 @@ function ccPost() {
   const gr = pathState.grid, arr = new Int32Array(ccList.length * 6);
   ccList.forEach(function (c, i) {
     const t = ccTarget(c);
-    arr.set(t ? [c.z, c.x - gr.minX, c.y - gr.minY, t.z, t.x - gr.minX, t.y - gr.minY] : [c.z, c.x - gr.minX, c.y - gr.minY, -1, -1, -1], i * 6);
+    const no = CC_KINDS[c.k].none ? -2 : -1;   // -1: a door (walkable), -2: no stairs
+    arr.set(t ? [c.z, c.x - gr.minX, c.y - gr.minY, t.z, t.x - gr.minX, t.y - gr.minY] : [c.z, c.x - gr.minX, c.y - gr.minY, no, no, no], i * 6);
   });
   pathState.worker.postMessage({ type: "custom", list: arr });
 }
@@ -5043,7 +5134,8 @@ function ccShowCard() {
     if (to < MAP_FLOOR_MIN || to > MAP_FLOOR_MAX) return;
     const b = document.createElement("button"); b.type = "button";
     b.textContent = d.glyph + " " + d.label;
-    b.title = d.picksTarget ? "Teleport - then click where it takes you" : d.door ? "A door that opens when used - routes walk through it, the bot uses it first" : d.label + " to " + mapFloorLabel(to);
+    b.title = d.picksTarget ? "Teleport - then click where it takes you" : d.door ? "A door that opens when used - routes walk through it, the bot uses it first" :
+      d.none ? "The map shows stairs, a ladder or a hole here, but there's none - routes won't use it" : d.label + " to " + mapFloorLabel(to);
     b.setAttribute("aria-pressed", old && old.k === k ? "true" : "false");
     b.addEventListener("click", function () { ccPick(k); });
     ch.appendChild(b);
@@ -5885,6 +5977,10 @@ function botMarkers() {
     DATA.floorConnections[z].forEach(function (c) { m.set(c[0] + "," + c[1], c[2]); });
   });
   ccList.forEach(function (c) {
+    if (CC_KINDS[c.k].none) {   // your word: no stairs here
+      if (botMarkerIndex.known[c.z]) botMarkerIndex.known[c.z].delete(c.x + "," + c.y);
+      return;
+    }
     if (!CC_KINDS[c.k].dz) return;   // teleports aren't stairs
     const m = botMarkerIndex.known[c.z] || (botMarkerIndex.known[c.z] = new Map()), k = c.x + "," + c.y;
     m.set(k, (m.get(k) || 0) | (CC_KINDS[c.k].dz > 0 ? 2 : 1));
@@ -5893,6 +5989,7 @@ function botMarkers() {
     const m = botMarkerIndex.unknown[z] = new Set();
     DATA.floorConnectionsUnknown[z].forEach(function (c) { m.add(c[0] + "," + c[1]); });
   });
+  ccList.forEach(function (c) { if (CC_KINDS[c.k].none && botMarkerIndex.unknown[c.z]) botMarkerIndex.unknown[c.z].delete(c.x + "," + c.y); });
   return botMarkerIndex;
 }
 function botNextPoint(i) {
@@ -7702,7 +7799,9 @@ function initMap() {
     if (cc.active) {
       if (!touchState.pinching && !touchState.moved && e.changedTouches.length === 1) { mapTooltip.style.display = "none"; ccPickAt(touchState.tapX, touchState.tapY); }
     } else if (upq.active) {
-      // Picking ways up: taps on the map do nothing (pan and zoom still work).
+      // Picking ways up: taps on the map do nothing (pan and zoom still work)
+      // - unless you're showing the stairs to use instead.
+      if (upq.other === true && !touchState.pinching && !touchState.moved && e.changedTouches.length === 1) upqOtherAt(touchState.tapX, touchState.tapY);
     } else if (rot.pickDepot && routeState.mode !== "off" && !touchState.pinching && !touchState.moved && e.changedTouches.length === 1) {
       mapTooltip.style.display = "none";
       rotPickDepotAt(touchState.tapX, touchState.tapY);
@@ -7768,7 +7867,7 @@ function initMap() {
     const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
     if (sx < 0 || sy < 0 || sx > rect.width || sy > rect.height) return;
     if (cc.active) { ccPickAt(sx, sy); return; }
-    if (upq.active) return;
+    if (upq.active) { if (upq.other === true) upqOtherAt(sx, sy); return; }
     if (rot.pickDepot && routeState.mode !== "off") { rotPickDepotAt(sx, sy); return; }
     if (routeState.mode === "edit") { routeAddPoint(sx, sy); return; }
     if (pathState.active) { pathHandleClick(sx, sy); return; }
@@ -7981,6 +8080,9 @@ function initMap() {
     if (b && upq.active) upqPick(b.getAttribute("data-t"));
   });
   document.getElementById("upq-close").addEventListener("click", upqClose);
+  document.getElementById("upq-none").addEventListener("click", upqNotWayUp);
+  document.getElementById("upq-other").addEventListener("click", function () { upq.other = true; upqShow(); });
+  document.getElementById("upq-other-cancel").addEventListener("click", function () { upq.other = null; upqShow(); });
   document.getElementById("cc-close").addEventListener("click", ccEnd);
   ccRender();
   document.getElementById("upq-back").addEventListener("click", function () { if (upq.i > 0) { upq.i--; upqShow(); } });
@@ -8102,7 +8204,7 @@ document.getElementById("sort").addEventListener("change", function (e) { state.
 // On touch screens, Enter in a one-line field closes the keyboard.
 document.addEventListener("keydown", function (e) {
   if (e.key === "Escape" && cc.active) { ccEnd(); return; }
-  if (e.key === "Escape" && upq.active) { upqClose(); return; }
+  if (e.key === "Escape" && upq.active) { if (upq.other) { upq.other = null; upqShow(); } else upqClose(); return; }
   if (e.key !== "Enter" || e.isComposing) return;
   const t = e.target;
   if (!t || t.tagName !== "INPUT" || t.type === "checkbox" || t.type === "file") return;

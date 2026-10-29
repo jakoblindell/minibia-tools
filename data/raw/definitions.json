@@ -59862,7 +59862,7 @@
    "name": "slain skeleton",
    "article": "a",
    "containerSize": 10,
-   "decayTo": 2809,
+   "decayTo": 2843,
    "duration": 10,
    "corpseType": "undead",
    "type": "corpse"
@@ -133071,6 +133071,20 @@
    "name": "cult's ledger",
    "description": "Names, boats and dates, page after page, in a small careful hand. Every name is crossed out in black.",
    "weight": 900
+  }
+ },
+ "22298": {
+  "__note": "Alpha Legend's reward (achievement 76, all nine alpha achievements, claimed at Alphonso; owner 2026-10-26). Magic plate armor stats, 10% lighter like every prime item. Look CID 12964 = a PLACEHOLDER (the magic plate armor in crimson with a gold rim and a ruby): the owner sends the final sprite.",
+  "id": 12964,
+  "flags": 96,
+  "group": 5,
+  "properties": {
+   "article": "a",
+   "name": "prime magic plate armor",
+   "weight": 7650,
+   "armor": 17,
+   "slotType": "body",
+   "description": "It is a trophy of the alpha hunt."
   }
  }
 }
