@@ -477,6 +477,8 @@
   .rot-story .rot-meta { display: block; }
   .rot-alt summary { cursor: pointer; font-size: 12.5px; color: var(--text-secondary); }
   .rot-alt[open] { display: flex; flex-direction: column; gap: 6px; }
+  .rot-import textarea { width: 100%; box-sizing: border-box; font: 12px 'SF Mono', Consolas, monospace; background: var(--surface-2); color: var(--text-primary); border: 1px solid var(--border); border-radius: 6px; padding: 6px; resize: vertical; }
+  #rot-import-msg:empty { display: none; }
   .rot[hidden], .rot [hidden] { display: none; }
   .rot-sec { display: flex; flex-direction: column; gap: 4px; }
   .rot-line { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 13px; }
@@ -921,6 +923,17 @@
           <div class="rot" id="rot">
             <div class="mapx-h-row"><div class="mapx-h">Rotation <span class="beta-tag">beta</span></div></div>
             <p class="mapx-p">A whole trip, one question at a time: hunt until you run low, walk to town, sell, store, restock and bank, then walk back. Every walk is found for you. At the end you get a rotation for mb0t.</p>
+            <details class="rot-alt rot-import" id="rot-import">
+              <summary>Start from an mb0t rotation (import)</summary>
+              <p class="cc-help">Paste a rotation file (mb0t: Cave Bot → Rotation → <b>Export JSON</b>, or one made here) or choose the file. It fills in the steps below - its cave becomes your Route - so you can tweak it and export it again.</p>
+              <textarea id="rot-import-text" rows="4" spellcheck="false" placeholder='{ "format": "mb0t-rotation", "version": 1, ... }'></textarea>
+              <div class="route-actions">
+                <button class="map-btn pb-primary" id="rot-import-go" type="button">Import</button>
+                <button class="map-btn" id="rot-import-pick" type="button">Choose file…</button>
+                <input type="file" id="rot-import-file" accept=".json,application/json" hidden>
+              </div>
+            </details>
+            <div class="route-bot-msg" id="rot-import-msg"></div>
             <ol class="rot-steps" id="rot-steps">
               <li class="rot-step" data-step="1">
                 <button type="button" class="rot-step-head" data-open="1"><span class="rot-num">1</span><span class="rot-step-t"><b>Where do you hunt?</b><small id="rot-sum-1"></small></span></button>
@@ -6468,7 +6481,8 @@ function rotLoadCfg() {
     return {
       name: String(c.name || "").slice(0, 60), minCap: Number.isInteger(c.minCap) && c.minCap >= 0 ? c.minCap : d.minCap,
       depot: pos, range: [60, 120, 200].indexOf(c.range) >= 0 ? c.range : d.range, spacing: [0, 5, 8, 12].indexOf(c.spacing) >= 0 ? c.spacing : d.spacing,
-      sell: { on: !(c.sell && c.sell.on === false), off: c.sell && c.sell.off && typeof c.sell.off === "object" ? c.sell.off : {} },
+      sell: { on: !(c.sell && c.sell.on === false), off: c.sell && c.sell.off && typeof c.sell.off === "object" ? c.sell.off : {},
+        only: c.sell && Array.isArray(c.sell.only) ? c.sell.only.map(rotKey).slice(0, 200) : null },
       bank: { on: !(c.bank && c.bank.on === false), npc: String(c.bank && c.bank.npc || "").slice(0, 60), min: Math.max(1, Math.floor(Number(c.bank && c.bank.min) || d.bank.min)) },
       buy: { on: !(c.buy && c.buy.on === false), rows: Array.isArray(c.buy && c.buy.rows) && c.buy.rows.length ? c.buy.rows.slice(0, 20).map(function (r) {
         return { name: String(r && r.name || "").slice(0, 60), low: Math.max(0, Math.floor(Number(r && r.low) || 0)), to: Math.max(0, Math.floor(Number(r && r.to) || 0)), npc: String(r && r.npc || "").slice(0, 60) };
@@ -6548,7 +6562,7 @@ function rotPlan() {
       if (/^(gold|platinum|crystal) coin$/i.test(e.name) || !e.priced) return;
       const b = rotBuyerFor(e.name, near);
       if (!b) { noBuyer.push(e.name); return; }
-      const on = !cfg.sell.off[rotKey(e.name)];
+      const on = !cfg.sell.off[rotKey(e.name)] && (!cfg.sell.only || cfg.sell.only.indexOf(rotKey(e.name)) >= 0);
       loot.push({ name: e.name, count: e.count, price: b.price, npc: b.npc.name, on: on });
       if (!on) return;
       let s = sells.get(b.npc.name);
@@ -6857,7 +6871,12 @@ function rotRender() {
     (plan.loot || []).forEach(function (it) {
       const row = rotEl("label", sell, null, "rot-row");
       const cb = rotEl("input", row); cb.type = "checkbox"; cb.checked = it.on;
-      cb.addEventListener("change", function () { if (cb.checked) delete cfg.sell.off[rotKey(it.name)]; else cfg.sell.off[rotKey(it.name)] = true; rot.res = null; rotSaveCfg(); rotRender(); });
+      cb.addEventListener("change", function () {
+        const k = rotKey(it.name);
+        if (cb.checked) { delete cfg.sell.off[k]; if (cfg.sell.only && cfg.sell.only.indexOf(k) < 0) cfg.sell.only.push(k); }
+        else cfg.sell.off[k] = true;
+        rot.res = null; rotSaveCfg(); rotRender();
+      });
       rotEl("span", row, it.name, "rot-name");
       rotEl("span", row, huntFmt(it.count) + "/lap · " + fmt(it.price) + " gp · " + it.npc, "rot-meta");
     });
@@ -7288,6 +7307,154 @@ function mb0tWire() {
   });
 }
 
+// --- Import an mb0t rotation file (contract v1) into the steps: its cave
+// becomes the Route, the blocks become the steps' settings. The walks are
+// found again, so its own paths only place the depot (where the walk to it
+// ends); what the steps can't hold is listed instead of dropped silently.
+function rotRouteFromMb(route, warn, where) {
+  const pts = [], cheb = function (a, b) { return Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y)); };
+  for (let i = 0; i < route.length; i++) {
+    const w = route[i], nx = route[i + 1], after = route[i + 2] || route[0];
+    if (!w || ![w.x, w.y, w.z].every(Number.isInteger)) { warn.push(where + ": waypoint " + (i + 1) + " has no position - left out"); continue; }
+    // mb0t's stairs/hole: stand beside it, then stand on it, then the other floor.
+    if (w.stand && nx && nx.stand && nx.z === w.z && cheb(w, nx) === 1 && after && after.z !== nx.z) {
+      const q = routeMakePoint(w.z, w.x, w.y, "", { t: after.z > nx.z ? "floor-down" : "stairs-up" });
+      q.params.transitionTarget = botDirTo(w, nx);
+      pts.push(q); i++;
+      continue;
+    }
+    if (w.ladder) {   // ladder up, used from the tile before it
+      const pv = pts[pts.length - 1];
+      if (pv && pv.z === w.z && cheb(pv, w) === 1) {
+        const q = routeMakePoint(pv.z, pv.x, pv.y, "", { t: "ladder-up" });
+        q.params.transitionTarget = botDirTo(pv, w);
+        pts.push(q);
+        continue;
+      }
+      warn.push(where + ": the ladder at x" + w.x + " y" + w.y + " z" + w.z + " has no waypoint beside it - kept as a walk; add one next to it in the Route tab");
+      pts.push(routeMakePoint(w.z, w.x, w.y, "", {}));
+      continue;
+    }
+    const t = w.rope ? "rope" : w.shovel ? "shovel" : w.stand ? "stand" : "walk";
+    pts.push(routeMakePoint(w.z, w.x, w.y, "", { t: t }));
+    if (w.knightBox) warn.push(where + ": the knight box point at x" + w.x + " y" + w.y + " is kept as a plain waypoint");
+  }
+  return pts;
+}
+function rotImport(text) {
+  let d;
+  const raw = String(text || "").trim().replace(/^\uFEFF/, "");
+  if (!raw) return { error: "Paste a rotation file first, or choose the file." };
+  if (/^(\/\/|\/\*|\(|function|javascript:)/.test(raw)) return { error: "That's a script, not a rotation file - in mb0t: Cave Bot → Rotation → Export JSON, and paste that." };
+  try { d = JSON.parse(raw); } catch (e) { return { error: "Not valid JSON: " + e.message }; }
+  if (!d || d.format !== "mb0t-rotation") return { error: "That isn't an mb0t rotation file (it needs \"format\": \"mb0t-rotation\" - in mb0t: Cave Bot → Rotation → Export JSON)." };
+  if (d.version !== 1) return { error: "This reads version 1 rotation files; that one is version " + d.version + "." };
+  if (!Array.isArray(d.blocks) || !d.blocks.length) return { error: "The rotation has no blocks." };
+  const warn = [], key = function (n) { return String(n || "").trim().toLowerCase(); };
+  const paths = {}, caves = {};
+  (d.paths || []).forEach(function (r) { if (r && r.name) paths[key(r.name)] = r.route || []; });
+  (d.caves || []).forEach(function (r) { if (r && r.name) caves[key(r.name)] = r.route || []; });
+  const blocks = d.blocks.filter(function (b) {
+    if (b && b.enabled === false) { warn.push("A disabled " + b.type + " block is left out"); return false; }
+    return b && b.type;
+  });
+  const caveBlocks = blocks.filter(function (b) { return b.type === "cave"; });
+  if (!caveBlocks.length) return { error: "The rotation has no cave block - nothing to hunt." };
+  const cb = caveBlocks[0];
+  if (caveBlocks.length > 1) warn.push("It hunts " + caveBlocks.length + " caves - only the first (" + cb.ref + ") is used");
+  const caveRoute = caves[key(cb.ref)];
+  if (!caveRoute) return { error: "The cave “" + cb.ref + "” isn't in the file (it's only in your mb0t library) - export the rotation from mb0t with its routes." };
+  const points = rotRouteFromMb(caveRoute, warn, "The cave");
+  if (points.length < 2) return { error: "The cave has fewer than two waypoints." };
+  if (points.length > ROUTE_MAX_POINTS) return { error: "The cave has " + points.length + " waypoints; the Route tab handles up to " + ROUTE_MAX_POINTS + "." };
+  const sup = {};
+  (cb.supplies || []).forEach(function (x) { if (x && x.name) sup[key(x.name)] = { name: String(x.name), min: Math.max(0, Math.floor(Number(x.min) || 0)) }; });
+  // The town side, in the file's order.
+  const cfg = rotDefaults();
+  cfg.name = String(d.name || "").slice(0, 60);
+  cfg.minCap = Math.max(0, Math.floor(Number(cb.minCap) || 0));
+  cfg.range = rot.cfg.range; cfg.spacing = rot.cfg.spacing;
+  cfg.sell = { on: false, off: {}, only: [] };
+  cfg.bank = { on: false, npc: "", min: 1000 };
+  const rows = [], seen = {};
+  let lastEnd = null, paths_used = 0, depotAt = null;
+  blocks.forEach(function (b) {
+    if (b.type === "path") {
+      const r = paths[key(b.ref)];
+      paths_used++;
+      if (r && r.length) { const e = r[r.length - 1]; lastEnd = { z: e.z, x: e.x, y: e.y }; } else lastEnd = null;
+      return;
+    }
+    if (b.type === "depot") {
+      if (lastEnd) depotAt = lastEnd;
+      (b.take || []).forEach(function (t) {
+        if (!t || !t.name) return;
+        const k = key(t.name);
+        if (t.bag || t.min) warn.push("Taking " + t.name + " from the depot: its backpack/minimum aren't kept");
+        if (!Number(t.upTo)) warn.push("Taking " + t.name + " from the depot: “up to 0” (mb0t's Smart amount) becomes " + (sup[k] ? sup[k].min * 2 : 100));
+        seen[k] = true;
+        rows.push({ name: String(t.name), low: sup[k] ? sup[k].min : 0, to: Math.floor(Number(t.upTo)) || (sup[k] ? sup[k].min * 2 : 100), npc: "@depot" });
+      });
+      return;
+    }
+    if (b.type === "sell") {
+      cfg.sell.on = true;
+      (b.rows || []).forEach(function (r) {
+        if (!r || !r.name) return;
+        if (r.mode && r.mode !== "all") warn.push("Selling " + r.name + ": “" + r.mode + "” becomes sell all");
+        if (cfg.sell.only.indexOf(key(r.name)) < 0) cfg.sell.only.push(key(r.name));
+      });
+      return;
+    }
+    if (b.type === "buy") {
+      if (b.smart) warn.push("Buying from " + (b.npcName || "the NPC") + ": Smart amounts aren't kept - it buys up to the target");
+      (b.rows || []).forEach(function (r) {
+        if (!r || !r.name) return;
+        const k = key(r.name);
+        if (r.keep) warn.push("Buying " + r.name + ": its Smart “keep” isn't kept");
+        seen[k] = true;
+        rows.push({ name: String(r.name), low: sup[k] ? sup[k].min : 0, to: Math.max(0, Math.floor(Number(r.target) || 0)), npc: String(b.npcName || "") });
+      });
+      return;
+    }
+    if (b.type === "bank") { cfg.bank = { on: true, npc: String(b.npcName || ""), min: Math.max(1, Math.floor(Number(b.min) || 1)) }; return; }
+  });
+  // Leave conditions without a restock: kept, getting back to twice the minimum.
+  Object.keys(sup).forEach(function (k) {
+    if (seen[k]) return;
+    warn.push(sup[k].name + " is a leave condition the rotation doesn't restock - added, buying up to " + Math.max(sup[k].min * 2, sup[k].min + 1) + " (check its NPC in step 4)");
+    rows.push({ name: sup[k].name, low: sup[k].min, to: Math.max(sup[k].min * 2, sup[k].min + 1), npc: "" });
+  });
+  cfg.buy = { on: rows.length > 0, rows: rows.length ? rows.slice(0, 20) : rotDefaults().buy.rows };
+  if (depotAt) cfg.depot = depotAt;
+  else { cfg.depot = rot.cfg.depot; warn.push("Couldn't tell where the depot is (no walk to it in the file) - check step 2"); }
+  if (paths_used) warn.push("Its " + paths_used + " walk" + (paths_used === 1 ? " is" : "s are") + " found again from the map (press Find the way)");
+  if (d.settings) warn.push("Its targeting rules and ring stay in mb0t - they're not part of what's exported here, so re-importing keeps the ones it has");
+  return { cfg: cfg, points: points, title: String(d.name || ""), warnings: warn, sells: cfg.sell.only.length };
+}
+function rotApplyImport(r) {
+  const msg = document.getElementById("rot-import-msg");
+  if (r.error) { msg.textContent = r.error; return false; }
+  if (routeState.points.length && !confirm("Replace your Route (" + routeState.points.length + " points) with the rotation's cave?")) return false;
+  if (routeState.points.length) routeSnapshot();
+  routeState.points = r.points; routeState.loop = true; routeState.title = r.title.slice(0, 120);
+  document.getElementById("route-title").value = routeState.title;
+  document.getElementById("route-loop").checked = true;
+  routeState.undoFill = null; routeState.open.clear();
+  Object.keys(rot.cfg).forEach(function (k) { delete rot.cfg[k]; });
+  Object.assign(rot.cfg, r.cfg);
+  rot.res = null; rot.choice = {}; rot.step = 6;
+  rotSaveCfg();
+  setMapFloor(r.points[0].z);
+  routeFitFloor(r.points[0].z);
+  routeChanged();
+  document.getElementById("rot-import").open = false;
+  msg.textContent = "Imported “" + (r.cfg.name || "rotation") + "”: its cave (" + r.points.length + " waypoints) is your Route now, and the steps below are filled in" +
+    (r.sells ? " (selling " + r.sells + " item" + (r.sells === 1 ? "" : "s") + " - the ones its cave doesn't drop are left out)" : "") + "." +
+    (r.warnings.length ? " Check: " + r.warnings.join("; ") + "." : "");
+  rotRender();
+  return true;
+}
 // Copies text: the clipboard API, else a hidden textarea. Resolves true/false.
 function copyText(text) {
   const fallback = function () {
@@ -7309,6 +7476,19 @@ function rotWire() {
     else if (nx) rotGoStep(Number(nx.getAttribute("data-next")));
   });
   document.getElementById("rot-go-route").addEventListener("click", function () { mapSetMode("route"); });
+  document.getElementById("rot-import-go").addEventListener("click", function () {
+    const ta = document.getElementById("rot-import-text");
+    if (rotApplyImport(rotImport(ta.value))) ta.value = "";
+  });
+  document.getElementById("rot-import-pick").addEventListener("click", function () { document.getElementById("rot-import-file").click(); });
+  document.getElementById("rot-import-file").addEventListener("change", function (e) {
+    const f = e.target.files && e.target.files[0];
+    if (!f) return;
+    const rd = new FileReader();
+    rd.onload = function () { rotApplyImport(rotImport(rd.result)); e.target.value = ""; };
+    rd.onerror = function () { document.getElementById("rot-import-msg").textContent = "Couldn't read that file."; };
+    rd.readAsText(f);
+  });
   document.getElementById("rot-name").addEventListener("change", function (e) { cfg.name = e.target.value.trim().slice(0, 60); rotSaveCfg(); rotRender(); });
   document.getElementById("rot-mincap").addEventListener("change", function (e) { cfg.minCap = Math.max(0, Math.floor(Number(e.target.value) || 0)); rotSaveCfg(); rotRender(); });
   const mbGive = function (download, btn) {
