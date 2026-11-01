@@ -332,7 +332,7 @@
     .seg button { padding: 6px 8px; font-size: 12px; }
   }
   @media (min-width: 1180px) {
-    .mapx { width: min(1520px, calc(100vw - 80px)); margin-left: calc((100% - min(1520px, calc(100vw - 80px))) / 2); }
+    .mapx, .hunt-est-card { width: min(1520px, calc(100vw - 80px)); margin-left: calc((100% - min(1520px, calc(100vw - 80px))) / 2); }
     .mapx { grid-template-columns: minmax(0, 1fr) 360px; }
     .mapx #map-canvas { height: 700px; }
   }
@@ -454,6 +454,29 @@
   .path-node-list .path-node-tile { flex: 1 1 auto; min-width: 0; color: var(--text-muted); font-family: 'SF Mono', Consolas, monospace; font-size: 11.5px; overflow-wrap: anywhere; }
   .path-node-list select.route-type + .path-node-tile { flex: 0 1 auto; }
   .hunt-est[hidden] { display: none; }
+  .hunt-est-card { margin-top: 12px; background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow); padding: 14px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .hunt-est-card .route-bot-title { font-size: 13px; }
+  .rot-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  .rot-step { border: 1px solid var(--border); border-radius: 10px; background: var(--surface-1); overflow: hidden; }
+  .rot-step.open { border-color: var(--accent); }
+  .rot-step-head { all: unset; box-sizing: border-box; width: 100%; display: flex; align-items: center; gap: 10px; padding: 10px 12px; cursor: pointer; }
+  .rot-step-head:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+  .rot-num { flex: none; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; background: var(--surface-2); color: var(--text-primary); border: 1px solid var(--border); }
+  .rot-step.done .rot-num { background: #16a34a; border-color: #16a34a; color: #fff; }
+  .rot-step.open .rot-num { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .rot-step-t { display: flex; flex-direction: column; min-width: 0; gap: 1px; }
+  .rot-step-t b { font-size: 13.5px; color: var(--text-primary); }
+  .rot-step-t small { font-size: 12px; color: var(--text-muted); overflow-wrap: anywhere; }
+  .rot-step-body { display: none; flex-direction: column; gap: 8px; padding: 0 12px 12px; }
+  .rot-step.open .rot-step-body { display: flex; }
+  .rot-step-body input[type=text], .rot-step-body input[type=number], .rot-step-body select { font: inherit; font-size: 12.5px; padding: 3px 5px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface-2); color: var(--text-primary); min-width: 0; }
+  .rot-step-body input[type=text] { flex: 1 1 140px; }
+  .rot-next { display: flex; justify-content: flex-end; }
+  .rot-story { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 5px; font-size: 13px; color: var(--text-primary); }
+  .rot-story li::marker { color: var(--text-muted); font-weight: 600; }
+  .rot-story .rot-meta { display: block; }
+  .rot-alt summary { cursor: pointer; font-size: 12.5px; color: var(--text-secondary); }
+  .rot-alt[open] { display: flex; flex-direction: column; gap: 6px; }
   .rot[hidden], .rot [hidden] { display: none; }
   .rot-sec { display: flex; flex-direction: column; gap: 4px; }
   .rot-line { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 13px; }
@@ -514,6 +537,8 @@
   .upq-alt .map-btn { flex: 1 1 auto; min-height: 34px; }
   .upq-alt .map-btn[hidden] { display: none; }
   .mb0t-only[hidden] { display: none !important; }
+  .export-why { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+  .export-why[hidden] { display: none; }
   .upq-nav .map-btn { min-height: 34px; flex: none; white-space: nowrap; }
   .upq-count { flex: 1 1 auto; min-width: 0; font-size: 12.5px; color: var(--text-secondary); text-align: center; }
   .map-canvas-wrap.upq-on .map-ovl-coords, .map-canvas-wrap.upq-on .map-ovl-actions, .map-canvas-wrap.upq-on .map-layers-pop { display: none; }
@@ -706,8 +731,9 @@
         <div class="mapx-toolbar">
           <div class="seg" id="map-modes" role="tablist" aria-label="Map mode">
             <button type="button" role="tab" data-mode="explore" class="active">Spawns</button>
-            <button type="button" role="tab" data-mode="path">Find path</button>
-            <button type="button" role="tab" data-mode="route">Route<span class="seg-long"> builder</span></button>
+            <button type="button" role="tab" data-mode="path">Path</button>
+            <button type="button" role="tab" data-mode="route">Route</button>
+            <button type="button" role="tab" data-mode="rotation">Rotation</button>
           </div>
         </div>
         <div class="map-canvas-wrap">
@@ -800,7 +826,7 @@
           </details>
         </section>
         <section class="mapx-panel" data-panel="path" hidden>
-          <div class="mapx-h">Find path</div>
+          <div class="mapx-h">Path</div>
           <p class="mapx-p">Click a start point, then an end point (change floor in between if needed). Routes only walk walkable ground and change floor at stairs, ladders and holes. Then the path's nodes are listed below: drag any node on the map to move it, drag a yellow ↑/↓ onto other stairs to change floor there, grab the line (or a +) to add a node, and change a node's type or remove it in the list.</p>
           <div class="cc-box" data-cc></div>
           <div class="map-path-bar" id="map-path-bar" style="display:none;">
@@ -829,12 +855,13 @@
             <button class="map-btn pb-primary" id="path-bot-copy" type="button" title="Copy this path as waypoints in the bot's Import JSON format">Copy JSON</button>
             <div class="pb-row">
               <button class="map-btn" id="path-bot-download" type="button">Download</button>
-              <button class="map-btn" id="path-bot-edit" type="button" title="Open these waypoints in the Route builder to change types or positions">Edit in Route builder</button>
+              <button class="map-btn" id="path-bot-edit" type="button" title="Open these waypoints in the Route tab to change types or positions">Edit in Route tab</button>
             </div>
             <div class="pb-row mb0t-only" hidden>
               <button class="map-btn" id="path-mb0t-copy" type="button" title="Copy this path as an mb0t Cave preset - paste it in mb0t's Cave tab">Copy for mb0t</button>
               <button class="map-btn" id="path-mb0t-download" type="button">Download for mb0t</button>
             </div>
+            <div class="export-why" id="path-mb0t-why" hidden></div>
             <div class="route-bot-msg" id="path-bot-msg"></div>
           </div>
         </section>
@@ -859,57 +886,6 @@
             </div>
             <input type="text" class="route-link edit-only" id="route-link" readonly aria-label="Share link" style="display:none;">
             <div class="cc-box edit-only" data-cc></div>
-            <div class="route-bot hunt-est" id="hunt-est" hidden>
-              <div class="route-bot-title">Hunt estimate <span class="beta-tag">beta</span></div>
-              <div class="route-actions">
-                <label class="route-bot-spacing">Reach
-                  <select id="hunt-est-reach"><option value="3">3 tiles</option><option value="5" selected>5 tiles</option><option value="8">8 tiles</option></select>
-                </label>
-                <label class="map-floor-filter-toggle"><input type="checkbox" id="hunt-est-unsure" checked> Count spawns whose floor isn't confirmed</label>
-              </div>
-              <div class="hunt-est-sum" id="hunt-est-sum"></div>
-              <div class="hunt-est-body" id="hunt-est-body"></div>
-              <p class="cc-help" id="hunt-est-note">Rough: every spawn within reach of the walked path (on the same floor) counts as killed once per lap, all alive; respawn times, monsters that follow you and anything off the path aren't modelled. Loot uses the design database's drop chances and NPC sell prices. Circled on the map: solid = floor confirmed, dashed = floor not confirmed.</p>
-            </div>
-            <div class="route-bot rot" id="rot" hidden>
-              <div class="route-bot-title">Rotation planner <span class="beta-tag">beta</span></div>
-              <p class="cc-help">This route is the hunt loop. Add the town side and get one cave bot route: hunt → when supplies run low → sell loot → depot → bank → buy supplies → back to the hunt. Every leg is walked by the pathfinder; stops a trip doesn't need are skipped by the bot on the spot.</p>
-              <div class="rot-sec">
-                <div class="rot-line"><b>Depot</b> <span id="rot-depot"></span> <button class="map-btn" id="rot-depot-set" type="button">Set on map</button></div>
-                <p class="cc-help">Click the middle of the depot room - the bot finds a free locker there by itself. NPCs are chosen from those near the depot.</p>
-                <label class="rot-line">NPCs within <select id="rot-range"><option value="60">60 tiles</option><option value="120">120 tiles</option><option value="200">200 tiles</option></select> of the depot</label>
-              </div>
-              <div class="rot-sec">
-                <label class="map-floor-filter-toggle"><input type="checkbox" id="rot-sell-on"> Sell loot first</label>
-                <div id="rot-sell"></div>
-              </div>
-              <div class="rot-sec">
-                <label class="map-floor-filter-toggle"><input type="checkbox" id="rot-bank-on"> Bank gold after the depot</label>
-                <div class="rot-line" id="rot-bank-row"><select id="rot-bank-npc"></select> when carrying <input type="number" id="rot-bank-min" min="1" style="width:84px"> gp or more</div>
-              </div>
-              <div class="rot-sec">
-                <label class="map-floor-filter-toggle"><input type="checkbox" id="rot-buy-on"> Buy supplies last</label>
-                <div id="rot-buy"></div>
-                <datalist id="rot-items"></datalist>
-                <div><button class="map-btn" id="rot-buy-add" type="button">+ Supply</button></div>
-              </div>
-              <div class="route-actions">
-                <label class="route-bot-spacing">Walk waypoint every
-                  <select id="rot-spacing"><option value="0">none (floor changes only)</option><option value="5">5 tiles</option><option value="8">8 tiles</option><option value="12">12 tiles</option></select>
-                </label>
-                <button class="map-btn pb-primary" id="rot-build" type="button">Build rotation</button>
-              </div>
-              <div class="rot-sec" id="rot-out"></div>
-              <div class="route-actions">
-                <button class="map-btn pb-primary" id="rot-pick" type="button" hidden>Pick ways up</button>
-                <button class="map-btn pb-primary" id="rot-copy" type="button" disabled title="Copy the whole rotation in the bot's Import JSON format">Copy bot JSON</button>
-                <button class="map-btn" id="rot-download" type="button" disabled>Download .json</button>
-                <button class="map-btn mb0t-only" id="rot-mb0t-copy" type="button" disabled hidden title="Copy the rotation as an mb0t Cave preset - paste it in mb0t's Cave tab">Copy for mb0t</button>
-                <button class="map-btn mb0t-only" id="rot-mb0t-download" type="button" disabled hidden>Download for mb0t</button>
-              </div>
-              <div class="route-bot-msg" id="rot-msg"></div>
-              <p class="cc-help">Needs the bot's waypoint checks (Supplies low? / Anything to sell? / Gold to bank? / Anything to buy?). Loot and NPC offers come from the game data, which doesn't list every NPC offer (no one sells mana fluid in it, for example) - pick the NPC in that supply's row.</p>
-            </div>
             <div class="route-bot">
               <div class="route-bot-title">Cave bot route</div>
               <div class="route-actions">
@@ -936,12 +912,120 @@
                 <textarea id="route-bot-import-text" rows="5" spellcheck="false" placeholder='Paste the route from the bot (Cave → Route → Copy), e.g. { "version": 1, "route": [ ... ] }'></textarea>
                 <div class="route-actions"><button class="map-btn" id="route-bot-import-go" type="button">Import (replaces this route)</button></div>
               </div>
+              <div class="export-why" id="route-why" hidden></div>
               <div class="route-bot-msg" id="route-bot-msg"></div>
             </div>
           </div>
         </section>
+        <section class="mapx-panel" data-panel="rotation" hidden>
+          <div class="rot" id="rot">
+            <div class="mapx-h-row"><div class="mapx-h">Rotation <span class="beta-tag">beta</span></div></div>
+            <p class="mapx-p">A whole trip, one question at a time: hunt until you run low, walk to town, sell, store, restock and bank, then walk back. Every walk is found for you. At the end you get a rotation for mb0t.</p>
+            <ol class="rot-steps" id="rot-steps">
+              <li class="rot-step" data-step="1">
+                <button type="button" class="rot-step-head" data-open="1"><span class="rot-num">1</span><span class="rot-step-t"><b>Where do you hunt?</b><small id="rot-sum-1"></small></span></button>
+                <div class="rot-step-body">
+                  <p class="cc-help">Your hunting loop is the route in the <b>Route</b> tab - draw it there (with Loop back to start on), then come back.</p>
+                  <div class="rot-line" id="rot-cave-sum"></div>
+                  <div class="route-actions"><button class="map-btn" id="rot-go-route" type="button">Open the Route tab</button></div>
+                  <label class="rot-line">Name this rotation <input type="text" id="rot-name" maxlength="60" placeholder="e.g. Thais rotworms"></label>
+                  <div class="rot-line">Leave the cave when free capacity is below <input type="number" id="rot-mincap" min="0" style="width:72px"> oz <small>(0 = never)</small></div>
+                  <p class="cc-help">It also leaves when a supply runs low - you set those in step 4.</p>
+                  <div class="rot-next"><button class="map-btn pb-primary" type="button" data-next="2">Next: your depot</button></div>
+                </div>
+              </li>
+              <li class="rot-step" data-step="2">
+                <button type="button" class="rot-step-head" data-open="2"><span class="rot-num">2</span><span class="rot-step-t"><b>Where's your depot?</b><small id="rot-sum-2"></small></span></button>
+                <div class="rot-step-body">
+                  <div class="rot-line"><span id="rot-depot"></span> <button class="map-btn" id="rot-depot-set" type="button">Set on map</button></div>
+                  <p class="cc-help">Press Set on map and click the middle of the depot room - the bot finds a free locker there itself. The NPCs for selling, buying and banking are picked from those near it.</p>
+                  <label class="rot-line">Look for NPCs within <select id="rot-range"><option value="60">60 tiles</option><option value="120">120 tiles</option><option value="200">200 tiles</option></select> of the depot</label>
+                  <div class="rot-next"><button class="map-btn pb-primary" type="button" data-next="3">Next: selling</button></div>
+                </div>
+              </li>
+              <li class="rot-step" data-step="3">
+                <button type="button" class="rot-step-head" data-open="3"><span class="rot-num">3</span><span class="rot-step-t"><b>What do you sell?</b><small id="rot-sum-3"></small></span></button>
+                <div class="rot-step-body">
+                  <label class="map-floor-filter-toggle"><input type="checkbox" id="rot-sell-on"> Sell my loot on the way</label>
+                  <div id="rot-sell"></div>
+                  <div class="rot-next"><button class="map-btn pb-primary" type="button" data-next="4">Next: restocking</button></div>
+                </div>
+              </li>
+              <li class="rot-step" data-step="4">
+                <button type="button" class="rot-step-head" data-open="4"><span class="rot-num">4</span><span class="rot-step-t"><b>What do you restock?</b><small id="rot-sum-4"></small></span></button>
+                <div class="rot-step-body">
+                  <label class="map-floor-filter-toggle"><input type="checkbox" id="rot-buy-on"> Restock supplies</label>
+                  <p class="cc-help">For each supply: leave the cave when you have less than <b>Leave below</b>, then get back up to <b>Up to</b> - bought from an NPC, or taken from your depot.</p>
+                  <div id="rot-buy"></div>
+                  <datalist id="rot-items"></datalist>
+                  <div><button class="map-btn" id="rot-buy-add" type="button">+ Supply</button></div>
+                  <div class="rot-next"><button class="map-btn pb-primary" type="button" data-next="5">Next: banking</button></div>
+                </div>
+              </li>
+              <li class="rot-step" data-step="5">
+                <button type="button" class="rot-step-head" data-open="5"><span class="rot-num">5</span><span class="rot-step-t"><b>Bank your gold?</b><small id="rot-sum-5"></small></span></button>
+                <div class="rot-step-body">
+                  <label class="map-floor-filter-toggle"><input type="checkbox" id="rot-bank-on"> Deposit my gold at the bank</label>
+                  <div class="rot-line" id="rot-bank-row"><select id="rot-bank-npc"></select> when carrying <input type="number" id="rot-bank-min" min="1" style="width:84px"> gp or more</div>
+                  <p class="cc-help">The bank comes last, after buying - it deposits all your gold.</p>
+                  <div class="rot-next"><button class="map-btn pb-primary" type="button" data-next="6">Next: your trip</button></div>
+                </div>
+              </li>
+              <li class="rot-step" data-step="6">
+                <button type="button" class="rot-step-head" data-open="6"><span class="rot-num">6</span><span class="rot-step-t"><b>Your trip</b><small id="rot-sum-6"></small></span></button>
+                <div class="rot-step-body">
+                  <ol class="rot-story" id="rot-story"></ol>
+                  <div class="route-actions">
+                    <label class="route-bot-spacing">Walk waypoint every
+                      <select id="rot-spacing"><option value="0">none (floor changes only)</option><option value="5">5 tiles</option><option value="8">8 tiles</option><option value="12">12 tiles</option></select>
+                    </label>
+                    <button class="map-btn pb-primary" id="rot-build" type="button">Find the way</button>
+                  </div>
+                  <div class="rot-sec" id="rot-out"></div>
+                  <div class="route-actions"><button class="map-btn pb-primary" id="rot-pick" type="button" hidden>Pick ways up</button></div>
+                  <div class="rot-next"><button class="map-btn pb-primary" type="button" data-next="7">Next: export</button></div>
+                </div>
+              </li>
+              <li class="rot-step" data-step="7">
+                <button type="button" class="rot-step-head" data-open="7"><span class="rot-num">7</span><span class="rot-step-t"><b>Export</b><small id="rot-sum-7"></small></span></button>
+                <div class="rot-step-body">
+                  <p class="cc-help">For <b>mb0t</b>: Cave Bot → Rotation → <b>Import JSON</b>, then start it in town - it walks to the cave first.</p>
+                  <div class="route-actions">
+                    <button class="map-btn pb-primary" id="rot-mb-copy" type="button" disabled>Copy for mb0t</button>
+                    <button class="map-btn" id="rot-mb-download" type="button" disabled>Download for mb0t</button>
+                  </div>
+                  <div class="export-why" id="rot-mb-why" hidden></div>
+                  <div class="route-bot-msg" id="rot-mb-msg"></div>
+                  <details class="rot-alt">
+                    <summary>The other cave bot (one route with checks)</summary>
+                    <p class="cc-help">One route for the whole cycle, using that bot's waypoint checks (Supplies low? / Anything to sell? / Gold to bank? / Anything to buy?): Cave → Route → Import JSON. Supplies taken from the depot aren't part of it.</p>
+                    <div class="route-actions">
+                      <button class="map-btn" id="rot-copy" type="button" disabled>Copy bot JSON</button>
+                      <button class="map-btn" id="rot-download" type="button" disabled>Download .json</button>
+                    </div>
+                    <div class="export-why" id="rot-why" hidden></div>
+                    <div class="route-bot-msg" id="rot-msg"></div>
+                  </details>
+                </div>
+              </li>
+            </ol>
+          </div>
+        </section>
       </aside>
     </div>
+    <div class="hunt-est-card hunt-est" id="hunt-est" hidden>
+      <div class="route-bot-title">Hunt estimate <span class="beta-tag">beta</span></div>
+      <div class="route-actions">
+        <label class="route-bot-spacing">Reach
+          <select id="hunt-est-reach"><option value="3">3 tiles</option><option value="5" selected>5 tiles</option><option value="8">8 tiles</option></select>
+        </label>
+        <label class="map-floor-filter-toggle"><input type="checkbox" id="hunt-est-unsure" checked> Count spawns whose floor isn't confirmed</label>
+      </div>
+      <div class="hunt-est-sum" id="hunt-est-sum"></div>
+      <div class="hunt-est-body" id="hunt-est-body"></div>
+      <p class="cc-help" id="hunt-est-note">Rough: every spawn within reach of the walked path (on the same floor) counts as killed once per lap, all alive; respawn times, monsters that follow you and anything off the path aren't modelled. Loot uses the design database's drop chances and NPC sell prices. Circled on the map: solid = floor confirmed, dashed = floor not confirmed.</p>
+    </div>
+
     <div class="map-hint">Terrain is decoded from the client's own <code>minimap.bin</code> at 1&nbsp;px&nbsp;=&nbsp;1&nbsp;tile. Spawn data has no floor of its own: dots show on every floor their terrain allows, except where real-Tibia spawn data pins the floor down. A few far-flung spawn clusters sit outside the drawn region.</div>
   </div>
 
@@ -4511,6 +4595,10 @@ function pathBotRender(note) {
   pick.hidden = unp.length === 0; copy.hidden = unp.length > 0;
   pick.textContent = "Pick " + unp.length + " way" + (unp.length === 1 ? "" : "s") + " up on the map";
   document.getElementById("path-bot-download").disabled = unp.length > 0;
+  const upsWhy = unp.length ? "pick what each way up is first (" + unp.length + " left)" : "";
+  const mWhy = upsWhy || (mb0tFlag ? mb0tPathWhy(pts) : "");
+  exportGate(["path-mb0t-copy", "path-mb0t-download"], mWhy);
+  exportWhy("path-mb0t-why", [mb0tFlag && !upsWhy && mWhy ? "mb0t: " + mWhy : ""]);
   pathBotRenderUps(pts, unp.length);
 }
 // Summary of the ways up on the path: one chip each (tap to look at it again
@@ -5443,8 +5531,8 @@ function pathShowResult(r, keepView) {
 function pathToRouteBuilder() {
   const pb = pathBotPoints();
   if (!pb) return false;
-  if (pb.points.length > ROUTE_MAX_POINTS) { pathBotRender("Too many waypoints for the Route builder - use a larger spacing."); return false; }
-  if (routeState.points.length && !confirm("Replace the " + routeState.points.length + "-point route in the Route builder with this path's " + pb.points.length + " waypoints?")) return false;
+  if (pb.points.length > ROUTE_MAX_POINTS) { pathBotRender("Too many waypoints for the Route tab - use a larger spacing."); return false; }
+  if (routeState.points.length && !confirm("Replace the " + routeState.points.length + "-point route in the Route tab with this path's " + pb.points.length + " waypoints?")) return false;
   const pts = pb.points.map(function (p) {
     return routeMakePoint(p.z, p.x, p.y, "", { t: p.t, params: botClone(p.params) });
   });
@@ -5718,7 +5806,7 @@ function pathHandleClick(sx, sy) {
 // current one. Derived from the tools' own state, so it stays right however
 // a mode was entered (e.g. opening a shared route link).
 function mapCurrentMode() {
-  return routeState.mode !== "off" ? "route" : (pathState.active ? "path" : "explore");
+  return routeState.mode === "rot" ? "rotation" : routeState.mode !== "off" ? "route" : (pathState.active ? "path" : "explore");
 }
 function mapSyncMode() {
   const mode = mapCurrentMode();
@@ -5732,9 +5820,10 @@ function mapSyncMode() {
 function mapSetMode(mode) {
   if (mode === mapCurrentMode()) return;
   if (mode !== "path" && pathState.active) pathToggle();
-  if (mode !== "route" && routeState.mode !== "off") routeClose();
+  if (mode !== "route" && mode !== "rotation" && routeState.mode !== "off") routeClose();
   if (mode === "path" && !pathState.active) pathToggle();
-  if (mode === "route" && routeState.mode === "off") routeStartEdit();
+  if (mode === "route" && routeState.mode !== "edit") routeStartEdit();
+  if (mode === "rotation") rotOpen();
   mapSyncMode();
 }
 
@@ -6340,27 +6429,34 @@ function drawHuntMarks() {
 }
 
 
-// --- Rotation planner (beta, feature flag: #rotation in the URL turns it
-// on for this device, #rotation-off turns it off). The Route builder route
-// is the hunt loop; the planner adds the town side - sell loot, depot,
-// bank, buy supplies - with the pathfinder walking every leg, and exports
-// one cave bot route: hunt -> (Supplies low?) -> sell -> depot -> bank ->
-// buy -> back to the hunt. Optional stops are skipped by checks the bot
-// runs on the spot (Anything to sell? / Gold to bank? / Anything to buy?),
-// so every way between two stops that can follow each other is walked
-// and written out once.
-const ROT_FLAG_KEY = "minibia.flag.rotation", ROT_CFG_KEY = "minibia.rotation.v1";
-function rotFlagOn() {
-  const h = location.hash.toLowerCase();
-  try {
-    if (/(^#|&)rotation-off(&|$)/.test(h)) localStorage.removeItem(ROT_FLAG_KEY);
-    else if (/(^#|&)rotation(&|$)/.test(h)) localStorage.setItem(ROT_FLAG_KEY, "1");
-    return localStorage.getItem(ROT_FLAG_KEY) === "1";
-  } catch (e) { return /(^#|&)rotation(&|$)/.test(h); }
+// --- Rotation (the Rotation tab, beta): the Route builder route is the
+// hunt loop; a step-by-step guide adds the town side - sell loot, depot,
+// buy supplies (or take them from the depot), bank - with the pathfinder
+// walking every leg. Exports an mb0t rotation file (its Cave Bot ->
+// Rotation -> Import JSON, contract v1: paths, caves and blocks) and, for
+// the other cave bot, one route: hunt -> (Supplies low?) -> sell -> depot ->
+// buy -> bank -> back to the hunt, where optional stops are skipped by
+// checks the bot runs on the spot (Anything to sell? / Gold to bank? /
+// Anything to buy?), so every way between two stops that can follow each
+// other is walked and written out once.
+const ROT_CFG_KEY = "minibia.rotation.v1";
+try { localStorage.removeItem("minibia.flag.rotation"); } catch (e) { /* the old #rotation flag - it's a tab now */ }
+// The Rotation tab: the Route's points are the hunt loop, shown (and their
+// legs walked) read-only - routeState.mode "rot".
+function rotOpen() {
+  if (pathState.active) pathToggle();
+  if (upq.kind === "route") upqClose();
+  routeSetInsert(null);
+  routeState.mode = "rot";
+  routeShowPanel();
+  routeRecompute();
+  pathPrepare();
+  rotRender();
+  if (routeState.points.length) routeFitFloor(routeState.points[0].z);
+  drawMap();
 }
-let rotFlag = false;
 function rotDefaults() {
-  return { depot: null, range: 120, spacing: 8, sell: { on: true, off: {} }, bank: { on: true, npc: "", min: 1000 },
+  return { name: "", minCap: 50, depot: null, range: 120, spacing: 8, sell: { on: true, off: {} }, bank: { on: true, npc: "", min: 1000 },
     buy: { on: true, rows: [{ name: "", low: 20, to: 100, npc: "" }] } };
 }
 function rotLoadCfg() {
@@ -6370,6 +6466,7 @@ function rotLoadCfg() {
     if (!c || typeof c !== "object") return d;
     const pos = c.depot && [c.depot.z, c.depot.x, c.depot.y].every(Number.isInteger) ? { z: c.depot.z, x: c.depot.x, y: c.depot.y } : null;
     return {
+      name: String(c.name || "").slice(0, 60), minCap: Number.isInteger(c.minCap) && c.minCap >= 0 ? c.minCap : d.minCap,
       depot: pos, range: [60, 120, 200].indexOf(c.range) >= 0 ? c.range : d.range, spacing: [0, 5, 8, 12].indexOf(c.spacing) >= 0 ? c.spacing : d.spacing,
       sell: { on: !(c.sell && c.sell.on === false), off: c.sell && c.sell.off && typeof c.sell.off === "object" ? c.sell.off : {} },
       bank: { on: !(c.bank && c.bank.on === false), npc: String(c.bank && c.bank.npc || "").slice(0, 60), min: Math.max(1, Math.floor(Number(c.bank && c.bank.min) || d.bank.min)) },
@@ -6379,7 +6476,7 @@ function rotLoadCfg() {
     };
   } catch (e) { return d; }
 }
-const rot = { cfg: rotLoadCfg(), pickDepot: false, poi: null, poiState: "", plan: null, res: null, gen: 0, choice: {}, msg: "" };
+const rot = { step: 0, cfg: rotLoadCfg(), pickDepot: false, poi: null, poiState: "", plan: null, res: null, gen: 0, choice: {}, msg: "" };
 function rotSaveCfg() { try { localStorage.setItem(ROT_CFG_KEY, JSON.stringify(rot.cfg)); } catch (e) {} }
 
 // npc-poi.json says which NPCs are banks (keywords can't: rune shops answer
@@ -6436,7 +6533,7 @@ function rotTraders(near) { return near.filter(function (n) { return (n.sells ||
 // estimate's loot; no paths yet.
 function rotPlan() {
   const cfg = rot.cfg, errors = [], notes = [], hp = routeState.points;
-  if (hp.length < 2) errors.push("Build the hunt loop in the Route builder first (at least two points).");
+  if (hp.length < 2) errors.push("Draw your hunting loop in the Route tab first (at least two points).");
   if (!cfg.depot) errors.push("Set the depot: press Set on map and click the middle of the depot room.");
   if (errors.length) return { errors: errors, notes: notes, stops: [], noBuyer: [] };
   const near = rotNearNpcs(), H = hp[0];
@@ -6464,21 +6561,23 @@ function rotPlan() {
     });
     if (!h.pending && !loot.length) notes.push("No loot along the hunt route has a buyer near the depot (Hunt estimate shows the expected loot).");
   }
-  stops.push({ key: "depot", kind: "depot", mandatory: true, pos: cfg.depot, label: "Depot" });
-  if (cfg.bank.on) {
-    const banks = rotBanks(near), bank = banks.find(function (n) { return rotKey(n.name) === rotKey(cfg.bank.npc); }) || banks[0];
-    if (bank) stops.push({ key: "bank", kind: "bank", optional: true, npc: bank, pos: bank.position, label: "Bank at " + bank.name, min: cfg.bank.min });
-    else if (rot.poiState === "loading" || !rot.poiState) notes.push("Loading which NPCs are banks…");
-    else errors.push("No bank NPC within " + cfg.range + " tiles of the depot" + (rot.poiState === "failed" ? " (couldn't load data/raw/npc-poi.json)" : "") + ".");
-  }
-  // Buy: each supply from its seller; one buy stop per NPC.
-  const buys = new Map();
+  const depot = { key: "depot", kind: "depot", mandatory: true, pos: cfg.depot, label: "Depot", take: [] };
+  stops.push(depot);
+  // Buy: each supply from its seller (one buy stop per NPC), or taken from
+  // the depot. Buying comes before the bank, which deposits all your gold.
+  const buys = new Map(), supplies = [];
   let refillCost = 0, unpriced = 0;
   if (cfg.buy.on) {
     cfg.buy.rows.forEach(function (r) {
       const name = r.name.trim();
       if (!name) return;
-      if (!(r.to > r.low)) errors.push(name + ": Refill to must be more than Low below.");
+      supplies.push({ name: name, low: r.low, to: r.to });
+      if (!(r.to > r.low)) errors.push(name + ": Up to must be more than Leave below.");
+      if (r.npc === "@depot") {
+        if (/\bfluid\b/i.test(name)) errors.push(name + ": fluids can't be taken from the depot (mb0t stops with \u201cUnknown item\u201d) - buy it from an NPC.");
+        depot.take.push({ name: name, upTo: r.to });
+        return;
+      }
       let npc = null, price = null;
       if (r.npc) {
         npc = near.find(function (n) { return rotKey(n.name) === rotKey(r.npc); }) || null;
@@ -6496,9 +6595,15 @@ function rotPlan() {
     });
     buys.forEach(function (b) { stops.push({ key: "buy:" + b.npc.name, kind: "buy", optional: true, npc: b.npc, pos: b.npc.position, label: "Buy from " + b.npc.name, rows: b.rows }); });
   }
+  if (cfg.bank.on) {
+    const banks = rotBanks(near), bank = banks.find(function (n) { return rotKey(n.name) === rotKey(cfg.bank.npc); }) || banks[0];
+    if (bank) stops.push({ key: "bank", kind: "bank", optional: true, npc: bank, pos: bank.position, label: "Bank at " + bank.name, min: cfg.bank.min });
+    else if (rot.poiState === "loading" || !rot.poiState) notes.push("Loading which NPCs are banks…");
+    else errors.push("No bank NPC within " + cfg.range + " tiles of the depot" + (rot.poiState === "failed" ? " (couldn't load data/raw/npc-poi.json)" : "") + ".");
+  }
   stops.push({ key: "return", kind: "return", mandatory: true, pos: { z: H.z, x: H.x, y: H.y }, label: "Back to the hunt" });
   if (!routeState.loop) notes.push("Loop back to start is off - the hunt is normally a loop.");
-  return { errors: errors, notes: notes, stops: stops, loot: loot, noBuyer: noBuyer, sellValue: sellValue, refillCost: refillCost, unpriced: unpriced };
+  return { errors: errors, notes: notes, stops: stops, loot: loot, noBuyer: noBuyer, sellValue: sellValue, refillCost: refillCost, unpriced: unpriced, supplies: supplies };
 }
 // Which earlier stops a stop can be walked to from: every stop since the
 // last mandatory one (the optional ones in between may have been skipped).
@@ -6672,11 +6777,16 @@ function rotExport() {
   });
   return { json: JSON.stringify({ version: 1, route: route }, null, 2), errors: botValidate(route), route: route };
 }
-function rotBlocked() {
+function rotUpsWhy() {
   if (!rot.res) return "Build the rotation first.";
   const huntUps = botUnpicked(routeState.points), left = rotUps().filter(function (p) { return !rot.choice[rotUpKey(p)]; });
-  if (huntUps.length) return "Pick the hunt route's ways up first (Route builder list: " + huntUps.join(", ") + ").";
+  if (huntUps.length) return "Pick the hunt route's ways up first (in the Route tab's list: " + huntUps.join(", ") + ").";
   if (left.length) return left.length + " way" + (left.length === 1 ? "" : "s") + " up on the town legs still need a type - press Pick ways up.";
+  return "";
+}
+function rotBlocked() {
+  const ups = rotUpsWhy();
+  if (ups) return ups;
   const ex = rotExport();
   if (ex.errors.length) return "Not exported: " + ex.errors.join(" · ");
   return "";
@@ -6689,15 +6799,47 @@ function rotEl(tag, parent, text, cls) {
   if (parent) parent.appendChild(e);
   return e;
 }
+// The Rotation tab's steps (rot.step is the open one): each has a one-line
+// summary when closed and turns green once it's done.
+function rotStepsDone(plan) {
+  const cfg = rot.cfg, hp = routeState.points;
+  const ups = rot.res ? rotUpsWhy() : "x";
+  return {
+    1: hp.length >= 2,
+    2: !!cfg.depot,
+    3: !!cfg.depot,
+    4: !!cfg.depot && !plan.errors.some(function (e) { return /Up to must|fluids can't|sells it|isn't within/.test(e); }),
+    5: !!cfg.depot && !plan.errors.some(function (e) { return /bank NPC/.test(e); }),
+    6: !!rot.res && !ups,
+    7: false
+  };
+}
 function rotRender() {
   const box = document.getElementById("rot");
   if (!box) return;
-  box.hidden = !rotFlag || routeState.mode === "off";
+  box.hidden = routeState.mode !== "rot";
   if (box.hidden) return;
   rotLoadPoi();
-  const cfg = rot.cfg, near = rotNearNpcs();
+  const cfg = rot.cfg, near = rotNearNpcs(), hp = routeState.points;
+  const plan = rotPlan();
+  const caveName = rotName();
+  // 1. The hunt.
+  const cs = document.getElementById("rot-cave-sum");
+  cs.textContent = "";
+  if (hp.length >= 2) {
+    rotEl("b", cs, routeState.title || "Your route");
+    rotEl("span", cs, hp.length + " points" + (routeState.loop ? " · loops back to its start" : ""));
+    if (!routeState.loop) rotEl("span", cs, "⚠ Loop back to start is off - a hunt is normally a loop.", "rot-err");
+    if (hunt.res) rotEl("span", cs, "~" + fmt(hunt.res.kills + hunt.res.killsUnsure) + " kills · ~" + fmt(Math.round(hunt.res.exp)) + " XP · ~" + fmt(Math.round(hunt.res.gold)) + " gp a lap (Hunt estimate, below the map)", "rot-meta");
+  } else rotEl("span", cs, "No hunting loop yet.", "rot-err");
+  document.getElementById("rot-go-route").textContent = hp.length >= 2 ? "Change it in the Route tab" : "Draw it in the Route tab";
+  const nameIn = document.getElementById("rot-name");
+  if (document.activeElement !== nameIn) nameIn.value = cfg.name;
+  nameIn.placeholder = routeState.title || "e.g. Thais rotworms";
+  document.getElementById("rot-mincap").value = String(cfg.minCap);
+  // 2. The depot.
   document.getElementById("rot-depot").textContent = rot.pickDepot ? "Click the middle of the depot room on the map…" :
-    cfg.depot ? "x" + cfg.depot.x + " y" + cfg.depot.y + " z" + cfg.depot.z + " · " + near.length + " NPCs within " + cfg.range + " tiles" : "Not set";
+    cfg.depot ? "x" + cfg.depot.x + " y" + cfg.depot.y + " z" + cfg.depot.z + " · " + near.length + " NPCs within " + cfg.range + " tiles" : "Not set yet";
   document.getElementById("rot-depot-set").textContent = rot.pickDepot ? "Cancel" : (cfg.depot ? "Move" : "Set on map");
   document.getElementById("rot-range").value = String(cfg.range);
   document.getElementById("rot-spacing").value = String(cfg.spacing);
@@ -6705,93 +6847,244 @@ function rotRender() {
   document.getElementById("rot-bank-on").checked = cfg.bank.on;
   document.getElementById("rot-buy-on").checked = cfg.buy.on;
   document.getElementById("rot-bank-min").value = String(cfg.bank.min);
-  const plan = rotPlan();
-  // Sell: the expected loot and who buys it.
+  // 3. Sell: the expected loot and who buys it.
   const sell = document.getElementById("rot-sell");
   sell.textContent = "";
   sell.hidden = !cfg.sell.on;
   if (cfg.sell.on) {
-    if (!(plan.loot || []).length) rotEl("p", sell, cfg.depot ? "Loot to sell comes from the hunt route (as in Hunt estimate). Nothing with a buyer near the depot yet." : "Set the depot to see who buys your loot.", "cc-help");
+    if (!(plan.loot || []).length) rotEl("p", sell, cfg.depot ? "The loot comes from your hunting loop (as in the Hunt estimate). Nothing with a buyer near the depot yet." : "Set the depot first to see who buys your loot.", "cc-help");
+    else rotEl("p", sell, "What a lap drops, and who near the depot pays most for it. Untick what you keep.", "cc-help");
     (plan.loot || []).forEach(function (it) {
       const row = rotEl("label", sell, null, "rot-row");
       const cb = rotEl("input", row); cb.type = "checkbox"; cb.checked = it.on;
-      cb.addEventListener("change", function () { if (cb.checked) delete cfg.sell.off[rotKey(it.name)]; else cfg.sell.off[rotKey(it.name)] = true; rotSaveCfg(); rotRender(); });
+      cb.addEventListener("change", function () { if (cb.checked) delete cfg.sell.off[rotKey(it.name)]; else cfg.sell.off[rotKey(it.name)] = true; rot.res = null; rotSaveCfg(); rotRender(); });
       rotEl("span", row, it.name, "rot-name");
       rotEl("span", row, huntFmt(it.count) + "/lap · " + fmt(it.price) + " gp · " + it.npc, "rot-meta");
     });
-    if ((plan.noBuyer || []).length) rotEl("p", sell, "No buyer near the depot (stays in the loot bag for the depot): " + plan.noBuyer.join(", ") + ".", "cc-help");
+    if ((plan.noBuyer || []).length) rotEl("p", sell, "No buyer near the depot (goes to the depot with the rest): " + plan.noBuyer.join(", ") + ".", "cc-help");
   }
-  // Bank NPC choice.
+  // 5. Bank NPC choice.
   const bankSel = document.getElementById("rot-bank-npc"), banks = rotBanks(near);
   bankSel.textContent = "";
   rotEl("option", bankSel, banks.length ? "Nearest (" + banks[0].name + ")" : rot.poiState === "loading" ? "Loading…" : "None in range").value = "";
   banks.forEach(function (n) { rotEl("option", bankSel, n.name + " · " + rotDist(n.position, cfg.depot) + " tiles").value = n.name; });
   bankSel.value = banks.some(function (n) { return n.name === cfg.bank.npc; }) ? cfg.bank.npc : "";
   document.getElementById("rot-bank-row").hidden = !cfg.bank.on;
-  // Buy rows.
+  // 4. Supplies.
   const buy = document.getElementById("rot-buy");
   buy.textContent = "";
   buy.hidden = !cfg.buy.on;
   document.getElementById("rot-buy-add").hidden = !cfg.buy.on;
   if (cfg.buy.on) {
     const head = rotEl("div", buy, null, "rot-buy-row rot-head");
-    ["Item", "Low below", "Refill to", "NPC", ""].forEach(function (t) { rotEl("span", head, t); });
+    ["Item", "Leave below", "Up to", "From", ""].forEach(function (t) { rotEl("span", head, t); });
     const traders = rotTraders(near);
     cfg.buy.rows.forEach(function (r, i) {
       const row = rotEl("div", buy, null, "rot-buy-row");
-      const name = rotEl("input", row); name.value = r.name; name.placeholder = "e.g. mana fluid"; name.setAttribute("list", "rot-items");
-      const low = rotEl("input", row); low.type = "number"; low.min = "0"; low.value = String(r.low);
-      const to = rotEl("input", row); to.type = "number"; to.min = "0"; to.value = String(r.to);
-      const npc = rotEl("select", row);
+      const name = rotEl("input", row); name.value = r.name; name.placeholder = "e.g. mana potion"; name.setAttribute("list", "rot-items"); name.setAttribute("aria-label", "Item");
+      const low = rotEl("input", row); low.type = "number"; low.min = "0"; low.value = String(r.low); low.setAttribute("aria-label", "Leave the cave below");
+      const to = rotEl("input", row); to.type = "number"; to.min = "0"; to.value = String(r.to); to.setAttribute("aria-label", "Get back up to");
+      const npc = rotEl("select", row); npc.setAttribute("aria-label", "Buy from");
       const auto = r.name.trim() ? rotSellerFor(r.name, near) : null;
       rotEl("option", npc, auto ? "Auto (" + auto.npc.name + ", " + auto.price + " gp)" : "Auto").value = "";
+      rotEl("option", npc, "My depot").value = "@depot";
       traders.forEach(function (n) { const p = rotOffer(n, "sells", r.name); rotEl("option", npc, n.name + (p != null ? " · " + p + " gp" : "")).value = n.name; });
-      npc.value = traders.some(function (n) { return n.name === r.npc; }) ? r.npc : "";
+      npc.value = r.npc === "@depot" || traders.some(function (n) { return n.name === r.npc; }) ? r.npc : "";
       const del = rotEl("button", row, "×", "map-btn"); del.type = "button"; del.title = "Remove";
       const save = function () {
         cfg.buy.rows[i] = { name: name.value.slice(0, 60), low: Math.max(0, Math.floor(Number(low.value) || 0)), to: Math.max(0, Math.floor(Number(to.value) || 0)), npc: npc.value };
-        rotSaveCfg(); rotRender();
+        rot.res = null; rotSaveCfg(); rotRender();
       };
       [name, low, to, npc].forEach(function (el) { el.addEventListener("change", save); });
-      del.addEventListener("click", function () { cfg.buy.rows.splice(i, 1); if (!cfg.buy.rows.length) cfg.buy.rows.push({ name: "", low: 20, to: 100, npc: "" }); rotSaveCfg(); rotRender(); });
+      del.addEventListener("click", function () { cfg.buy.rows.splice(i, 1); if (!cfg.buy.rows.length) cfg.buy.rows.push({ name: "", low: 20, to: 100, npc: "" }); rot.res = null; rotSaveCfg(); rotRender(); });
     });
     // Autocomplete: what NPCs near the depot sell, then every item.
     const dl = document.getElementById("rot-items"), seen = {};
     dl.textContent = "";
     near.forEach(function (n) { (n.sells || []).forEach(function (o) { const k = rotKey(o.name); if (!seen[k]) { seen[k] = 1; rotEl("option", dl).value = k; } }); });
   }
-  // Result.
+  // 6. The trip as a story, then the walks found for it.
+  const shown = rot.res ? rot.res.plan : plan, story = document.getElementById("rot-story");
+  story.textContent = "";
+  if (shown.stops.length) {
+    const sup = (shown.supplies || []).map(function (x) { return x.name + " below " + fmt(x.low); });
+    const leave = [cfg.minCap > 0 ? "your free capacity drops below " + fmt(cfg.minCap) + " oz" : ""].concat(sup).filter(Boolean);
+    rotEl("li", story, "Hunt the loop " + (routeState.title ? "\u201c" + routeState.title + "\u201d" : "from the Route tab") + (leave.length ? " until " + leave.join(", or ") + "." : " - ⚠ nothing makes it leave: set a capacity (step 1) or a supply (step 4)."));
+    shown.stops.forEach(function (s, k) {
+      if (!k) return;
+      let t = "";
+      if (s.kind === "sell") t = "Walk to " + s.npc.name + " and sell " + s.items.length + " item" + (s.items.length === 1 ? "" : "s") + " (" + s.items.map(function (x) { return x.name; }).join(", ") + ").";
+      else if (s.kind === "depot") t = "Walk to the depot and store your loot" + (s.take.length ? ", then take " + s.take.map(function (x) { return x.name + " up to " + fmt(x.upTo); }).join(", ") : "") + ".";
+      else if (s.kind === "buy") t = "Walk to " + s.npc.name + " and buy " + s.rows.map(function (x) { return x.name + " up to " + fmt(x.to); }).join(", ") + ".";
+      else if (s.kind === "bank") t = "Walk to " + s.npc.name + " and deposit your gold (when you carry " + fmt(s.min) + " gp or more).";
+      else if (s.kind === "return") t = "Walk back to the cave - and start over.";
+      const li = rotEl("li", story, t);
+      const leg = rot.res && rot.res.legs[(k - 1) + ">" + k];
+      if (leg) { const st = pathNodeStats(leg); rotEl("span", li, "~" + fmt(st.steps) + " steps" + (st.changes ? " · " + st.changes + " floor change" + (st.changes === 1 ? "" : "s") : ""), "rot-meta"); }
+    });
+  }
   const out = document.getElementById("rot-out");
   out.textContent = "";
-  const shown = rot.plan && rot.res ? rot.plan : plan;
   shown.errors.forEach(function (t) { rotEl("p", out, "⚠ " + t, "rot-err"); });
   shown.notes.forEach(function (t) { rotEl("p", out, t, "cc-help"); });
   if (rot.msg) rotEl("p", out, rot.msg, "cc-help");
+  const ups = rot.res ? rotUps() : [], upsLeft = ups.filter(function (x) { return !rot.choice[rotUpKey(x)]; }).length;
   if (rot.res) {
-    const r = rot.res, ol = rotEl("ol", out, null, "rot-stops");
-    r.stops.forEach(function (s) {
-      const li = rotEl("li", ol);
-      const dot = rotEl("span", li, ROT_LETTER[s.kind], "rot-dot"); dot.style.background = ROT_COLORS[s.kind];
-      rotEl("span", li, s.label + (s.optional ? " (skipped when not needed)" : ""));
-      if (s.kind === "sell") rotEl("div", li, s.items.map(function (it) { return it.name; }).join(", "), "rot-meta");
-      if (s.kind === "buy") rotEl("div", li, s.rows.map(function (x) { return x.name + " → " + x.to; }).join(", "), "rot-meta");
-      if (s.kind === "bank") rotEl("div", li, "when you carry " + fmt(s.min) + " gp or more", "rot-meta");
-    });
-    const p = r.plan;
-    rotEl("p", out, r.route.length + " waypoints · " + Object.keys(r.legs).length + " town legs, ~" + fmt(r.steps) + " steps in all" +
-      (p.sellValue ? " · loot sold ~" + fmt(Math.round(p.sellValue)) + " gp/lap" : "") +
-      (p.refillCost ? " · a full refill ~" + fmt(Math.round(p.refillCost)) + " gp" + (p.unpriced ? " (+" + p.unpriced + " unpriced)" : "") : "") +
-      (r.doors.length ? " · passes " + r.doors.length + " assumed door" + (r.doors.length === 1 ? "" : "s") : ""), "rot-sum");
-    const ups = rotUps(), left = ups.filter(function (x) { return !rot.choice[rotUpKey(x)]; }).length;
-    document.getElementById("rot-pick").hidden = !ups.length;
-    if (ups.length) document.getElementById("rot-pick").textContent = left ? "Pick ways up (" + left + " left)" : "Ways up picked ✓";
-    rotEl("p", out, "Add each supply to the bot's Supplies too (same name, Low below, Refill to) - the bot decides LOW from those.", "cc-help");
-  } else document.getElementById("rot-pick").hidden = true;
-  document.getElementById("rot-copy").disabled = !rot.res;
-  document.getElementById("rot-download").disabled = !rot.res;
-  document.getElementById("rot-mb0t-copy").disabled = !rot.res;
-  document.getElementById("rot-mb0t-download").disabled = !rot.res;
+    const r = rot.res, p = r.plan;
+    let town = 0;
+    for (let k = 1; k < r.stops.length; k++) { const leg = r.legs[(k - 1) + ">" + k]; if (leg) town += pathNodeStats(leg).steps; }
+    rotEl("p", out, "Found every walk: ~" + fmt(town) + " steps from the cave round town and back" +
+      (p.sellValue ? " · loot sold ~" + fmt(Math.round(p.sellValue)) + " gp a lap" : "") +
+      (p.refillCost ? " · a full restock ~" + fmt(Math.round(p.refillCost)) + " gp" + (p.unpriced ? " (+" + p.unpriced + " unpriced)" : "") : "") +
+      (r.doors.length ? " · passes " + r.doors.length + " assumed door" + (r.doors.length === 1 ? "" : "s") + " (white squares on the map - check them)" : "") + ".", "rot-sum");
+  } else if (!shown.errors.length) rotEl("p", out, "Press Find the way and every walk is worked out on the map.", "cc-help");
+  const pick = document.getElementById("rot-pick");
+  pick.hidden = !ups.length;
+  if (ups.length) pick.textContent = upsLeft ? "Pick ways up (" + upsLeft + " left)" : "Ways up picked ✓";
+  document.getElementById("rot-build").textContent = rot.res ? "Find the way again" : "Find the way";
+  // 7. Export.
+  const mb = rot.res ? rotMbFile() : null;
+  const mbWhy = !rot.res ? (plan.errors[0] || "find the way first (step 6)") : rotUpsWhy() || (mb.errors.length ? mb.errors[0] + (mb.errors.length > 1 ? " (+" + (mb.errors.length - 1) + " more)" : "") : "");
+  exportGate(["rot-mb-copy", "rot-mb-download"], mbWhy);
+  exportWhy("rot-mb-why", [mbWhy ? "Not yet: " + mbWhy : "", mb && !mbWhy && mb.warnings.length ? "⚠ " + mb.warnings.join(" ") : ""]);
+  const why = rotBlocked();
+  exportGate(["rot-copy", "rot-download"], why);
+  exportWhy("rot-why", rot.res ? [why] : [plan.errors[0] || ""]);
   document.getElementById("rot-msg").textContent = "";
+  // Step summaries, done marks, the open step.
+  const done = rotStepsDone(plan), sum = {
+    1: hp.length >= 2 ? caveName + (cfg.minCap > 0 ? " · leave below " + fmt(cfg.minCap) + " oz" : "") : "Draw your hunting loop in the Route tab",
+    2: cfg.depot ? "x" + cfg.depot.x + " y" + cfg.depot.y + " z" + cfg.depot.z + " · " + near.length + " NPCs near" : "Not set yet",
+    3: !cfg.sell.on ? "Not selling" : (plan.loot || []).length ? plan.loot.filter(function (x) { return x.on; }).length + " of " + plan.loot.length + " items" : "Nothing to sell yet",
+    4: !cfg.buy.on ? "Nothing" : (plan.supplies || []).length ? plan.supplies.map(function (x) { return x.name + " → " + fmt(x.to); }).join(", ") : "No supplies yet",
+    5: !cfg.bank.on ? "No" : (plan.stops.find(function (s) { return s.kind === "bank"; }) || {}).label || (cfg.bank.npc ? "Bank at " + cfg.bank.npc : "At the nearest bank"),
+    6: rot.res ? (upsLeft ? upsLeft + " way" + (upsLeft === 1 ? "" : "s") + " up to pick" : "Every walk found ✓") : "Not worked out yet",
+    7: mbWhy ? "Not ready yet" : "Ready for mb0t"
+  };
+  if (!rot.step) rot.step = [1, 2, 3, 4, 5, 6, 7].find(function (n) { return !done[n]; }) || 7;
+  document.querySelectorAll("#rot-steps .rot-step").forEach(function (li) {
+    const n = Number(li.getAttribute("data-step"));
+    li.classList.toggle("open", n === rot.step);
+    li.classList.toggle("done", !!done[n]);
+    li.querySelector(".rot-num").textContent = done[n] && n !== rot.step ? "✓" : String(n);
+    document.getElementById("rot-sum-" + n).textContent = n === rot.step ? "" : sum[n];
+    li.querySelector(".rot-step-head").setAttribute("aria-expanded", n === rot.step ? "true" : "false");
+  });
+}
+// The rotation's name (and its routes' names in mb0t, which are shared by
+// every rotation there - so they start with it).
+function rotName() { return (rot.cfg.name || routeState.title || "My rotation").trim().slice(0, 60); }
+function rotGoStep(n) {
+  rot.step = n;
+  if (n === 6 && !rot.res) { const plan = rotPlan(); if (!plan.errors.length) { rotBuild(); } }
+  rotRender();
+  const li = document.querySelector('#rot-steps .rot-step[data-step="' + n + '"]');
+  if (li) { const r = li.getBoundingClientRect(); if (r.top < 0 || r.top > window.innerHeight - 80) li.scrollIntoView({ block: "start", behavior: "smooth" }); }
+}
+
+// --- mb0t rotation file (contract v1: format "mb0t-rotation", version 1;
+// paths and caves are named routes in mb0t's shared library, blocks run in
+// order then repeat). The blocks start with the walk back to the cave, so
+// it's started in town: path -> cave -> path -> sell -> path -> depot ->
+// path -> buy -> path -> bank. Waypoints are {x, y, z} plus at most one of
+// stand / rope / shovel / ladder - no scripts, labels or use (doors).
+function mb0tRotRoute(pts, where) {
+  const route = [], errors = [];
+  let covered = null;
+  const add = function (q, flag) {
+    const w = { x: q.x, y: q.y, z: q.z }, last = route[route.length - 1];
+    if (flag) w[flag] = true;
+    if (last && last.x === w.x && last.y === w.y && last.z === w.z) {
+      if (!flag) return;   // the same tile again
+      if (!["stand", "rope", "shovel", "ladder"].some(function (f) { return last[f]; })) { route[route.length - 1] = w; return; }
+    }
+    route.push(w);
+  };
+  pts.forEach(function (p, i) {
+    if (p.en === false) return;
+    const n = where + ", waypoint " + (i + 1), pr = p.params || {}, t = p.t, was = covered;
+    covered = null;
+    if (t === "walk" || t === "label") { add(p); return; }
+    if (t === "stand") { const a = mb0tAt(p, pr.standDirection); if (a) add(a, "stand"); else errors.push(n + ": bad stand direction"); return; }
+    if (t === "rope" || t === "shovel") {
+      const a = mb0tAt(p, pr.targetOffset);
+      if (!a) { errors.push(n + ": bad target direction"); return; }
+      add(a, t);
+      if (t === "shovel") covered = a;   // mb0t's shovel steps in itself
+      return;
+    }
+    if (t === "floor-down" || t === "stairs-up" || t === "ladder-up") {
+      const a = mb0tAt(p, pr.transitionTarget);
+      if (!a || pr.transitionTarget === "here") { errors.push(n + ": the floor change needs the direction it steps in"); return; }
+      if (t === "floor-down" && was && was.z === a.z && was.x === a.x && was.y === a.y) return;
+      if (t === "ladder-up") { add(a, "ladder"); return; }
+      add(p, "stand"); add(a, "stand");   // stand beside it, then on it
+      return;
+    }
+    if (t === "up") { errors.push(n + ": pick what this way up is first"); return; }
+    if (t === "use") { errors.push(n + " uses a door or lever (x" + p.x + " y" + p.y + ") - an mb0t rotation can't hold that yet (contract v1). Remove that door from Your stairs, holes & doors, or hunt elsewhere."); return; }
+    errors.push(n + ": " + (BOT_TYPES[t] ? BOT_TYPES[t].label.toLowerCase() : t) + " can't be part of an mb0t rotation");
+  });
+  return { route: route, errors: errors };
+}
+function rotMbFile() {
+  const res = rot.res, stops = res.stops, cfg = rot.cfg, name = rotName(), hp = routeState.points;
+  const errors = [], warnings = [], paths = [], blocks = [];
+  const cave = mb0tRotRoute(hp, "The cave");
+  cave.errors.forEach(function (e) { errors.push(e); });
+  const caveName = name + " - cave";
+  const short = function (s) { return s.kind === "depot" ? "depot" : s.kind === "return" || s.kind === "hunt" ? "cave" : s.npc ? s.npc.name : s.label; };
+  const used = {};
+  const pathName = function (a, b) {
+    let n = name + " - " + short(a) + " to " + short(b), base = n, i = 2;
+    while (used[n.toLowerCase()]) n = base + " " + (i++);
+    used[n.toLowerCase()] = true; return n;
+  };
+  // Each walk starts where the one before ended (beside an NPC, in the
+  // depot room, at the cave's first waypoint).
+  let from = { z: hp[0].z, x: hp[0].x, y: hp[0].y };
+  const legPaths = [];
+  for (let k = 1; k < stops.length; k++) {
+    const s = stops[k], nodes = res.legs[(k - 1) + ">" + k];
+    if (!nodes) { errors.push("No walk from " + stops[k - 1].label + " to " + s.label + " - press Find the way."); return { errors: errors, warnings: warnings }; }
+    const out = [routeMakePoint(from.z, from.x, from.y, "", {})], tiles = botLegTiles(nodes);
+    botLegFill(out, nodes, cfg.spacing);
+    let end = tiles[tiles.length - 1];
+    if (s.npc && tiles.length >= 2 && !end.portal && tiles[tiles.length - 2].z === end.z) end = tiles[tiles.length - 2];
+    out.push(routeMakePoint(end.z, end.x, end.y, "", {}));
+    out.forEach(function (p) { if (p.t === "up" && rot.choice[rotUpKey(p)]) botSetType(p, rot.choice[rotUpKey(p)]); });
+    const nm = pathName(stops[k - 1], s), conv = mb0tRotRoute(out, "The walk " + short(stops[k - 1]) + " to " + short(s));
+    conv.errors.forEach(function (e) { errors.push(e); });
+    paths.push({ name: nm, route: conv.route });
+    legPaths.push(nm);
+    from = end;
+  }
+  // Blocks: back to the cave first (start it in town), the hunt, then each
+  // stop with the walk to it.
+  const sup = (res.plan.supplies || []).map(function (x) { return { name: x.name, min: x.low }; });
+  if (!(cfg.minCap > 0) && !sup.length) errors.push("Nothing makes it leave the cave: set a capacity (step 1) or a supply (step 4).");
+  blocks.push({ type: "path", ref: legPaths[legPaths.length - 1], fight: false });
+  const cb = { type: "cave", ref: caveName, minCap: cfg.minCap };
+  if (sup.length) cb.supplies = sup;
+  blocks.push(cb);
+  for (let k = 1; k < stops.length - 1; k++) {
+    const s = stops[k];
+    blocks.push({ type: "path", ref: legPaths[k - 1], fight: k === 1 });
+    if (s.kind === "sell") blocks.push({ type: "sell", npcName: s.npc.name, rows: s.items.map(function (it) { return { name: it.name, mode: "all" }; }) });
+    else if (s.kind === "depot") { const d = { type: "depot" }; if (s.take.length) d.take = s.take.map(function (t) { return { name: t.name, upTo: t.upTo }; }); blocks.push(d); }
+    else if (s.kind === "buy") blocks.push({ type: "buy", npcName: s.npc.name, rows: s.rows.map(function (r) { return { name: r.name, target: r.to }; }) });
+    else if (s.kind === "bank") blocks.push({ type: "bank", npcName: s.npc.name, min: s.min });
+  }
+  // The importer's own checks.
+  const total = 1 + blocks.length + cave.route.length + 1 + paths.reduce(function (n, p) { return n + p.route.length; }, 0);
+  if (total > 1000) errors.push("Too long for mb0t: " + total + " waypoints (it takes 1000) - use a larger walk spacing in step 6.");
+  if (!cave.route.length) errors.push("The cave has no waypoints.");
+  const known = {};
+  DATA.items.forEach(function (it) { known[rotKey(it.name)] = true; });
+  const odd = (res.plan.supplies || []).filter(function (x) { return !known[rotKey(x.name)] && !/\bfluid\b/i.test(x.name); }).map(function (x) { return x.name; });
+  if (odd.length) warnings.push("Not an item name the game data knows (mb0t needs the exact in-game name, or that leave condition never triggers): " + odd.join(", ") + ".");
+  const file = { format: "mb0t-rotation", version: 1, name: name, paths: paths, caves: [{ name: caveName, route: cave.route }], blocks: blocks };
+  return { errors: errors, warnings: warnings, file: file, total: total };
 }
 function rotPickDepotAt(sx, sy) {
   const [wx, wy] = screenToWorld(sx, sy);
@@ -6800,7 +7093,7 @@ function rotPickDepotAt(sx, sy) {
   rotSaveCfg(); rotRender(); drawMap();
 }
 function drawRotOverlay() {
-  if (!rotFlag || routeState.mode === "off") return;
+  if (routeState.mode !== "rot") return;
   const z = state.mapFloor;
   mapCtx.save();
   if (rot.res) {
@@ -6851,6 +7144,27 @@ function mb0tFlagOn() {
 }
 let mb0tFlag = false;
 function mb0tRender() { document.querySelectorAll(".mb0t-only").forEach(function (el) { el.hidden = !mb0tFlag; }); }
+// Copy/Download stay greyed out while something still needs doing; the
+// reason shows on hover and in the line under them (whyId).
+function exportGate(ids, why) {
+  ids.forEach(function (id) {
+    const b = document.getElementById(id);
+    if (!b) return;
+    if (b.dataset.title === undefined) b.dataset.title = b.title || "";
+    b.disabled = !!why;
+    b.title = why ? "Not yet: " + why : b.dataset.title;
+  });
+}
+function exportWhy(whyId, lines) {
+  const el = document.getElementById(whyId);
+  if (!el) return;
+  const t = lines.filter(Boolean).join(" ");
+  el.textContent = t; el.hidden = !t;
+}
+function mb0tPathWhy(pts) {
+  const c = mb0tConvert(pts);
+  return c.errors.length ? c.errors[0] + (c.errors.length > 1 ? " (+" + (c.errors.length - 1) + " more)" : "") : "";
+}
 function mb0tAt(p, dir) {
   const st = BOT_DIR_STEP[dir || "here"];
   return st ? { z: p.z, x: p.x + st[0], y: p.y + st[1] } : null;
@@ -6938,53 +7252,6 @@ function mb0tConvert(pts) {
 function mb0tFile(name, route) {
   return JSON.stringify({ "minibiaBot.cave.presets": [{ name: String(name || "Route").slice(0, 60), route: route, transitions: [], areas: [] }] }, null, 2);
 }
-// The rotation for mb0t: hunt loop -> supply check (mb0t's own: LOW goes
-// on to town, OK jumps back to the hunt) -> every stop in order (mb0t
-// can't check on the spot whether there's anything to sell or bank, so
-// none is skipped) -> back to the hunt.
-function mb0tRotation() {
-  const res = rot.res, stops = res.stops, hp = routeState.points;
-  const buyRows = [];
-  stops.forEach(function (s) { if (s.kind === "buy") s.rows.forEach(function (r) { buyRows.push(r); }); });
-  if (!buyRows.length) return { errors: ["mb0t leaves the hunt when its supply check says LOW - add at least one supply under Buy."], route: [], notes: [] };
-  const labels = {}, label = function (txt) {
-    let l = String(txt).slice(0, 54), base = l, n = 2;
-    while (labels[l.toLowerCase()]) l = base + " " + (n++);
-    labels[l.toLowerCase()] = true; return l;
-  };
-  hp.forEach(function (p) { if (p.label) labels[p.label.toLowerCase()] = true; });
-  const huntLabel = hp[0].label || label("Hunt");
-  const pts = hp.map(function (p, i) {
-    const q = Object.assign({}, p);
-    if (i === 0) q.label = huntLabel;
-    return q;
-  });
-  const H = hp[0];
-  pts.push({ mb0t: { x: H.x, y: H.y, z: H.z } });
-  const rules = buyRows.map(function (r) { return { name: r.name, tradeName: r.name, minCount: r.low, target: r.to }; });
-  pts.push({ mb0t: { label: label("Supply check"), script: "bot.npcSupplyBuyer.updateConfig({ rules: " + mb0tQ(rules) + " }); return bot.npcSupplyBuyer.runSupplyCheckWaypoint(" + mb0tQ(huntLabel) + ");" } });
-  for (let k = 1; k < stops.length; k++) {
-    const s = stops[k], nodes = res.legs[(k - 1) + ">" + k];
-    if (!nodes) return { errors: ["No walking route from " + stops[k - 1].label + " to " + s.label + "."], route: [], notes: [] };
-    const out = [], tiles = botLegTiles(nodes);
-    botLegFill(out, nodes, rot.cfg.spacing);
-    let end = tiles[tiles.length - 1];
-    if (s.npc && tiles.length >= 2 && !end.portal && tiles[tiles.length - 2].z === end.z) end = tiles[tiles.length - 2];
-    out.push(routeMakePoint(end.z, end.x, end.y, "", {}));
-    out.forEach(function (p) { if (p.t === "up" && rot.choice[rotUpKey(p)]) botSetType(p, rot.choice[rotUpKey(p)]); });
-    out[0].label = label("To " + s.label);
-    out.forEach(function (p) { pts.push(p); });
-    const who = s.npc ? s.npc.name : "";
-    if (s.kind === "sell") pts.push({ mb0t: { label: label(s.label), script: mb0tSellScript(who, s.items.map(function (it) { return it.name; })) } });
-    else if (s.kind === "depot") pts.push({ mb0t: { label: label("Depot"), script: MB0T_DEPOT_SCRIPT } });
-    else if (s.kind === "bank") pts.push({ mb0t: { label: label(s.label), script: mb0tBankScript(who) } });
-    else if (s.kind === "buy") pts.push({ mb0t: { label: label(s.label), script: mb0tBuyScript(who, s.rows) } });
-    else if (s.kind === "return") pts.push({ mb0t: { label: label("Back to the hunt"), script: mb0tGotoScript(huntLabel) } });
-  }
-  const c = mb0tConvert(pts);
-  c.notes.push("Its supply check sets mb0t's supply rules to this rotation's list (Low below / Refill to). The depot uses mb0t's Depositer settings (loot backpack etc.).");
-  return c;
-}
 // Copy or download one for mb0t; say(msg) reports back.
 function mb0tGive(name, conv, download, btn, say) {
   if (conv.errors.length) { say("Not exported for mb0t: " + conv.errors.slice(0, 5).join(" · ") + (conv.errors.length > 5 ? " (+" + (conv.errors.length - 5) + " more)" : "")); return; }
@@ -7018,20 +7285,53 @@ function mb0tWire() {
       if (!routeState.loop) conv.notes.push("mb0t starts over from the first waypoint when it reaches the end.");
       mb0tGive(routeState.title || "Route", conv, what === "download", this, function (m) { botRenderMessages(m); });
     });
-    document.getElementById("rot-mb0t-" + what).addEventListener("click", function () {
-      const msg = document.getElementById("rot-msg");
-      const blocked = rot.res ? "" : "Build the rotation first.";
-      const huntUps = botUnpicked(routeState.points), left = rotUps().filter(function (p) { return !rot.choice[rotUpKey(p)]; });
-      const why = blocked || (huntUps.length ? "Pick the hunt route's ways up first (Route builder list: " + huntUps.join(", ") + ")." : "") ||
-        (left.length ? left.length + " way" + (left.length === 1 ? "" : "s") + " up on the town legs still need a type - press Pick ways up." : "");
-      if (why) { msg.textContent = why; return; }
-      mb0tGive((routeState.title || "Hunt") + " rotation", mb0tRotation(), what === "download", this, function (m) { msg.textContent = m; });
-    });
   });
 }
 
+// Copies text: the clipboard API, else a hidden textarea. Resolves true/false.
+function copyText(text) {
+  const fallback = function () {
+    const ta = document.createElement("textarea"); ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select();
+    let ok = false;
+    try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+    document.body.removeChild(ta);
+    return ok;
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(text).then(function () { return true; }, fallback);
+  return Promise.resolve(fallback());
+}
 function rotWire() {
   const cfg = rot.cfg, changed = function () { rot.res = null; rotSaveCfg(); rotRender(); drawMap(); };
+  document.getElementById("rot-steps").addEventListener("click", function (e) {
+    const h = e.target.closest("[data-open]"), nx = e.target.closest("[data-next]");
+    if (h) { const n = Number(h.getAttribute("data-open")); rotGoStep(rot.step === n ? -1 : n); }
+    else if (nx) rotGoStep(Number(nx.getAttribute("data-next")));
+  });
+  document.getElementById("rot-go-route").addEventListener("click", function () { mapSetMode("route"); });
+  document.getElementById("rot-name").addEventListener("change", function (e) { cfg.name = e.target.value.trim().slice(0, 60); rotSaveCfg(); rotRender(); });
+  document.getElementById("rot-mincap").addEventListener("change", function (e) { cfg.minCap = Math.max(0, Math.floor(Number(e.target.value) || 0)); rotSaveCfg(); rotRender(); });
+  const mbGive = function (download, btn) {
+    const msg = document.getElementById("rot-mb-msg"), mb = rot.res ? rotMbFile() : null;
+    if (!mb || mb.errors.length || rotUpsWhy()) return;
+    const json = JSON.stringify(mb.file, null, 2), tail = " In mb0t: Cave Bot → Rotation → Import JSON, then start it in town (it walks to the cave first).";
+    if (download) {
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([json], { type: "application/json" }));
+      a.download = (slugify(mb.file.name) || "rotation") + ".mb0t-rotation.json";
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+      msg.textContent = "Downloaded “" + mb.file.name + "” (" + mb.total + " waypoints)." + tail;
+      return;
+    }
+    copyText(json).then(function (ok) {
+      if (!ok) { msg.textContent = "Couldn't copy - use Download for mb0t."; return; }
+      const label = btn.textContent; btn.textContent = "Copied!"; setTimeout(function () { btn.textContent = label; }, 1500);
+      msg.textContent = "Copied “" + mb.file.name + "” (" + mb.total + " waypoints)." + tail;
+    });
+  };
+  document.getElementById("rot-mb-copy").addEventListener("click", function () { mbGive(false, this); });
+  document.getElementById("rot-mb-download").addEventListener("click", function () { mbGive(true, this); });
   document.getElementById("rot-depot-set").addEventListener("click", function () { rot.pickDepot = !rot.pickDepot; rotRender(); });
   document.getElementById("rot-range").addEventListener("change", function (e) { cfg.range = Number(e.target.value); changed(); });
   document.getElementById("rot-spacing").addEventListener("change", function (e) { cfg.spacing = Number(e.target.value); changed(); });
@@ -7515,6 +7815,11 @@ function botRenderMessages(extra) {
   const pk = document.getElementById("route-bot-pickups"), nUp = botUnpicked(routeState.points).length;
   pk.style.display = nUp ? "" : "none";
   pk.textContent = "Pick " + nUp + " way" + (nUp === 1 ? "" : "s") + " up on the map";
+  const why = !routeState.points.length ? "add points first" : nUp ? nUp + " way" + (nUp === 1 ? "" : "s") + " up still need" + (nUp === 1 ? "s" : "") + " a type" : "";
+  exportGate(["route-bot-copy", "route-bot-download"], why);
+  const mWhy = why || (mb0tFlag ? mb0tPathWhy(routeState.points) : "");
+  exportGate(["route-mb0t-copy", "route-mb0t-download"], mWhy);
+  exportWhy("route-why", [mb0tFlag && !why && mWhy ? "mb0t: " + mWhy : ""]);
   botRenderLegend();
 }
 
@@ -8279,12 +8584,11 @@ function initMap() {
   });
   botPathFlag = botPathFlagOn();
   try { localStorage.removeItem("minibia.flag.huntEst"); } catch (e) { /* the old #hunt-est flag, no longer used */ }
-  rotFlag = rotFlagOn();
   rotWire();
   mb0tFlag = mb0tFlagOn();
   mb0tWire();
   mb0tRender();
-  window.addEventListener("hashchange", function () { botPathFlag = botPathFlagOn(); rotFlag = rotFlagOn(); mb0tFlag = mb0tFlagOn(); mb0tRender(); pathBotRender(); huntRender(); rotRender(); drawMap(); });
+  window.addEventListener("hashchange", function () { botPathFlag = botPathFlagOn(); mb0tFlag = mb0tFlagOn(); mb0tRender(); pathBotRender(); huntRender(); rotRender(); drawMap(); });
   ["hunt-est-reach", "hunt-est-unsure"].forEach(function (id) {
     document.getElementById(id).addEventListener("change", function () { huntRender(); drawMap(); });
   });
