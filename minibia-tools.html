@@ -477,6 +477,9 @@
   .rot-story .rot-meta { display: block; }
   .rot-alt summary { cursor: pointer; font-size: 12.5px; color: var(--text-secondary); }
   .rot-alt[open] { display: flex; flex-direction: column; gap: 6px; }
+  .rot-import { display: flex; flex-direction: column; gap: 6px; margin-bottom: 4px; }
+  .rot-import-paste { display: flex; flex-direction: column; gap: 6px; }
+  .rot-import-paste[hidden] { display: none; }
   .rot-import textarea { width: 100%; box-sizing: border-box; font: 12px 'SF Mono', Consolas, monospace; background: var(--surface-2); color: var(--text-primary); border: 1px solid var(--border); border-radius: 6px; padding: 6px; resize: vertical; }
   #rot-import-msg:empty { display: none; }
   .rot[hidden], .rot [hidden] { display: none; }
@@ -923,16 +926,18 @@
           <div class="rot" id="rot">
             <div class="mapx-h-row"><div class="mapx-h">Rotation <span class="beta-tag">beta</span></div></div>
             <p class="mapx-p">A whole trip, one question at a time: hunt until you run low, walk to town, sell, store, restock and bank, then walk back. Every walk is found for you. At the end you get a rotation for mb0t.</p>
-            <details class="rot-alt rot-import" id="rot-import">
-              <summary>Start from an mb0t rotation (import)</summary>
-              <p class="cc-help">Paste a rotation file (mb0t: Cave Bot → Rotation → <b>Export JSON</b>, or one made here) or choose the file. It fills in the steps below - its cave becomes your Route - so you can tweak it and export it again.</p>
-              <textarea id="rot-import-text" rows="4" spellcheck="false" placeholder='{ "format": "mb0t-rotation", "version": 1, ... }'></textarea>
+            <div class="rot-import" id="rot-import">
               <div class="route-actions">
-                <button class="map-btn pb-primary" id="rot-import-go" type="button">Import</button>
-                <button class="map-btn" id="rot-import-pick" type="button">Choose file…</button>
+                <button class="map-btn" id="rot-import-pick" type="button" title="Open a rotation file from mb0t (Cave Bot → Rotation → Export JSON) or one made here, to tweak it">Import rotation file…</button>
+                <button class="map-btn" id="rot-import-paste" type="button" aria-expanded="false">Paste a rotation</button>
                 <input type="file" id="rot-import-file" accept=".json,application/json" hidden>
               </div>
-            </details>
+              <div class="rot-import-paste" id="rot-import-box" hidden>
+                <p class="cc-help">Paste the rotation (mb0t: Cave Bot → Rotation → <b>Export JSON</b>). It fills in the steps below - its cave becomes your Route - so you can tweak it and export it again.</p>
+                <textarea id="rot-import-text" rows="4" spellcheck="false" placeholder='{ "format": "mb0t-rotation", "version": 1, ... }'></textarea>
+                <div class="route-actions"><button class="map-btn pb-primary" id="rot-import-go" type="button">Import</button></div>
+              </div>
+            </div>
             <div class="route-bot-msg" id="rot-import-msg"></div>
             <ol class="rot-steps" id="rot-steps">
               <li class="rot-step" data-step="1">
@@ -6822,7 +6827,7 @@ function rotStepsDone(plan) {
     1: hp.length >= 2,
     2: !!cfg.depot,
     3: !!cfg.depot,
-    4: !!cfg.depot && !plan.errors.some(function (e) { return /Up to must|fluids can't|sells it|isn't within/.test(e); }),
+    4: !!cfg.depot && (!cfg.buy.on || (plan.supplies || []).length > 0) && !plan.errors.some(function (e) { return /Up to must|fluids can't|sells it|isn't within/.test(e); }),
     5: !!cfg.depot && !plan.errors.some(function (e) { return /bank NPC/.test(e); }),
     6: !!rot.res && !ups,
     7: false
@@ -7448,7 +7453,8 @@ function rotApplyImport(r) {
   setMapFloor(r.points[0].z);
   routeFitFloor(r.points[0].z);
   routeChanged();
-  document.getElementById("rot-import").open = false;
+  document.getElementById("rot-import-box").hidden = true;
+  document.getElementById("rot-import-paste").setAttribute("aria-expanded", "false");
   msg.textContent = "Imported “" + (r.cfg.name || "rotation") + "”: its cave (" + r.points.length + " waypoints) is your Route now, and the steps below are filled in" +
     (r.sells ? " (selling " + r.sells + " item" + (r.sells === 1 ? "" : "s") + " - the ones its cave doesn't drop are left out)" : "") + "." +
     (r.warnings.length ? " Check: " + r.warnings.join("; ") + "." : "");
@@ -7481,6 +7487,11 @@ function rotWire() {
     if (rotApplyImport(rotImport(ta.value))) ta.value = "";
   });
   document.getElementById("rot-import-pick").addEventListener("click", function () { document.getElementById("rot-import-file").click(); });
+  document.getElementById("rot-import-paste").addEventListener("click", function () {
+    const box = document.getElementById("rot-import-box"), open = box.hidden;
+    box.hidden = !open; this.setAttribute("aria-expanded", open ? "true" : "false");
+    if (open) document.getElementById("rot-import-text").focus();
+  });
   document.getElementById("rot-import-file").addEventListener("change", function (e) {
     const f = e.target.files && e.target.files[0];
     if (!f) return;
