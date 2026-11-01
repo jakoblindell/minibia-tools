@@ -472,11 +472,35 @@
   .rot-step-body input[type=text], .rot-step-body input[type=number], .rot-step-body select { font: inherit; font-size: 12.5px; padding: 3px 5px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface-2); color: var(--text-primary); min-width: 0; }
   .rot-step-body input[type=text] { flex: 1 1 140px; }
   .rot-next { display: flex; justify-content: flex-end; }
-  .rot-story { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 5px; font-size: 13px; color: var(--text-primary); }
-  .rot-story li::marker { color: var(--text-muted); font-weight: 600; }
-  .rot-story .rot-meta { display: block; }
+  /* The rotation's blocks: each kind its own colour; the walks between
+     them dashed and indented, edged in their colour on the map. */
+  .rot-story { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--text-primary); }
+  .rot-blk { --c: #94a3b8; display: flex; flex-direction: column; gap: 2px; min-width: 0; padding: 6px 8px; border: 1px solid var(--border); border-left: 4px solid var(--c); border-radius: 8px; background: var(--surface-2); }
+  .rot-blk-cave { --c: #ef4444; }
+  .rot-blk-depot { --c: #eab308; }
+  .rot-blk-sell { --c: #22c55e; }
+  .rot-blk-buy { --c: #a855f7; }
+  .rot-blk-bank { --c: #38bdf8; }
+  .rot-blk-path { margin-left: 16px; padding: 4px 8px; border-style: dashed; border-left: 4px dashed var(--leg, #94a3b8); background: transparent; }
+  .rot-blk-path.focus { outline: 2px solid #fde047; outline-offset: -1px; }
+  .rot-blk-bad { border-left-color: #f87171; }
+  .rot-blk-head { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; min-width: 0; }
+  .rot-badge { flex: none; font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; padding: 1px 6px; border-radius: 4px; background: var(--c); color: #000; }
+  .rot-blk-path .rot-badge { background: transparent; color: var(--text-secondary); border: 1px solid var(--leg, #94a3b8); }
+  .rot-blk-name { flex: 1 1 120px; min-width: 0; overflow-wrap: anywhere; }
+  .rot-blk-path .rot-blk-name { font-weight: 600; }
+  .rot-show { flex: none; font-size: 11px; padding: 1px 9px; }
+  .rot-blk-what { font-size: 12.5px; color: var(--text-secondary); overflow-wrap: anywhere; }
+  .rot-kept { color: var(--text-secondary); font-weight: 600; }
+  .rot-blk-again { font-size: 12px; color: var(--text-muted); padding: 2px 4px; }
+  .rot-floors { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 4px; font-size: 11px; color: var(--text-muted); }
+  .rot-floors:empty { display: none; }
+  .rot-chip { font-size: 11px; padding: 1px 7px; margin: 2px 0; cursor: pointer; }
   .rot-alt summary { cursor: pointer; font-size: 12.5px; color: var(--text-secondary); }
   .rot-alt[open] { display: flex; flex-direction: column; gap: 6px; }
+  .rot-import { display: flex; flex-direction: column; gap: 6px; margin-bottom: 4px; }
+  .rot-import-paste { display: flex; flex-direction: column; gap: 6px; }
+  .rot-import-paste[hidden] { display: none; }
   .rot-import textarea { width: 100%; box-sizing: border-box; font: 12px 'SF Mono', Consolas, monospace; background: var(--surface-2); color: var(--text-primary); border: 1px solid var(--border); border-radius: 6px; padding: 6px; resize: vertical; }
   #rot-import-msg:empty { display: none; }
   .rot[hidden], .rot [hidden] { display: none; }
@@ -923,16 +947,18 @@
           <div class="rot" id="rot">
             <div class="mapx-h-row"><div class="mapx-h">Rotation <span class="beta-tag">beta</span></div></div>
             <p class="mapx-p">A whole trip, one question at a time: hunt until you run low, walk to town, sell, store, restock and bank, then walk back. Every walk is found for you. At the end you get a rotation for mb0t.</p>
-            <details class="rot-alt rot-import" id="rot-import">
-              <summary>Start from an mb0t rotation (import)</summary>
-              <p class="cc-help">Paste a rotation file (mb0t: Cave Bot → Rotation → <b>Export JSON</b>, or one made here) or choose the file. It fills in the steps below - its cave becomes your Route - so you can tweak it and export it again.</p>
-              <textarea id="rot-import-text" rows="4" spellcheck="false" placeholder='{ "format": "mb0t-rotation", "version": 1, ... }'></textarea>
+            <div class="rot-import" id="rot-import">
               <div class="route-actions">
-                <button class="map-btn pb-primary" id="rot-import-go" type="button">Import</button>
-                <button class="map-btn" id="rot-import-pick" type="button">Choose file…</button>
+                <button class="map-btn" id="rot-import-pick" type="button" title="Open a rotation file from mb0t (Cave Bot → Rotation → Export JSON) or one made here, to tweak it">Import rotation file…</button>
+                <button class="map-btn" id="rot-import-paste" type="button" aria-expanded="false">Paste a rotation</button>
                 <input type="file" id="rot-import-file" accept=".json,application/json" hidden>
               </div>
-            </details>
+              <div class="rot-import-paste" id="rot-import-box" hidden>
+                <p class="cc-help">Paste the rotation (mb0t: Cave Bot → Rotation → <b>Export JSON</b>). It fills in the steps below - its cave becomes your Route - so you can tweak it and export it again.</p>
+                <textarea id="rot-import-text" rows="4" spellcheck="false" placeholder='{ "format": "mb0t-rotation", "version": 1, ... }'></textarea>
+                <div class="route-actions"><button class="map-btn pb-primary" id="rot-import-go" type="button">Import</button></div>
+              </div>
+            </div>
             <div class="route-bot-msg" id="rot-import-msg"></div>
             <ol class="rot-steps" id="rot-steps">
               <li class="rot-step" data-step="1">
@@ -981,11 +1007,11 @@
                   <label class="map-floor-filter-toggle"><input type="checkbox" id="rot-bank-on"> Deposit my gold at the bank</label>
                   <div class="rot-line" id="rot-bank-row"><select id="rot-bank-npc"></select> when carrying <input type="number" id="rot-bank-min" min="1" style="width:84px"> gp or more</div>
                   <p class="cc-help">The bank comes last, after buying - it deposits all your gold.</p>
-                  <div class="rot-next"><button class="map-btn pb-primary" type="button" data-next="6">Next: your trip</button></div>
+                  <div class="rot-next"><button class="map-btn pb-primary" type="button" data-next="6">Next: the rotation</button></div>
                 </div>
               </li>
               <li class="rot-step" data-step="6">
-                <button type="button" class="rot-step-head" data-open="6"><span class="rot-num">6</span><span class="rot-step-t"><b>Your trip</b><small id="rot-sum-6"></small></span></button>
+                <button type="button" class="rot-step-head" data-open="6"><span class="rot-num">6</span><span class="rot-step-t"><b>The rotation, block by block</b><small id="rot-sum-6"></small></span></button>
                 <div class="rot-step-body">
                   <ol class="rot-story" id="rot-story"></ol>
                   <div class="route-actions">
@@ -6470,7 +6496,7 @@ function rotOpen() {
 }
 function rotDefaults() {
   return { name: "", minCap: 50, depot: null, range: 120, spacing: 8, sell: { on: true, off: {} }, bank: { on: true, npc: "", min: 1000 },
-    buy: { on: true, rows: [{ name: "", low: 20, to: 100, npc: "" }] } };
+    buy: { on: true, rows: [{ name: "", low: 20, to: 100, npc: "" }] }, caveName: "", paths: [] };
 }
 function rotLoadCfg() {
   const d = rotDefaults();
@@ -6486,7 +6512,15 @@ function rotLoadCfg() {
       bank: { on: !(c.bank && c.bank.on === false), npc: String(c.bank && c.bank.npc || "").slice(0, 60), min: Math.max(1, Math.floor(Number(c.bank && c.bank.min) || d.bank.min)) },
       buy: { on: !(c.buy && c.buy.on === false), rows: Array.isArray(c.buy && c.buy.rows) && c.buy.rows.length ? c.buy.rows.slice(0, 20).map(function (r) {
         return { name: String(r && r.name || "").slice(0, 60), low: Math.max(0, Math.floor(Number(r && r.low) || 0)), to: Math.max(0, Math.floor(Number(r && r.to) || 0)), npc: String(r && r.npc || "").slice(0, 60) };
-      }) : d.buy.rows }
+      }) : d.buy.rows },
+      caveName: String(c.caveName || "").slice(0, 80),
+      paths: Array.isArray(c.paths) ? c.paths.slice(0, 40).filter(function (x) { return x && typeof x.from === "string" && typeof x.to === "string" && Array.isArray(x.route) && x.route.length >= 2; }).map(function (x) {
+        return { from: x.from, to: x.to, name: String(x.name || "").slice(0, 120), fight: !!x.fight, route: x.route.slice(0, 1000).filter(function (w) { return w && [w.x, w.y, w.z].every(Number.isInteger); }).map(function (w) {
+          const q = { x: w.x, y: w.y, z: w.z };
+          ["stand", "rope", "shovel", "ladder", "knightBox"].forEach(function (f) { if (w[f] === true) q[f] = true; });
+          return q;
+        }) };
+      }) : []
     };
   } catch (e) { return d; }
 }
@@ -6617,7 +6651,38 @@ function rotPlan() {
   }
   stops.push({ key: "return", kind: "return", mandatory: true, pos: { z: H.z, x: H.x, y: H.y }, label: "Back to the hunt" });
   if (!routeState.loop) notes.push("Loop back to start is off - the hunt is normally a loop.");
-  return { errors: errors, notes: notes, stops: stops, loot: loot, noBuyer: noBuyer, sellValue: sellValue, refillCost: refillCost, unpriced: unpriced, supplies: supplies };
+  const kept = rotKeptFor(stops, notes);
+  return { errors: errors, notes: notes, stops: stops, loot: loot, noBuyer: noBuyer, sellValue: sellValue, refillCost: refillCost, unpriced: unpriced, supplies: supplies, kept: kept };
+}
+// Paths kept from an imported rotation (rot.cfg.paths, by name): each is
+// used as the walk between its two stops while it still starts and ends
+// by them. kept[k] is the path for the walk to stop k.
+function rotKeptFor(stops, notes) {
+  const kept = {}, paths = rot.cfg.paths || [];
+  const near = function (w, q) { return w.z === q.z && Math.max(Math.abs(w.x - q.x), Math.abs(w.y - q.y)) <= 10; };
+  paths.forEach(function (p) {
+    let ok = false;
+    for (let k = 1; k < stops.length && !ok; k++) {
+      if (kept[k] || rotKey(stops[k - 1].key) !== p.from || rotKey(stops[k].key) !== p.to) continue;
+      if (near(p.route[0], stops[k - 1].pos) && near(p.route[p.route.length - 1], stops[k].pos)) { kept[k] = p; ok = true; }
+    }
+    if (!ok) notes.push("Your path \u201c" + p.name + "\u201d doesn't fit between the stops any more (they moved or changed) - a new walk is found instead.");
+  });
+  return kept;
+}
+// The walk along a kept path: the pathfinder from waypoint to waypoint (a
+// straight line where it can't, or would go far round).
+async function rotWalkKept(route) {
+  const nodes = [], doors = [];
+  for (let i = 1; i < route.length; i++) {
+    const a = route[i - 1], b = route[i], far = Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y));
+    const leg = await rotFindLeg(a, b, false);
+    let seg;
+    if (leg.ok && pathNodeStats(leg.nodes).steps <= far * 3 + 30) { seg = leg.nodes; doors.push.apply(doors, leg.doors || []); }
+    else seg = [{ z: a.z, x: a.x, y: a.y }, b.z !== a.z ? { z: b.z, x: b.x, y: b.y, jump: true } : { z: b.z, x: b.x, y: b.y }];
+    seg.forEach(function (n, j) { if (!j && nodes.length) return; nodes.push(n); });
+  }
+  return { ok: nodes.length >= 2, nodes: nodes, doors: doors };
 }
 // Which earlier stops a stop can be walked to from: every stop since the
 // last mandatory one (the optional ones in between may have been skipped).
@@ -6737,8 +6802,9 @@ function rotAssemble(huntPoints, stops, legs, spacing) {
 // Walks every leg the plan needs (pathRequest, cached like the Route
 // builder's legs), then assembles the route. An NPC stands on its tile, so
 // a leg to an NPC that the pathfinder can't end on tries its 8 neighbours.
-const ROT_COLORS = { hunt: "#f8fafc", sell: "#22c55e", depot: "#eab308", bank: "#38bdf8", buy: "#a855f7", "return": "#f8fafc" };
+const ROT_COLORS = { hunt: "#ef4444", sell: "#22c55e", depot: "#eab308", bank: "#38bdf8", buy: "#a855f7", "return": "#ef4444" };
 const ROT_LETTER = { hunt: "H", sell: "S", depot: "D", bank: "B", buy: "$", "return": "H" };
+const ROT_BLOCK = { path: "Path", cave: "Hunt", sell: "Sell", depot: "Depot", buy: "Buy", bank: "Bank" };
 async function rotFindLeg(a, b, npc) {
   const key = routeLegKey(a, b);
   let leg = routeLegCache.get(key);
@@ -6757,7 +6823,7 @@ async function rotFindLeg(a, b, npc) {
 }
 function rotBuild() {
   const plan = rotPlan(), gen = ++rot.gen;
-  rot.plan = plan; rot.res = null; rot.msg = "";
+  rot.plan = plan; rot.res = null; rot.msg = ""; rot.focus = 0;
   if (plan.errors.length) { rotRender(); return; }
   rot.msg = "Walking the town legs…"; rotRender();
   const pairs = rotLegPairs(plan.stops);
@@ -6765,7 +6831,8 @@ function rotBuild() {
     const legs = {}, failed = [], doors = [];
     for (const pr of pairs) {
       const a = plan.stops[pr[0]], b = plan.stops[pr[1]];
-      const leg = await rotFindLeg(a.pos, b.pos, !!b.npc);
+      const kp = pr[1] === pr[0] + 1 && plan.kept[pr[1]];
+      const leg = kp ? await rotWalkKept(kp.route) : await rotFindLeg(a.pos, b.pos, !!b.npc);
       if (gen !== rot.gen) return;
       if (!leg.ok) failed.push(a.label + " → " + b.label);
       else { legs[pr[0] + ">" + pr[1]] = leg.nodes; doors.push.apply(doors, leg.doors || []); }
@@ -6782,7 +6849,16 @@ function rotBuild() {
 // The rotation's own ways up (the town legs); the hunt's are picked in the
 // Route builder list as before. Choice is kept per stand tile.
 function rotUpKey(p) { return p.z + "," + p.x + "," + p.y; }
-function rotUps() { return rot.res ? rot.res.route.filter(function (p, i) { return p.t === "up" && i >= routeState.points.length; }) : []; }
+function rotUps() {
+  if (!rot.res) return [];
+  // Not the ones on your own kept paths: those export as they were.
+  const mine = new Set();
+  Object.keys(rot.res.plan.kept || {}).forEach(function (k) {
+    const n = rot.res.legs[(k - 1) + ">" + k];
+    if (n) botLegTiles(n).forEach(function (t) { mine.add(t.z + "," + t.x + "," + t.y); });
+  });
+  return rot.res.route.filter(function (p, i) { return p.t === "up" && i >= routeState.points.length && !mine.has(rotUpKey(p)); });
+}
 function rotExport() {
   const route = rot.res.route.map(function (p, i) {
     const w = botWaypoint(p, i);
@@ -6822,7 +6898,7 @@ function rotStepsDone(plan) {
     1: hp.length >= 2,
     2: !!cfg.depot,
     3: !!cfg.depot,
-    4: !!cfg.depot && !plan.errors.some(function (e) { return /Up to must|fluids can't|sells it|isn't within/.test(e); }),
+    4: !!cfg.depot && (!cfg.buy.on || (plan.supplies || []).length > 0) && !plan.errors.some(function (e) { return /Up to must|fluids can't|sells it|isn't within/.test(e); }),
     5: !!cfg.depot && !plan.errors.some(function (e) { return /bank NPC/.test(e); }),
     6: !!rot.res && !ups,
     7: false
@@ -6922,25 +6998,67 @@ function rotRender() {
     dl.textContent = "";
     near.forEach(function (n) { (n.sells || []).forEach(function (o) { const k = rotKey(o.name); if (!seen[k]) { seen[k] = 1; rotEl("option", dl).value = k; } }); });
   }
-  // 6. The trip as a story, then the walks found for it.
+  // 6. The rotation, block by block as mb0t runs it: the walk out to the
+  // cave, the hunt, then each stop with the walk to it - and round again.
   const shown = rot.res ? rot.res.plan : plan, story = document.getElementById("rot-story");
   story.textContent = "";
   if (shown.stops.length) {
-    const sup = (shown.supplies || []).map(function (x) { return x.name + " below " + fmt(x.low); });
-    const leave = [cfg.minCap > 0 ? "your free capacity drops below " + fmt(cfg.minCap) + " oz" : ""].concat(sup).filter(Boolean);
-    rotEl("li", story, "Hunt the loop " + (routeState.title ? "\u201c" + routeState.title + "\u201d" : "from the Route tab") + (leave.length ? " until " + leave.join(", or ") + "." : " - ⚠ nothing makes it leave: set a capacity (step 1) or a supply (step 4)."));
-    shown.stops.forEach(function (s, k) {
-      if (!k) return;
-      let t = "";
-      if (s.kind === "sell") t = "Walk to " + s.npc.name + " and sell " + s.items.length + " item" + (s.items.length === 1 ? "" : "s") + " (" + s.items.map(function (x) { return x.name; }).join(", ") + ").";
-      else if (s.kind === "depot") t = "Walk to the depot and store your loot" + (s.take.length ? ", then take " + s.take.map(function (x) { return x.name + " up to " + fmt(x.upTo); }).join(", ") : "") + ".";
-      else if (s.kind === "buy") t = "Walk to " + s.npc.name + " and buy " + s.rows.map(function (x) { return x.name + " up to " + fmt(x.to); }).join(", ") + ".";
-      else if (s.kind === "bank") t = "Walk to " + s.npc.name + " and deposit your gold (when you carry " + fmt(s.min) + " gp or more).";
-      else if (s.kind === "return") t = "Walk back to the cave - and start over.";
-      const li = rotEl("li", story, t);
+    const stops = shown.stops, names = rotNames(stops, shown.kept), last = stops.length - 1;
+    const block = function (type, name, what) {
+      const li = rotEl("li", story, null, "rot-blk rot-blk-" + type);
+      const head = rotEl("div", li, null, "rot-blk-head");
+      rotEl("span", head, ROT_BLOCK[type], "rot-badge");
+      rotEl("b", head, name, "rot-blk-name");
+      if (what) rotEl("span", li, what, "rot-blk-what");
+      return li;
+    };
+    const walk = function (k) {
+      const a = stops[k - 1], s = stops[k], kp = shown.kept && shown.kept[k];
+      const where = (a.kind === "hunt" ? "the cave" : a.kind === "depot" ? "the depot" : a.npc ? a.npc.name : a.label) + " to " +
+        (s.kind === "return" ? "the cave" : s.kind === "depot" ? "the depot" : s.npc ? s.npc.name : s.label);
+      const fight = kp ? kp.fight : k === 1;
+      const li = block("path", names.paths[k], "Walks from " + where + (fight ? ", fighting what it meets on the way" : "") + ".");
+      if (rot.focus === k) li.classList.add("focus");
+      li.style.setProperty("--leg", ROT_COLORS[s.kind]);
       const leg = rot.res && rot.res.legs[(k - 1) + ">" + k];
-      if (leg) { const st = pathNodeStats(leg); rotEl("span", li, "~" + fmt(st.steps) + " steps" + (st.changes ? " · " + st.changes + " floor change" + (st.changes === 1 ? "" : "s") : ""), "rot-meta"); }
-    });
+      const meta = rotEl("span", li, null, "rot-meta");
+      if (kp) rotEl("span", meta, "Your path from the file · " + kp.route.length + " waypoints", "rot-kept");
+      if (!leg) { rotEl("span", meta, (kp ? " · " : "") + (rot.res ? "no walk found" : rot.msg === "Walking the town legs…" ? "finding the walk…" : "not walked yet")); return; }
+      // Click it to see it on the map; one chip per floor it's on.
+      const b = rotEl("button", li.querySelector(".rot-blk-head"), "Show", "map-btn rot-show"); b.type = "button"; b.title = "Show this walk on the map";
+      b.addEventListener("click", function () { rotShowLeg(k); });
+      const st = pathNodeStats(leg), segs = rotLegSegs(leg);
+      rotEl("span", meta, (kp ? " · " : "") + "~" + fmt(st.steps) + " steps" + (st.changes ? " · " + st.changes + " floor change" + (st.changes === 1 ? "" : "s") : ""));
+      const fl = rotEl("div", li, null, "rot-floors");
+      if (segs.length > 1) segs.forEach(function (sg, i) {
+        if (i) fl.appendChild(document.createTextNode(" → "));
+        const c = rotEl("button", fl, "z" + sg.z, "chip rot-chip"); c.type = "button"; c.title = "Show the part on " + mapFloorLabel(sg.z);
+        c.addEventListener("click", function () { rotShowLeg(k, i); });
+      });
+      if (kp) {
+        const re = rotEl("button", rotEl("div", li, null, "rot-floors"), "Find a new walk instead", "chip rot-chip"); re.type = "button";
+        re.title = "Drop your path from the file and let the map find the walk";
+        re.addEventListener("click", function () {
+          rot.cfg.paths = (rot.cfg.paths || []).filter(function (x) { return x !== kp; });
+          rot.res = null; rot.autoKey = ""; rotSaveCfg(); rotRender(); drawMap();
+        });
+      }
+    };
+    // What makes it leave the cave, e.g. "cap < 50 or great fireball rune < 20".
+    const leave = [cfg.minCap > 0 ? "cap < " + fmt(cfg.minCap) : ""].concat((shown.supplies || []).map(function (x) { return x.name + " < " + fmt(x.low); })).filter(Boolean);
+    walk(last);
+    const hl = block("cave", names.cave, "Hunts " + (routeState.title ? "\u201c" + routeState.title + "\u201d" : "the loop") + " (" + hp.length + " waypoints" + (routeState.loop ? ", round and round" : "") + ")" +
+      (leave.length ? " until " + leave.join(" or ") + "." : " - \u26a0 nothing makes it leave: set a capacity (step 1) or a supply (step 4)."));
+    if (!leave.length) hl.classList.add("rot-blk-bad");
+    for (let k = 1; k < last; k++) {
+      const s = stops[k];
+      walk(k);
+      if (s.kind === "sell") block("sell", "Sell to " + s.npc.name, "Sells " + s.items.map(function (x) { return x.name; }).join(", ") + " (all of it).");
+      else if (s.kind === "depot") block("depot", "Depot", "Stores the loot" + (s.take.length ? ", then takes " + s.take.map(function (x) { return x.name + " up to " + fmt(x.upTo); }).join(", ") : "") + ".");
+      else if (s.kind === "buy") block("buy", "Buy from " + s.npc.name, "Buys " + s.rows.map(function (x) { return x.name + " up to " + fmt(x.to); }).join(", ") + ".");
+      else if (s.kind === "bank") block("bank", "Bank at " + s.npc.name, "Deposits the gold when it carries " + fmt(s.min) + " gp or more.");
+    }
+    rotEl("li", story, "\u21bb Then it starts over from the top.", "rot-blk-again");
   }
   const out = document.getElementById("rot-out");
   out.textContent = "";
@@ -6981,6 +7099,7 @@ function rotRender() {
     7: mbWhy ? "Not ready yet" : "Ready for mb0t"
   };
   if (!rot.step) rot.step = [1, 2, 3, 4, 5, 6, 7].find(function (n) { return !done[n]; }) || 7;
+  rotAutoBuild(plan);
   document.querySelectorAll("#rot-steps .rot-step").forEach(function (li) {
     const n = Number(li.getAttribute("data-step"));
     li.classList.toggle("open", n === rot.step);
@@ -7046,25 +7165,45 @@ function mb0tRotRoute(pts, where) {
   });
   return { route: route, errors: errors };
 }
+// The names of the cave and the walks in mb0t: your own from an imported
+// file, else "<rotation> - cave" and "<rotation> - depot to cave".
+function rotShort(s) { return s.kind === "depot" ? "depot" : s.kind === "return" || s.kind === "hunt" ? "cave" : s.npc ? s.npc.name : s.label; }
+function rotNames(stops, kept) {
+  const name = rotName(), used = {}, out = { cave: rot.cfg.caveName || name + " - cave", paths: {} };
+  used[out.cave.toLowerCase()] = true;
+  Object.keys(kept || {}).forEach(function (k) {
+    let n = kept[k].name || name + " - " + rotShort(stops[k - 1]) + " to " + rotShort(stops[k]), base = n, i = 2;
+    while (used[n.toLowerCase()]) n = base + " " + (i++);
+    used[n.toLowerCase()] = true; out.paths[k] = n;
+  });
+  for (let k = 1; k < stops.length; k++) {
+    if (out.paths[k]) continue;
+    let n = name + " - " + rotShort(stops[k - 1]) + " to " + rotShort(stops[k]), base = n, i = 2;
+    while (used[n.toLowerCase()]) n = base + " " + (i++);
+    used[n.toLowerCase()] = true; out.paths[k] = n;
+  }
+  return out;
+}
 function rotMbFile() {
   const res = rot.res, stops = res.stops, cfg = rot.cfg, name = rotName(), hp = routeState.points;
   const errors = [], warnings = [], paths = [], blocks = [];
   const cave = mb0tRotRoute(hp, "The cave");
   cave.errors.forEach(function (e) { errors.push(e); });
-  const caveName = name + " - cave";
-  const short = function (s) { return s.kind === "depot" ? "depot" : s.kind === "return" || s.kind === "hunt" ? "cave" : s.npc ? s.npc.name : s.label; };
-  const used = {};
-  const pathName = function (a, b) {
-    let n = name + " - " + short(a) + " to " + short(b), base = n, i = 2;
-    while (used[n.toLowerCase()]) n = base + " " + (i++);
-    used[n.toLowerCase()] = true; return n;
-  };
+  const names = rotNames(stops, res.plan.kept), caveName = names.cave;
+  const short = rotShort;
   // Each walk starts where the one before ended (beside an NPC, in the
   // depot room, at the cave's first waypoint).
   let from = { z: hp[0].z, x: hp[0].x, y: hp[0].y };
   const legPaths = [];
   for (let k = 1; k < stops.length; k++) {
-    const s = stops[k], nodes = res.legs[(k - 1) + ">" + k];
+    const s = stops[k], nodes = res.legs[(k - 1) + ">" + k], kp = res.plan.kept[k];
+    if (kp) {   // your own path from the imported file, as it was
+      paths.push({ name: names.paths[k], route: kp.route.map(function (w) { return Object.assign({}, w); }) });
+      legPaths.push(names.paths[k]);
+      const e = kp.route[kp.route.length - 1];
+      from = { z: e.z, x: e.x, y: e.y };
+      continue;
+    }
     if (!nodes) { errors.push("No walk from " + stops[k - 1].label + " to " + s.label + " - press Find the way."); return { errors: errors, warnings: warnings }; }
     const out = [routeMakePoint(from.z, from.x, from.y, "", {})], tiles = botLegTiles(nodes);
     botLegFill(out, nodes, cfg.spacing);
@@ -7072,7 +7211,7 @@ function rotMbFile() {
     if (s.npc && tiles.length >= 2 && !end.portal && tiles[tiles.length - 2].z === end.z) end = tiles[tiles.length - 2];
     out.push(routeMakePoint(end.z, end.x, end.y, "", {}));
     out.forEach(function (p) { if (p.t === "up" && rot.choice[rotUpKey(p)]) botSetType(p, rot.choice[rotUpKey(p)]); });
-    const nm = pathName(stops[k - 1], s), conv = mb0tRotRoute(out, "The walk " + short(stops[k - 1]) + " to " + short(s));
+    const nm = names.paths[k], conv = mb0tRotRoute(out, "The walk " + short(stops[k - 1]) + " to " + short(s));
     conv.errors.forEach(function (e) { errors.push(e); });
     paths.push({ name: nm, route: conv.route });
     legPaths.push(nm);
@@ -7082,13 +7221,14 @@ function rotMbFile() {
   // stop with the walk to it.
   const sup = (res.plan.supplies || []).map(function (x) { return { name: x.name, min: x.low }; });
   if (!(cfg.minCap > 0) && !sup.length) errors.push("Nothing makes it leave the cave: set a capacity (step 1) or a supply (step 4).");
-  blocks.push({ type: "path", ref: legPaths[legPaths.length - 1], fight: false });
+  const fight = function (k) { const kp = res.plan.kept[k]; return kp ? kp.fight : k === 1; };
+  blocks.push({ type: "path", ref: legPaths[legPaths.length - 1], fight: fight(stops.length - 1) });
   const cb = { type: "cave", ref: caveName, minCap: cfg.minCap };
   if (sup.length) cb.supplies = sup;
   blocks.push(cb);
   for (let k = 1; k < stops.length - 1; k++) {
     const s = stops[k];
-    blocks.push({ type: "path", ref: legPaths[k - 1], fight: k === 1 });
+    blocks.push({ type: "path", ref: legPaths[k - 1], fight: fight(k) });
     if (s.kind === "sell") blocks.push({ type: "sell", npcName: s.npc.name, rows: s.items.map(function (it) { return { name: it.name, mode: "all" }; }) });
     else if (s.kind === "depot") { const d = { type: "depot" }; if (s.take.length) d.take = s.take.map(function (t) { return { name: t.name, upTo: t.upTo }; }); blocks.push(d); }
     else if (s.kind === "buy") blocks.push({ type: "buy", npcName: s.npc.name, rows: s.rows.map(function (r) { return { name: r.name, target: r.to }; }) });
@@ -7111,25 +7251,76 @@ function rotPickDepotAt(sx, sy) {
   rot.pickDepot = false; rot.res = null;
   rotSaveCfg(); rotRender(); drawMap();
 }
+// The trip on the map: its own walks solid, in the colour of the stop they
+// lead to, with arrows and the floor changes on them (the focused one -
+// clicked in the rotation list - bright yellow); the other cave bot's alternative
+// walks (between stops that may be skipped) faint and dashed.
+function rotTripLegs() {
+  const out = [];
+  if (!rot.res) return out;
+  for (let k = 1; k < rot.res.stops.length; k++) { const n = rot.res.legs[(k - 1) + ">" + k]; if (n) out.push({ k: k, nodes: n }); }
+  return out;
+}
 function drawRotOverlay() {
   if (routeState.mode !== "rot") return;
   const z = state.mapFloor;
-  mapCtx.save();
-  if (rot.res) {
-    mapCtx.setLineDash([6, 4]); mapCtx.lineWidth = 2.5; mapCtx.strokeStyle = "#c084fc";
-    Object.keys(rot.res.legs).forEach(function (k) {
-      const nodes = rot.res.legs[k];
-      mapCtx.beginPath();
-      let pen = false;
-      nodes.forEach(function (n) {
-        if (n.z !== z) { pen = false; return; }
-        const [sx, sy] = worldToScreen(n.x + 0.5, n.y + 0.5);
-        if (pen) mapCtx.lineTo(sx, sy); else mapCtx.moveTo(sx, sy);
-        pen = true;
-      });
-      mapCtx.stroke();
+  const line = function (nodes) {
+    mapCtx.beginPath();
+    let pen = false;
+    nodes.forEach(function (n, i) {
+      if (n.z !== z || (i && (nodes[i - 1].z !== n.z || n.jump))) { if (n.z !== z) { pen = false; return; } pen = false; }
+      const [sx, sy] = worldToScreen(n.x + 0.5, n.y + 0.5);
+      if (pen) mapCtx.lineTo(sx, sy); else mapCtx.moveTo(sx, sy);
+      pen = true;
     });
+  };
+  mapCtx.save();
+  mapCtx.lineJoin = "round"; mapCtx.lineCap = "round";
+  if (rot.res) {
+    const trip = {};
+    rotTripLegs().forEach(function (l) { trip[(l.k - 1) + ">" + l.k] = true; });
+    mapCtx.setLineDash([4, 5]); mapCtx.lineWidth = 1.5; mapCtx.strokeStyle = "rgba(192,132,252,0.55)";
+    Object.keys(rot.res.legs).forEach(function (k) { if (!trip[k]) { line(rot.res.legs[k]); mapCtx.stroke(); } });
     mapCtx.setLineDash([]);
+    const legs = rotTripLegs();
+    legs.sort(function (a, b) { return (a.k === rot.focus) - (b.k === rot.focus); });   // the focused one on top
+    legs.forEach(function (l) {
+      const s = rot.res.stops[l.k], focus = l.k === rot.focus;
+      const col = focus ? "#fde047" : ROT_COLORS[s.kind];
+      line(l.nodes); mapCtx.lineWidth = focus ? 8 : 6; mapCtx.strokeStyle = "rgba(0,0,0,0.65)"; mapCtx.stroke();
+      line(l.nodes); mapCtx.lineWidth = focus ? 4.5 : 3; mapCtx.strokeStyle = col; mapCtx.stroke();
+      // Arrows every ~90 px along it, showing which way it goes.
+      let acc = 0;
+      for (let i = 1; i < l.nodes.length; i++) {
+        const a = l.nodes[i - 1], b = l.nodes[i];
+        if (a.z !== z || b.z !== z || b.jump) continue;
+        const [ax, ay] = worldToScreen(a.x + 0.5, a.y + 0.5), [bx, by] = worldToScreen(b.x + 0.5, b.y + 0.5);
+        const len = Math.hypot(bx - ax, by - ay);
+        if (!len) continue;
+        let t = (90 - acc) / len;
+        while (t <= 1) {
+          const px = ax + (bx - ax) * t, py = ay + (by - ay) * t, ang = Math.atan2(by - ay, bx - ax), r = focus ? 7 : 6;
+          mapCtx.beginPath();
+          mapCtx.moveTo(px + Math.cos(ang) * r, py + Math.sin(ang) * r);
+          mapCtx.lineTo(px + Math.cos(ang + 2.5) * r, py + Math.sin(ang + 2.5) * r);
+          mapCtx.lineTo(px + Math.cos(ang - 2.5) * r, py + Math.sin(ang - 2.5) * r);
+          mapCtx.closePath();
+          mapCtx.fillStyle = col; mapCtx.fill(); mapCtx.lineWidth = 1.5; mapCtx.strokeStyle = "#000"; mapCtx.stroke();
+          t += 90 / len;
+        }
+        acc = (acc + len) % 90;
+      }
+      // Its floor changes: a yellow ↑/↓ on the stairs/hole tile.
+      mapCtx.font = "700 11px 'Segoe UI', sans-serif"; mapCtx.textAlign = "center"; mapCtx.textBaseline = "middle";
+      for (let i = 1; i < l.nodes.length; i++) {
+        const a = l.nodes[i - 1], b = l.nodes[i];
+        if (a.z === b.z || a.z !== z) continue;
+        const [sx, sy] = worldToScreen(a.x + 0.5, a.y + 0.5);
+        mapCtx.beginPath(); mapCtx.arc(sx, sy, 7, 0, Math.PI * 2);
+        mapCtx.fillStyle = "#ffd600"; mapCtx.fill(); mapCtx.lineWidth = 2; mapCtx.strokeStyle = "#000"; mapCtx.stroke();
+        mapCtx.fillStyle = "#000"; mapCtx.fillText(b.z < a.z ? "↑" : "↓", sx, sy + 0.5);
+      }
+    });
   }
   const marks = rot.res ? rot.res.stops.filter(function (s) { return s.kind !== "return"; }) : (rot.cfg.depot ? [{ kind: "depot", pos: rot.cfg.depot }] : []);
   mapCtx.font = "700 11px 'Segoe UI', sans-serif"; mapCtx.textAlign = "center"; mapCtx.textBaseline = "middle";
@@ -7142,6 +7333,47 @@ function drawRotOverlay() {
     mapCtx.fillStyle = "#000"; mapCtx.fillText(ROT_LETTER[s.kind], sx, sy + 0.5);
   });
   mapCtx.restore();
+}
+// A walk's stretches per floor (a floor change or teleport starts a new one).
+function rotLegSegs(nodes) {
+  const segs = [];
+  nodes.forEach(function (n, i) {
+    if (!i || n.z !== nodes[i - 1].z || n.jump) segs.push({ z: n.z, nodes: [] });
+    segs[segs.length - 1].nodes.push(n);
+  });
+  return segs;
+}
+// Shows one walk on the map (seg: which floor's stretch, default the first).
+function rotShowLeg(k, seg) {
+  const nodes = rot.res && rot.res.legs[(k - 1) + ">" + k];
+  if (!nodes) return;
+  rot.focus = k;
+  // No part named: the longest one (not the few steps out of the depot).
+  const all = rotLegSegs(nodes);
+  if (seg == null) all.forEach(function (x, i) { if (pathNodeStats(x.nodes).steps > pathNodeStats(all[seg || 0].nodes).steps) seg = i; });
+  const sg = all[seg || 0];
+  if (!sg) return;
+  let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+  sg.nodes.forEach(function (n) { x0 = Math.min(x0, n.x); x1 = Math.max(x1, n.x); y0 = Math.min(y0, n.y); y1 = Math.max(y1, n.y); });
+  setMapFloor(sg.z);
+  const w = mapCanvas.width, h = mapCanvas.height, pad = 12;
+  mapView.scale = Math.min(12, w / (x1 - x0 + pad * 2), h / (y1 - y0 + pad * 2));
+  mapView.offX = w / 2 - ((x0 + x1) / 2 + 0.5) * mapView.scale;
+  mapView.offY = h / 2 - ((y0 + y1) / 2 + 0.5) * mapView.scale;
+  rotRender(); drawMap();
+  const r = mapCanvas.getBoundingClientRect();
+  if (r.bottom < 60 || r.top > window.innerHeight - 60) mapCanvas.scrollIntoView({ block: "center", behavior: "smooth" });
+}
+// The way is found by itself once the plan is complete (and found again
+// when it changes) - so the walks are on the map without pressing anything.
+function rotAutoBuild(plan) {
+  if (routeState.mode !== "rot" || rot.res || rot.msg === "Walking the town legs…" || plan.errors.length) return;
+  const pairs = routePairs();
+  if (routeState.legs.length !== pairs.length || routeState.legs.some(function (l) { return !l; })) return;   // the hunt (and its loot) first
+  const key = JSON.stringify([rot.cfg, routeState.points.map(function (p) { return [p.z, p.x, p.y]; })]);
+  if (key === rot.autoKey) return;
+  rot.autoKey = key;
+  setTimeout(function () { if (routeState.mode === "rot" && !rot.res) rotBuild(); }, 0);
 }
 // --- mb0t (feature flag: #mb0t in the URL, remembered on that device;
 // #mb0t-off hides it again): the same paths, routes and rotations as presets
@@ -7377,11 +7609,10 @@ function rotImport(text) {
   cfg.sell = { on: false, off: {}, only: [] };
   cfg.bank = { on: false, npc: "", min: 1000 };
   const rows = [], seen = {};
-  let lastEnd = null, paths_used = 0, depotAt = null;
+  let lastEnd = null, depotAt = null;
   blocks.forEach(function (b) {
     if (b.type === "path") {
       const r = paths[key(b.ref)];
-      paths_used++;
       if (r && r.length) { const e = r[r.length - 1]; lastEnd = { z: e.z, x: e.x, y: e.y }; } else lastEnd = null;
       return;
     }
@@ -7428,7 +7659,45 @@ function rotImport(text) {
   cfg.buy = { on: rows.length > 0, rows: rows.length ? rows.slice(0, 20) : rotDefaults().buy.rows };
   if (depotAt) cfg.depot = depotAt;
   else { cfg.depot = rot.cfg.depot; warn.push("Couldn't tell where the depot is (no walk to it in the file) - check step 2"); }
-  if (paths_used) warn.push("Its " + paths_used + " walk" + (paths_used === 1 ? " is" : "s are") + " found again from the map (press Find the way)");
+  // Its paths, kept by name between the blocks they join (the stops' keys:
+  // the cave is "hunt" when leaving it, "return" when walking to it). Paths
+  // in a row between the same two blocks become one.
+  const town = blocks.filter(function (b) { return b.type !== "path"; });
+  const stopOf = function (b, dest) {
+    if (b.type === "cave") return dest ? "return" : "hunt";
+    if (b.type === "depot" || b.type === "bank") return b.type;
+    if (b.type === "sell" || b.type === "buy") return b.type + ":" + key(b.npcName);
+    return "";
+  };
+  cfg.caveName = String(cb.ref || "").slice(0, 80);
+  cfg.paths = [];
+  let run = null;
+  blocks.concat(blocks).forEach(function (b, i) {
+    if (b.type !== "path") {
+      if (run && run.start < blocks.length && run.route.length >= 2) {
+        run.to = stopOf(b, true);
+        const same = function (x) { return x.from === run.from && x.to === run.to; };
+        cfg.paths = cfg.paths.filter(function (x) { return !same(x); });   // a longer run wins
+        if (run.from && run.to && cfg.paths.length < 40) cfg.paths.push({ from: run.from, to: run.to, name: run.names.join(" + ").slice(0, 120), fight: run.fight, route: run.route.slice(0, 1000) });
+      }
+      run = null;
+      return;
+    }
+    if (!run) {
+      let j = i % blocks.length, prev = null;
+      for (let n = 0; n < blocks.length && !prev; n++) { j = (j - 1 + blocks.length) % blocks.length; if (blocks[j].type !== "path") prev = blocks[j]; }
+      run = { start: i, from: prev ? stopOf(prev, false) : "", to: "", names: [], fight: false, route: [] };
+    }
+    run.names.push(String(b.ref || ""));
+    run.fight = run.fight || !!b.fight;
+    (paths[key(b.ref)] || []).forEach(function (w) {
+      if (!w || ![w.x, w.y, w.z].every(Number.isInteger)) return;
+      const q = { x: w.x, y: w.y, z: w.z };
+      ["stand", "rope", "shovel", "ladder", "knightBox"].forEach(function (f) { if (w[f] === true) q[f] = true; });
+      run.route.push(q);
+    });
+  });
+  if (!town.length) cfg.paths = [];
   if (d.settings) warn.push("Its targeting rules and ring stay in mb0t - they're not part of what's exported here, so re-importing keeps the ones it has");
   return { cfg: cfg, points: points, title: String(d.name || ""), warnings: warn, sells: cfg.sell.only.length };
 }
@@ -7448,8 +7717,9 @@ function rotApplyImport(r) {
   setMapFloor(r.points[0].z);
   routeFitFloor(r.points[0].z);
   routeChanged();
-  document.getElementById("rot-import").open = false;
-  msg.textContent = "Imported “" + (r.cfg.name || "rotation") + "”: its cave (" + r.points.length + " waypoints) is your Route now, and the steps below are filled in" +
+  document.getElementById("rot-import-box").hidden = true;
+  document.getElementById("rot-import-paste").setAttribute("aria-expanded", "false");
+  msg.textContent = "Imported “" + (r.cfg.name || "rotation") + "”: its cave (" + r.points.length + " waypoints) is your Route now, " + (r.cfg.paths.length ? "its " + r.cfg.paths.length + " path" + (r.cfg.paths.length === 1 ? " is" : "s are") + " kept as they are, " : "") + "and the steps below are filled in" +
     (r.sells ? " (selling " + r.sells + " item" + (r.sells === 1 ? "" : "s") + " - the ones its cave doesn't drop are left out)" : "") + "." +
     (r.warnings.length ? " Check: " + r.warnings.join("; ") + "." : "");
   rotRender();
@@ -7481,6 +7751,11 @@ function rotWire() {
     if (rotApplyImport(rotImport(ta.value))) ta.value = "";
   });
   document.getElementById("rot-import-pick").addEventListener("click", function () { document.getElementById("rot-import-file").click(); });
+  document.getElementById("rot-import-paste").addEventListener("click", function () {
+    const box = document.getElementById("rot-import-box"), open = box.hidden;
+    box.hidden = !open; this.setAttribute("aria-expanded", open ? "true" : "false");
+    if (open) document.getElementById("rot-import-text").focus();
+  });
   document.getElementById("rot-import-file").addEventListener("change", function (e) {
     const f = e.target.files && e.target.files[0];
     if (!f) return;
@@ -7553,6 +7828,7 @@ function routeRenderStatus() {
   huntRender();
   const rotBox = document.getElementById("rot");
   if (rotBox && !rotBox.contains(document.activeElement)) rotRender();
+  else if (routeState.mode === "rot") rotAutoBuild(rotPlan());   // the walks, even while you're in the panel
   const n = routeState.points.length;
   if (routeState.prepText) { el.textContent = routeState.prepText; return; }
   if (!n) { el.textContent = routeState.mode === "edit" ? "Click the map to add the first point. Change floors with ▲/▼ between clicks if the route goes up or down" + (routeAutoFloorOn() ? " - the stairs/holes on the way go in as waypoints by themselves." : ".") : ""; return; }
