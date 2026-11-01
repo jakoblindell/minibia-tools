@@ -6573,9 +6573,6 @@ function rotOffer(n, list, name) {
   return o ? o.price : null;
 }
 function rotBanks(near) { return near.filter(function (n) { return rotPoiType(n) === "bank"; }); }
-// NPCs you can pick as a supply seller when the data has none for an item:
-// anyone near with a shop list, plus the map's shop / rune NPCs.
-function rotTraders(near) { return near.filter(function (n) { return (n.sells || []).length || ["shop", "rune"].indexOf(rotPoiType(n)) >= 0; }); }
 
 // The stops, in order. Reads the config, the hunt route and the hunt
 // estimate's loot; no paths yet.
@@ -6628,12 +6625,14 @@ function rotPlan() {
       }
       let npc = null, price = null;
       if (r.npc) {
-        npc = near.find(function (n) { return rotKey(n.name) === rotKey(r.npc); }) || null;
-        if (!npc) { errors.push(name + ": " + r.npc + " isn't within " + cfg.range + " tiles of the depot."); return; }
+        // Whoever you pick: the bot just walks there and buys it.
+        npc = near.find(function (n) { return rotKey(n.name) === rotKey(r.npc); }) ||
+          (DATA.npcs || []).find(function (n) { return n.position && rotKey(n.name) === rotKey(r.npc); }) || null;
+        if (!npc) { errors.push(name + ": " + r.npc + " isn't on the map - pick who you buy it from in its row."); return; }
         price = rotOffer(npc, "sells", name);
       } else {
         const s = rotSellerFor(name, near);
-        if (!s) { errors.push(name + ": no NPC near the depot sells it in the game data - pick the NPC in its row."); return; }
+        if (!s) { errors.push(name + ": pick who you buy it from in its row (From)."); return; }
         npc = s.npc; price = s.price;
       }
       let b = buys.get(npc.name);
@@ -6898,7 +6897,7 @@ function rotStepsDone(plan) {
     1: hp.length >= 2,
     2: !!cfg.depot,
     3: !!cfg.depot,
-    4: !!cfg.depot && (!cfg.buy.on || (plan.supplies || []).length > 0) && !plan.errors.some(function (e) { return /Up to must|fluids can't|sells it|isn't within/.test(e); }),
+    4: !!cfg.depot && (!cfg.buy.on || (plan.supplies || []).length > 0) && !plan.errors.some(function (e) { return /Up to must|fluids can't|who you buy it from/.test(e); }),
     5: !!cfg.depot && !plan.errors.some(function (e) { return /bank NPC/.test(e); }),
     6: !!rot.res && !ups,
     7: false
@@ -6973,7 +6972,6 @@ function rotRender() {
   if (cfg.buy.on) {
     const head = rotEl("div", buy, null, "rot-buy-row rot-head");
     ["Item", "Leave below", "Up to", "From", ""].forEach(function (t) { rotEl("span", head, t); });
-    const traders = rotTraders(near);
     cfg.buy.rows.forEach(function (r, i) {
       const row = rotEl("div", buy, null, "rot-buy-row");
       const name = rotEl("input", row); name.value = r.name; name.placeholder = "e.g. mana potion"; name.setAttribute("list", "rot-items"); name.setAttribute("aria-label", "Item");
@@ -6981,10 +6979,15 @@ function rotRender() {
       const to = rotEl("input", row); to.type = "number"; to.min = "0"; to.value = String(r.to); to.setAttribute("aria-label", "Get back up to");
       const npc = rotEl("select", row); npc.setAttribute("aria-label", "Buy from");
       const auto = r.name.trim() ? rotSellerFor(r.name, near) : null;
-      rotEl("option", npc, auto ? "Auto (" + auto.npc.name + ", " + auto.price + " gp)" : "Auto").value = "";
+      rotEl("option", npc, auto ? "Auto (" + auto.npc.name + ", " + auto.price + " gp)" : "Pick an NPC…").value = "";
       rotEl("option", npc, "My depot").value = "@depot";
-      traders.forEach(function (n) { const p = rotOffer(n, "sells", r.name); rotEl("option", npc, n.name + (p != null ? " · " + p + " gp" : "")).value = n.name; });
-      npc.value = r.npc === "@depot" || traders.some(function (n) { return n.name === r.npc; }) ? r.npc : "";
+      // Every NPC near the depot, nearest first (and yours, if it's further).
+      const list = near.slice(), mine = r.npc && r.npc !== "@depot" && !near.some(function (n) { return rotKey(n.name) === rotKey(r.npc); }) &&
+        (DATA.npcs || []).find(function (n) { return n.position && rotKey(n.name) === rotKey(r.npc); });
+      if (mine) list.push(mine);
+      list.forEach(function (n) { const p = rotOffer(n, "sells", r.name); rotEl("option", npc, n.name + " · " + rotDist(n.position, cfg.depot) + " tiles" + (p != null ? " · " + p + " gp" : "")).value = n.name; });
+      const sel = list.find(function (n) { return rotKey(n.name) === rotKey(r.npc); });
+      npc.value = r.npc === "@depot" ? "@depot" : sel ? sel.name : "";
       const del = rotEl("button", row, "×", "map-btn"); del.type = "button"; del.title = "Remove";
       const save = function () {
         cfg.buy.rows[i] = { name: name.value.slice(0, 60), low: Math.max(0, Math.floor(Number(low.value) || 0)), to: Math.max(0, Math.floor(Number(to.value) || 0)), npc: npc.value };
@@ -7238,10 +7241,6 @@ function rotMbFile() {
   const total = 1 + blocks.length + cave.route.length + 1 + paths.reduce(function (n, p) { return n + p.route.length; }, 0);
   if (total > 1000) errors.push("Too long for mb0t: " + total + " waypoints (it takes 1000) - use a larger walk spacing in step 6.");
   if (!cave.route.length) errors.push("The cave has no waypoints.");
-  const known = {};
-  DATA.items.forEach(function (it) { known[rotKey(it.name)] = true; });
-  const odd = (res.plan.supplies || []).filter(function (x) { return !known[rotKey(x.name)] && !/\bfluid\b/i.test(x.name); }).map(function (x) { return x.name; });
-  if (odd.length) warnings.push("Not an item name the game data knows (mb0t needs the exact in-game name, or that leave condition never triggers): " + odd.join(", ") + ".");
   const file = { format: "mb0t-rotation", version: 1, name: name, paths: paths, caves: [{ name: caveName, route: cave.route }], blocks: blocks };
   return { errors: errors, warnings: warnings, file: file, total: total };
 }
