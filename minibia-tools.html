@@ -495,6 +495,10 @@
   .rot-blk-again { font-size: 12px; color: var(--text-muted); padding: 2px 4px; }
   .rot-floors { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 4px; font-size: 11px; color: var(--text-muted); }
   .rot-floors:empty { display: none; }
+  .route-editing { display: flex; flex-direction: column; gap: 6px; padding: 8px 10px; margin-bottom: 8px; border: 1px solid #94a3b8; border-left: 4px dashed var(--leg, #94a3b8); border-radius: 8px; background: var(--surface-2); font-size: 13px; }
+  .route-editing[hidden] { display: none; }
+  .route-editing .cc-help { display: block; margin-top: 2px; }
+  #route-editing-err:empty { display: none; }
   .rot-chip { font-size: 11px; padding: 1px 7px; margin: 2px 0; cursor: pointer; }
   .rot-alt summary { cursor: pointer; font-size: 12.5px; color: var(--text-secondary); }
   .rot-alt[open] { display: flex; flex-direction: column; gap: 6px; }
@@ -901,6 +905,11 @@
         </section>
         <section class="mapx-panel" data-panel="route" hidden>
           <div class="route-panel" id="route-panel" style="display:none;">
+            <div class="route-editing" id="route-editing" hidden>
+              <div><b id="route-editing-t"></b><span class="cc-help" id="route-editing-help"></span></div>
+              <div class="route-actions"><button class="map-btn pb-primary" id="route-editing-done" type="button">Done - back to the rotation</button><button class="map-btn" id="route-editing-cancel" type="button">Cancel</button></div>
+              <div class="rot-err" id="route-editing-err"></div>
+            </div>
             <input type="text" class="route-title-input edit-only" id="route-title" maxlength="120" placeholder="Route title (optional)">
             <h3 class="route-title view-only" id="route-title-view"></h3>
             <div class="route-status" id="route-status"></div>
@@ -5869,6 +5878,7 @@ function mapSyncMode() {
 }
 function mapSetMode(mode) {
   if (mode === mapCurrentMode()) return;
+  if (rot.edit && mode !== "route" && !rotEditEnd(true, mode)) return;
   if (mode !== "path" && pathState.active) pathToggle();
   if (mode !== "route" && mode !== "rotation" && routeState.mode !== "off") routeClose();
   if (mode === "path" && !pathState.active) pathToggle();
@@ -7025,6 +7035,8 @@ function rotRender() {
       // Click it to see it on the map; one chip per floor it's on.
       const b = rotEl("button", li.querySelector(".rot-blk-head"), "Show", "map-btn rot-show"); b.type = "button"; b.title = "Show this walk on the map";
       b.addEventListener("click", function () { rotShowLeg(k); });
+      const ed = rotEl("button", li.querySelector(".rot-blk-head"), "Edit", "map-btn rot-show"); ed.type = "button"; ed.title = "Edit this path's waypoints in the Route editor";
+      ed.addEventListener("click", function () { rotEditPath(k); });
       const st = pathNodeStats(leg), segs = rotLegSegs(leg);
       rotEl("span", meta, (kp ? " · " : "") + "~" + fmt(st.steps) + " steps" + (st.changes ? " · " + st.changes + " floor change" + (st.changes === 1 ? "" : "s") : ""));
       const fl = rotEl("div", li, null, "rot-floors");
@@ -7048,6 +7060,8 @@ function rotRender() {
     const hl = block("cave", names.cave, "Hunts " + (routeState.title ? "\u201c" + routeState.title + "\u201d" : "the loop") + " (" + hp.length + " waypoints" + (routeState.loop ? ", round and round" : "") + ")" +
       (leave.length ? " until " + leave.join(" or ") + "." : " - \u26a0 nothing makes it leave: set a capacity (step 1) or a supply (step 4)."));
     if (!leave.length) hl.classList.add("rot-blk-bad");
+    const he = rotEl("button", hl.querySelector(".rot-blk-head"), "Edit", "map-btn rot-show"); he.type = "button"; he.title = "Edit the cave route in the Route tab";
+    he.addEventListener("click", function () { mapSetMode("route"); });
     for (let k = 1; k < last; k++) {
       const s = stops[k];
       walk(k);
@@ -7183,6 +7197,95 @@ function rotNames(stops, kept) {
   }
   return out;
 }
+// Each walk's waypoints (Route tab points), as exported: your own kept
+// path, or the one found on the map, starting where the walk before ended
+// (beside an NPC, in the depot room, at the cave's first waypoint) with
+// the ways up you picked. walks[k] is the walk to stop k.
+function rotWalkPoints(res, hp) {
+  const walks = {}, stops = res.stops;
+  let from = { z: hp[0].z, x: hp[0].x, y: hp[0].y };
+  for (let k = 1; k < stops.length; k++) {
+    const s = stops[k], nodes = res.legs[(k - 1) + ">" + k], kp = res.plan.kept[k];
+    if (kp) {
+      walks[k] = { kept: kp, points: rotRouteFromMb(kp.route, [], "The path") };
+      const e = kp.route[kp.route.length - 1];
+      from = { z: e.z, x: e.x, y: e.y };
+      continue;
+    }
+    if (!nodes) return walks;
+    const out = [routeMakePoint(from.z, from.x, from.y, "", {})], tiles = botLegTiles(nodes);
+    botLegFill(out, nodes, rot.cfg.spacing);
+    let end = tiles[tiles.length - 1];
+    if (s.npc && tiles.length >= 2 && !end.portal && tiles[tiles.length - 2].z === end.z) end = tiles[tiles.length - 2];
+    out.push(routeMakePoint(end.z, end.x, end.y, "", {}));
+    out.forEach(function (p) { if (p.t === "up" && rot.choice[rotUpKey(p)]) botSetType(p, rot.choice[rotUpKey(p)]); });
+    walks[k] = { kept: null, points: out };
+    from = end;
+  }
+  return walks;
+}
+// Editing a walk: its waypoints go into the Route editor (the cave route
+// waits aside); Done turns them into your own path for that walk (kept,
+// exported as it is), Cancel drops the changes.
+function rotEditPath(k) {
+  if (!rot.res || rot.edit) return;
+  const res = rot.res, stops = res.stops, w = rotWalkPoints(res, routeState.points)[k];
+  if (!w) return;
+  const names = rotNames(stops, res.plan.kept), kp = res.plan.kept[k];
+  rot.edit = {
+    k: k, from: rotKey(stops[k - 1].key), to: rotKey(stops[k].key), name: names.paths[k], fight: kp ? kp.fight : k === 1,
+    color: ROT_COLORS[stops[k].kind], what: rotPlace(stops[k - 1]) + " to " + rotPlace(stops[k]),
+    stash: { points: routeState.points, loop: routeState.loop, title: routeState.title, history: routeState.history, undoFill: routeState.undoFill }
+  };
+  routeState.points = w.points.map(function (p) { const q = routeMakePoint(p.z, p.x, p.y, p.note || "", { t: p.t, params: botClone(p.params) }); return q; });
+  routeState.loop = false; routeState.title = rot.edit.name; routeState.history = []; routeState.undoFill = null; routeState.open.clear();
+  document.getElementById("route-loop").checked = false;
+  mapSetMode("route");
+  rotEditBar();
+  setMapFloor(routeState.points[0].z); routeFitFloor(routeState.points[0].z);
+  routeChanged(); drawMap();
+}
+function rotPlace(s) { return s.kind === "hunt" || s.kind === "return" ? "the cave" : s.kind === "depot" ? "the depot" : s.npc ? s.npc.name : s.label; }
+function rotEditBar() {
+  const bar = document.getElementById("route-editing"), e = rot.edit;
+  bar.hidden = !e;
+  if (!e) return;
+  bar.style.setProperty("--leg", e.color);
+  document.getElementById("route-editing-t").textContent = "Editing the path \u201c" + e.name + "\u201d";
+  document.getElementById("route-editing-help").textContent = "From " + e.what + ". Move, add or delete its waypoints like any route; the title is its name. Keep its start and end by the stops.";
+  document.getElementById("route-editing-err").textContent = "";
+}
+// save: keep it as your path (false: drop the changes). Returns false when
+// it can't be saved yet (and you chose to stay).
+function rotEditEnd(save, mode) {
+  const e = rot.edit;
+  if (!e) return true;
+  if (save) {
+    const conv = mb0tRotRoute(routeState.points, "The path");
+    const errs = conv.errors.slice();
+    if (conv.route.length < 2) errs.push("A path needs at least two waypoints.");
+    if (errs.length) {
+      document.getElementById("route-editing-err").textContent = "\u26a0 " + errs.join(" \u00b7 ");
+      if (!confirm("This path can't be saved yet (" + errs[0] + "). Leave it and lose the changes?")) return false;
+      save = false;
+    }
+    if (save) {
+      const name = (routeState.title || "").trim().slice(0, 120) || e.name;
+      rot.cfg.paths = (rot.cfg.paths || []).filter(function (x) { return !(x.from === e.from && x.to === e.to); });
+      rot.cfg.paths.push({ from: e.from, to: e.to, name: name, fight: e.fight, route: conv.route });
+    }
+  }
+  routeState.points = e.stash.points; routeState.loop = e.stash.loop; routeState.title = e.stash.title;
+  routeState.history = e.stash.history; routeState.undoFill = e.stash.undoFill; routeState.open.clear();
+  document.getElementById("route-loop").checked = routeState.loop;
+  document.getElementById("route-title").value = routeState.title;
+  rot.edit = null; rot.res = null; rot.autoKey = ""; rot.step = 6;
+  rotSaveCfg(); rotEditBar();
+  routeState.gen++; routeState.legs = [];
+  if (!mode) mapSetMode("rotation");
+  routeChanged();
+  return true;
+}
 function rotMbFile() {
   const res = rot.res, stops = res.stops, cfg = rot.cfg, name = rotName(), hp = routeState.points;
   const errors = [], warnings = [], paths = [], blocks = [];
@@ -7190,31 +7293,19 @@ function rotMbFile() {
   cave.errors.forEach(function (e) { errors.push(e); });
   const names = rotNames(stops, res.plan.kept), caveName = names.cave;
   const short = rotShort;
-  // Each walk starts where the one before ended (beside an NPC, in the
-  // depot room, at the cave's first waypoint).
-  let from = { z: hp[0].z, x: hp[0].x, y: hp[0].y };
-  const legPaths = [];
+  const legPaths = [], walks = rotWalkPoints(res, hp);
   for (let k = 1; k < stops.length; k++) {
-    const s = stops[k], nodes = res.legs[(k - 1) + ">" + k], kp = res.plan.kept[k];
-    if (kp) {   // your own path from the imported file, as it was
-      paths.push({ name: names.paths[k], route: kp.route.map(function (w) { return Object.assign({}, w); }) });
+    const s = stops[k], w = walks[k];
+    if (!w) { errors.push("No walk from " + stops[k - 1].label + " to " + s.label + " - press Find the way."); return { errors: errors, warnings: warnings }; }
+    if (w.kept) {   // your own path, as it is
+      paths.push({ name: names.paths[k], route: w.kept.route.map(function (x) { return Object.assign({}, x); }) });
       legPaths.push(names.paths[k]);
-      const e = kp.route[kp.route.length - 1];
-      from = { z: e.z, x: e.x, y: e.y };
       continue;
     }
-    if (!nodes) { errors.push("No walk from " + stops[k - 1].label + " to " + s.label + " - press Find the way."); return { errors: errors, warnings: warnings }; }
-    const out = [routeMakePoint(from.z, from.x, from.y, "", {})], tiles = botLegTiles(nodes);
-    botLegFill(out, nodes, cfg.spacing);
-    let end = tiles[tiles.length - 1];
-    if (s.npc && tiles.length >= 2 && !end.portal && tiles[tiles.length - 2].z === end.z) end = tiles[tiles.length - 2];
-    out.push(routeMakePoint(end.z, end.x, end.y, "", {}));
-    out.forEach(function (p) { if (p.t === "up" && rot.choice[rotUpKey(p)]) botSetType(p, rot.choice[rotUpKey(p)]); });
-    const nm = names.paths[k], conv = mb0tRotRoute(out, "The walk " + short(stops[k - 1]) + " to " + short(s));
+    const nm = names.paths[k], conv = mb0tRotRoute(w.points, "The walk " + short(stops[k - 1]) + " to " + short(s));
     conv.errors.forEach(function (e) { errors.push(e); });
     paths.push({ name: nm, route: conv.route });
     legPaths.push(nm);
-    from = end;
   }
   // Blocks: back to the cave first (start it in town), the hunt, then each
   // stop with the walk to it.
@@ -7815,6 +7906,8 @@ function rotWire() {
   document.getElementById("rot-build").addEventListener("click", rotBuild);
   document.getElementById("rot-pick").addEventListener("click", function () { upqStart("rot"); });
   document.getElementById("rot-alt-pick").addEventListener("click", function () { upqStart("rot"); });
+  document.getElementById("route-editing-done").addEventListener("click", function () { rotEditEnd(true); });
+  document.getElementById("route-editing-cancel").addEventListener("click", function () { rotEditEnd(false); });
   document.querySelector("details.rot-alt").addEventListener("toggle", function () { rotRender(); });
   const give = function (download) {
     const why = rotBlocked(), msg = document.getElementById("rot-msg");
