@@ -513,6 +513,7 @@
   .upq-alt[hidden] { display: none; }
   .upq-alt .map-btn { flex: 1 1 auto; min-height: 34px; }
   .upq-alt .map-btn[hidden] { display: none; }
+  .mb0t-only[hidden] { display: none !important; }
   .upq-nav .map-btn { min-height: 34px; flex: none; white-space: nowrap; }
   .upq-count { flex: 1 1 auto; min-width: 0; font-size: 12.5px; color: var(--text-secondary); text-align: center; }
   .map-canvas-wrap.upq-on .map-ovl-coords, .map-canvas-wrap.upq-on .map-ovl-actions, .map-canvas-wrap.upq-on .map-layers-pop { display: none; }
@@ -830,6 +831,10 @@
               <button class="map-btn" id="path-bot-download" type="button">Download</button>
               <button class="map-btn" id="path-bot-edit" type="button" title="Open these waypoints in the Route builder to change types or positions">Edit in Route builder</button>
             </div>
+            <div class="pb-row mb0t-only" hidden>
+              <button class="map-btn" id="path-mb0t-copy" type="button" title="Copy this path as an mb0t Cave preset - paste it in mb0t's Cave tab">Copy for mb0t</button>
+              <button class="map-btn" id="path-mb0t-download" type="button">Download for mb0t</button>
+            </div>
             <div class="route-bot-msg" id="path-bot-msg"></div>
           </div>
         </section>
@@ -899,6 +904,8 @@
                 <button class="map-btn pb-primary" id="rot-pick" type="button" hidden>Pick ways up</button>
                 <button class="map-btn pb-primary" id="rot-copy" type="button" disabled title="Copy the whole rotation in the bot's Import JSON format">Copy bot JSON</button>
                 <button class="map-btn" id="rot-download" type="button" disabled>Download .json</button>
+                <button class="map-btn mb0t-only" id="rot-mb0t-copy" type="button" disabled hidden title="Copy the rotation as an mb0t Cave preset - paste it in mb0t's Cave tab">Copy for mb0t</button>
+                <button class="map-btn mb0t-only" id="rot-mb0t-download" type="button" disabled hidden>Download for mb0t</button>
               </div>
               <div class="route-bot-msg" id="rot-msg"></div>
               <p class="cc-help">Needs the bot's waypoint checks (Supplies low? / Anything to sell? / Gold to bank? / Anything to buy?). Loot and NPC offers come from the game data, which doesn't list every NPC offer (no one sells mana fluid in it, for example) - pick the NPC in that supply's row.</p>
@@ -921,6 +928,8 @@
                 <button class="map-btn edit-only pb-primary-soft" id="route-bot-pickups" type="button" style="display:none;">Pick ways up on the map</button>
                 <button class="map-btn" id="route-bot-copy" type="button" title="Copy the route in the bot's Import JSON format">Copy JSON</button>
                 <button class="map-btn" id="route-bot-download" type="button">Download</button>
+                <button class="map-btn mb0t-only" id="route-mb0t-copy" type="button" hidden title="Copy the route as an mb0t Cave preset - paste it in mb0t's Cave tab">Copy for mb0t</button>
+                <button class="map-btn mb0t-only" id="route-mb0t-download" type="button" hidden>Download for mb0t</button>
                 <button class="map-btn edit-only" id="route-bot-import-toggle" type="button" title="Paste a route from the bot">Import</button>
               </div>
               <div class="route-bot-import edit-only" id="route-bot-import" hidden>
@@ -6780,6 +6789,8 @@ function rotRender() {
   } else document.getElementById("rot-pick").hidden = true;
   document.getElementById("rot-copy").disabled = !rot.res;
   document.getElementById("rot-download").disabled = !rot.res;
+  document.getElementById("rot-mb0t-copy").disabled = !rot.res;
+  document.getElementById("rot-mb0t-download").disabled = !rot.res;
   document.getElementById("rot-msg").textContent = "";
 }
 function rotPickDepotAt(sx, sy) {
@@ -6820,6 +6831,205 @@ function drawRotOverlay() {
   });
   mapCtx.restore();
 }
+// --- mb0t (feature flag: #mb0t in the URL, remembered on that device;
+// #mb0t-off hides it again): the same paths, routes and rotations as presets
+// for the mb0t bot (infernalscripts/mb0t), in its own format - what its Cave
+// tab imports (paste, or Import from a file): {"minibiaBot.cave.presets":
+// [{name, route, transitions, areas}]}, each waypoint {x, y, z, label,
+// script, stand, rope, shovel, ladder}. Stairs/holes are its "approach" +
+// "step-on" stand pair, ladders/rope/shovel its own flags on the spot,
+// and the town stops are script waypoints calling its modules - each sets
+// the NPC to trade with just for that call.
+const MB0T_FLAG_KEY = "minibia.flag.mb0t";
+function mb0tFlagOn() {
+  const h = location.hash.toLowerCase();
+  try {
+    if (/(^#|&)mb0t-off(&|$)/.test(h)) localStorage.removeItem(MB0T_FLAG_KEY);
+    else if (/(^#|&)mb0t(&|$)/.test(h)) localStorage.setItem(MB0T_FLAG_KEY, "1");
+    return localStorage.getItem(MB0T_FLAG_KEY) === "1";
+  } catch (e) { return /(^#|&)mb0t(&|$)/.test(h); }
+}
+let mb0tFlag = false;
+function mb0tRender() { document.querySelectorAll(".mb0t-only").forEach(function (el) { el.hidden = !mb0tFlag; }); }
+function mb0tAt(p, dir) {
+  const st = BOT_DIR_STEP[dir || "here"];
+  return st ? { z: p.z, x: p.x + st[0], y: p.y + st[1] } : null;
+}
+function mb0tPos(t) { return { x: t.x, y: t.y, z: t.z }; }
+const mb0tQ = function (v) { return JSON.stringify(v); };
+// Script bodies (mb0t runs each as a plain function, so async work is an
+// async IIFE it waits on).
+function mb0tWithNpc(module, npc, body) {
+  return "return (async () => { const c = bot." + module + ".config, was = c.npcName; c.npcName = " + mb0tQ(npc) +
+    "; try { " + body + " } finally { c.npcName = was; } })();";
+}
+function mb0tSellScript(npc, names) {
+  return mb0tWithNpc("npcSupplyBuyer", npc, "return await bot.npcSupplyBuyer.sellItems(" + mb0tQ(names.map(function (n) { return { name: n, mode: "all" }; })) + ");");
+}
+function mb0tBuyScript(npc, rows) {
+  return mb0tWithNpc("npcSupplyBuyer", npc, "for (const r of " + mb0tQ(rows.map(function (r) { return { name: r.name, to: r.to }; })) +
+    ") await bot.npcSupplyBuyer.buyTo(r.name, r.to); return true;");
+}
+function mb0tBankScript(npc) { return mb0tWithNpc("bankNpc", npc, "return await bot.bankNpc.run(\"deposit-all\", 0, \"\");"); }
+const MB0T_DEPOT_SCRIPT = "return bot.depositer.run();";
+function mb0tGotoScript(label) { return "if (!bot.goToLabel(" + mb0tQ(label) + ")) throw new Error(" + mb0tQ("No label " + label) + "); return true;"; }
+// Our waypoints -> mb0t's. pts may also hold ready mb0t waypoints ({ mb0t: {...} }).
+function mb0tConvert(pts) {
+  const route = [], errors = [], notes = [];
+  let covered = null, checks = 0;
+  pts.forEach(function (p, i) {
+    if (p.mb0t) { route.push(p.mb0t); covered = null; return; }
+    if (p.en === false) return;
+    const n = "#" + (i + 1) + " (" + (BOT_TYPES[p.t] ? BOT_TYPES[p.t].label : p.t) + ")", pr = p.params || {}, lbl = p.label || undefined;
+    const add = function (w) { if (lbl && !route.some(function (r) { return r.label === lbl; })) w.label = lbl; route.push(w); return w; };
+    if (pr.checkType) checks++;
+    const t = p.t, wasCovered = covered;
+    covered = null;
+    if (t === "walk") { add(mb0tPos(p)); return; }
+    if (t === "stand") { const a = mb0tAt(p, pr.standDirection); if (!a) { errors.push(n + ": bad stand direction"); return; } add(Object.assign(mb0tPos(a), { stand: true })); return; }
+    if (t === "wait") { add(mb0tPos(p)); route.push({ label: "Wait", script: "return new Promise(r => setTimeout(r, " + Math.max(0, Math.floor(Number(pr.waitMs) || 0)) + "));" }); return; }
+    if (t === "rope" || t === "shovel") {
+      const a = mb0tAt(p, pr.targetOffset);
+      if (!a) { errors.push(n + ": bad target direction"); return; }
+      const w = Object.assign(mb0tPos(a), {}); w[t] = true; add(w);
+      if (t === "shovel") covered = a;   // mb0t's shovel steps in too: the floor-down after it goes
+      return;
+    }
+    if (t === "floor-down" || t === "stairs-up" || t === "ladder-up") {
+      const a = mb0tAt(p, pr.transitionTarget);
+      if (!a || pr.transitionTarget === "here") { errors.push(n + ": needs the direction it steps in"); return; }
+      if (t === "floor-down" && wasCovered && wasCovered.z === a.z && wasCovered.x === a.x && wasCovered.y === a.y) return;
+      if (t === "ladder-up") { add(Object.assign(mb0tPos(a), { ladder: true })); return; }
+      add(Object.assign(mb0tPos(p), { stand: true }));   // approach, then the step-on tile
+      route.push(Object.assign(mb0tPos(a), { stand: true, label: (t === "floor-down" ? "Floor down" : "Stairs up") }));
+      return;
+    }
+    if (t === "use") {
+      const a = mb0tAt(p, pr.targetOffset);
+      if (!a) { errors.push(n + ": bad target direction"); return; }
+      let from = pr.targetOffset && pr.targetOffset !== "here" ? p : p.from;
+      if (!from) {   // the waypoint before it, if it's beside it
+        const q = pts[i - 1];
+        if (q && !q.mb0t && q.z === p.z && Math.max(Math.abs(q.x - p.x), Math.abs(q.y - p.y)) === 1) from = q;
+      }
+      if (!from) { errors.push(n + ": mb0t uses it from a tile beside it - put a waypoint next to it first"); return; }
+      add(Object.assign(mb0tPos(from), { stand: true }));
+      route.push({ label: "Use x" + a.x + " y" + a.y, script: "if (!bot.usePosition(" + a.x + ", " + a.y + ", " + a.z + ")) throw new Error(\"Use failed\"); return true;" });
+      return;
+    }
+    if (t === "label") { route.push({ label: p.label, script: "return true;" }); return; }
+    if (t === "goto") { add({ script: mb0tGotoScript(pr.targetLabel || "") }); return; }
+    if (t === "depot") { add(mb0tPos(p)); route.push({ label: "Depot", script: MB0T_DEPOT_SCRIPT }); return; }
+    if (t === "npc") {
+      const who = pr.npcName || "";
+      add(mb0tPos(p));
+      if (pr.npcPreset === "sell-items") route.push({ label: "Sell to " + (who || "NPC"), script: mb0tSellScript(who, (pr.sellRows || []).map(function (r) { return r.itemName; }).filter(Boolean)) });
+      else if (pr.npcPreset === "deposit-all") route.push({ label: "Bank at " + (who || "NPC"), script: mb0tBankScript(who) });
+      else if (pr.npcPreset === "refill-supplies") route.push({ label: "Buy from " + (who || "NPC"), script: mb0tBuyScript(who, (pr.refillRows || []).map(function (r) { return { name: r.tradeName || r.name, to: r.refillTarget }; })) });
+      else errors.push(n + ": NPC preset \u201c" + pr.npcPreset + "\u201d isn't supported for mb0t");
+      return;
+    }
+    if (t === "up") { errors.push(n + ": pick what this way up is first"); return; }
+    errors.push(n + ": mb0t has no " + (BOT_TYPES[t] ? BOT_TYPES[t].label.toLowerCase() : t) + " waypoint");
+  });
+  if (checks) notes.push(checks + " waypoint check" + (checks === 1 ? "" : "s") + " (Anything to sell? etc.) aren't carried over - mb0t doesn't have them.");
+  return { route: route, errors: errors, notes: notes };
+}
+function mb0tFile(name, route) {
+  return JSON.stringify({ "minibiaBot.cave.presets": [{ name: String(name || "Route").slice(0, 60), route: route, transitions: [], areas: [] }] }, null, 2);
+}
+// The rotation for mb0t: hunt loop -> supply check (mb0t's own: LOW goes
+// on to town, OK jumps back to the hunt) -> every stop in order (mb0t
+// can't check on the spot whether there's anything to sell or bank, so
+// none is skipped) -> back to the hunt.
+function mb0tRotation() {
+  const res = rot.res, stops = res.stops, hp = routeState.points;
+  const buyRows = [];
+  stops.forEach(function (s) { if (s.kind === "buy") s.rows.forEach(function (r) { buyRows.push(r); }); });
+  if (!buyRows.length) return { errors: ["mb0t leaves the hunt when its supply check says LOW - add at least one supply under Buy."], route: [], notes: [] };
+  const labels = {}, label = function (txt) {
+    let l = String(txt).slice(0, 54), base = l, n = 2;
+    while (labels[l.toLowerCase()]) l = base + " " + (n++);
+    labels[l.toLowerCase()] = true; return l;
+  };
+  hp.forEach(function (p) { if (p.label) labels[p.label.toLowerCase()] = true; });
+  const huntLabel = hp[0].label || label("Hunt");
+  const pts = hp.map(function (p, i) {
+    const q = Object.assign({}, p);
+    if (i === 0) q.label = huntLabel;
+    return q;
+  });
+  const H = hp[0];
+  pts.push({ mb0t: { x: H.x, y: H.y, z: H.z } });
+  const rules = buyRows.map(function (r) { return { name: r.name, tradeName: r.name, minCount: r.low, target: r.to }; });
+  pts.push({ mb0t: { label: label("Supply check"), script: "bot.npcSupplyBuyer.updateConfig({ rules: " + mb0tQ(rules) + " }); return bot.npcSupplyBuyer.runSupplyCheckWaypoint(" + mb0tQ(huntLabel) + ");" } });
+  for (let k = 1; k < stops.length; k++) {
+    const s = stops[k], nodes = res.legs[(k - 1) + ">" + k];
+    if (!nodes) return { errors: ["No walking route from " + stops[k - 1].label + " to " + s.label + "."], route: [], notes: [] };
+    const out = [], tiles = botLegTiles(nodes);
+    botLegFill(out, nodes, rot.cfg.spacing);
+    let end = tiles[tiles.length - 1];
+    if (s.npc && tiles.length >= 2 && !end.portal && tiles[tiles.length - 2].z === end.z) end = tiles[tiles.length - 2];
+    out.push(routeMakePoint(end.z, end.x, end.y, "", {}));
+    out.forEach(function (p) { if (p.t === "up" && rot.choice[rotUpKey(p)]) botSetType(p, rot.choice[rotUpKey(p)]); });
+    out[0].label = label("To " + s.label);
+    out.forEach(function (p) { pts.push(p); });
+    const who = s.npc ? s.npc.name : "";
+    if (s.kind === "sell") pts.push({ mb0t: { label: label(s.label), script: mb0tSellScript(who, s.items.map(function (it) { return it.name; })) } });
+    else if (s.kind === "depot") pts.push({ mb0t: { label: label("Depot"), script: MB0T_DEPOT_SCRIPT } });
+    else if (s.kind === "bank") pts.push({ mb0t: { label: label(s.label), script: mb0tBankScript(who) } });
+    else if (s.kind === "buy") pts.push({ mb0t: { label: label(s.label), script: mb0tBuyScript(who, s.rows) } });
+    else if (s.kind === "return") pts.push({ mb0t: { label: label("Back to the hunt"), script: mb0tGotoScript(huntLabel) } });
+  }
+  const c = mb0tConvert(pts);
+  c.notes.push("Its supply check sets mb0t's supply rules to this rotation's list (Low below / Refill to). The depot uses mb0t's Depositer settings (loot backpack etc.).");
+  return c;
+}
+// Copy or download one for mb0t; say(msg) reports back.
+function mb0tGive(name, conv, download, btn, say) {
+  if (conv.errors.length) { say("Not exported for mb0t: " + conv.errors.slice(0, 5).join(" · ") + (conv.errors.length > 5 ? " (+" + (conv.errors.length - 5) + " more)" : "")); return; }
+  const json = mb0tFile(name, conv.route);
+  const tail = " In mb0t's Cave tab, paste it (or Import the file) - it opens as preset \u201c" + name + "\u201d." + (conv.notes.length ? " " + conv.notes.join(" ") : "");
+  if (download) {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([json], { type: "application/json" }));
+    a.download = (slugify(name) || "route") + "-mb0t.json";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+    say("Downloaded " + conv.route.length + " mb0t waypoints." + tail);
+    return;
+  }
+  const label = btn.textContent;
+  const done = function () { btn.textContent = "Copied!"; setTimeout(function () { btn.textContent = label; }, 1500); say("Copied " + conv.route.length + " mb0t waypoints." + tail); };
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(json).then(done, function () { say("Couldn't copy - use Download for mb0t."); });
+  else say("Couldn't copy - use Download for mb0t.");
+}
+function mb0tWire() {
+  const pathName = function () { const g = pathState.goal; return g ? "Path to x" + g.x + " y" + g.y + " z" + g.z : "Path"; };
+  ["copy", "download"].forEach(function (what) {
+    document.getElementById("path-mb0t-" + what).addEventListener("click", function () {
+      const pb = pathBotPoints();
+      if (!pb) return;
+      mb0tGive(pathName(), mb0tConvert(pb.points), what === "download", this, function (m) { pathBotRender(m); });
+    });
+    document.getElementById("route-mb0t-" + what).addEventListener("click", function () {
+      if (!routeState.points.length) return;
+      const conv = mb0tConvert(routeState.points);
+      if (!routeState.loop) conv.notes.push("mb0t starts over from the first waypoint when it reaches the end.");
+      mb0tGive(routeState.title || "Route", conv, what === "download", this, function (m) { botRenderMessages(m); });
+    });
+    document.getElementById("rot-mb0t-" + what).addEventListener("click", function () {
+      const msg = document.getElementById("rot-msg");
+      const blocked = rot.res ? "" : "Build the rotation first.";
+      const huntUps = botUnpicked(routeState.points), left = rotUps().filter(function (p) { return !rot.choice[rotUpKey(p)]; });
+      const why = blocked || (huntUps.length ? "Pick the hunt route's ways up first (Route builder list: " + huntUps.join(", ") + ")." : "") ||
+        (left.length ? left.length + " way" + (left.length === 1 ? "" : "s") + " up on the town legs still need a type - press Pick ways up." : "");
+      if (why) { msg.textContent = why; return; }
+      mb0tGive((routeState.title || "Hunt") + " rotation", mb0tRotation(), what === "download", this, function (m) { msg.textContent = m; });
+    });
+  });
+}
+
 function rotWire() {
   const cfg = rot.cfg, changed = function () { rot.res = null; rotSaveCfg(); rotRender(); drawMap(); };
   document.getElementById("rot-depot-set").addEventListener("click", function () { rot.pickDepot = !rot.pickDepot; rotRender(); });
@@ -7131,6 +7341,8 @@ function botLegFill(out, nodes, spacing) {
       if (last && last.t === "walk" && last.fill && last.z === t.z && last.x === t.x && last.y === t.y) { out.pop(); added--; }
       const wp = routeMakePoint(t.z, t.x, t.y, "", { t: "use" });
       wp.params.targetOffset = "here";
+      const pv = tiles[k - 1];
+      if (pv && !pv.portal && pv.z === t.z) wp.from = { z: pv.z, x: pv.x, y: pv.y };   // (for mb0t: stand here first)
       out.push(wp); wp.fill = true; added++;
       walked = 0;
       continue;
@@ -8069,7 +8281,10 @@ function initMap() {
   try { localStorage.removeItem("minibia.flag.huntEst"); } catch (e) { /* the old #hunt-est flag, no longer used */ }
   rotFlag = rotFlagOn();
   rotWire();
-  window.addEventListener("hashchange", function () { botPathFlag = botPathFlagOn(); rotFlag = rotFlagOn(); pathBotRender(); huntRender(); rotRender(); drawMap(); });
+  mb0tFlag = mb0tFlagOn();
+  mb0tWire();
+  mb0tRender();
+  window.addEventListener("hashchange", function () { botPathFlag = botPathFlagOn(); rotFlag = rotFlagOn(); mb0tFlag = mb0tFlagOn(); mb0tRender(); pathBotRender(); huntRender(); rotRender(); drawMap(); });
   ["hunt-est-reach", "hunt-est-unsure"].forEach(function (id) {
     document.getElementById(id).addEventListener("change", function () { huntRender(); drawMap(); });
   });
