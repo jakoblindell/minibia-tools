@@ -514,6 +514,8 @@
   .upq-alt .map-btn { flex: 1 1 auto; min-height: 34px; }
   .upq-alt .map-btn[hidden] { display: none; }
   .mb0t-only[hidden] { display: none !important; }
+  .export-why { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+  .export-why[hidden] { display: none; }
   .upq-nav .map-btn { min-height: 34px; flex: none; white-space: nowrap; }
   .upq-count { flex: 1 1 auto; min-width: 0; font-size: 12.5px; color: var(--text-secondary); text-align: center; }
   .map-canvas-wrap.upq-on .map-ovl-coords, .map-canvas-wrap.upq-on .map-ovl-actions, .map-canvas-wrap.upq-on .map-layers-pop { display: none; }
@@ -835,6 +837,7 @@
               <button class="map-btn" id="path-mb0t-copy" type="button" title="Copy this path as an mb0t Cave preset - paste it in mb0t's Cave tab">Copy for mb0t</button>
               <button class="map-btn" id="path-mb0t-download" type="button">Download for mb0t</button>
             </div>
+            <div class="export-why" id="path-mb0t-why" hidden></div>
             <div class="route-bot-msg" id="path-bot-msg"></div>
           </div>
         </section>
@@ -907,6 +910,7 @@
                 <button class="map-btn mb0t-only" id="rot-mb0t-copy" type="button" disabled hidden title="Copy the rotation as an mb0t Cave preset - paste it in mb0t's Cave tab">Copy for mb0t</button>
                 <button class="map-btn mb0t-only" id="rot-mb0t-download" type="button" disabled hidden>Download for mb0t</button>
               </div>
+              <div class="export-why" id="rot-why" hidden></div>
               <div class="route-bot-msg" id="rot-msg"></div>
               <p class="cc-help">Needs the bot's waypoint checks (Supplies low? / Anything to sell? / Gold to bank? / Anything to buy?). Loot and NPC offers come from the game data, which doesn't list every NPC offer (no one sells mana fluid in it, for example) - pick the NPC in that supply's row.</p>
             </div>
@@ -936,6 +940,7 @@
                 <textarea id="route-bot-import-text" rows="5" spellcheck="false" placeholder='Paste the route from the bot (Cave → Route → Copy), e.g. { "version": 1, "route": [ ... ] }'></textarea>
                 <div class="route-actions"><button class="map-btn" id="route-bot-import-go" type="button">Import (replaces this route)</button></div>
               </div>
+              <div class="export-why" id="route-why" hidden></div>
               <div class="route-bot-msg" id="route-bot-msg"></div>
             </div>
           </div>
@@ -4511,6 +4516,10 @@ function pathBotRender(note) {
   pick.hidden = unp.length === 0; copy.hidden = unp.length > 0;
   pick.textContent = "Pick " + unp.length + " way" + (unp.length === 1 ? "" : "s") + " up on the map";
   document.getElementById("path-bot-download").disabled = unp.length > 0;
+  const upsWhy = unp.length ? "pick what each way up is first (" + unp.length + " left)" : "";
+  const mWhy = upsWhy || (mb0tFlag ? mb0tPathWhy(pts) : "");
+  exportGate(["path-mb0t-copy", "path-mb0t-download"], mWhy);
+  exportWhy("path-mb0t-why", [mb0tFlag && !upsWhy && mWhy ? "mb0t: " + mWhy : ""]);
   pathBotRenderUps(pts, unp.length);
 }
 // Summary of the ways up on the path: one chip each (tap to look at it again
@@ -6672,11 +6681,16 @@ function rotExport() {
   });
   return { json: JSON.stringify({ version: 1, route: route }, null, 2), errors: botValidate(route), route: route };
 }
-function rotBlocked() {
+function rotUpsWhy() {
   if (!rot.res) return "Build the rotation first.";
   const huntUps = botUnpicked(routeState.points), left = rotUps().filter(function (p) { return !rot.choice[rotUpKey(p)]; });
   if (huntUps.length) return "Pick the hunt route's ways up first (Route builder list: " + huntUps.join(", ") + ").";
   if (left.length) return left.length + " way" + (left.length === 1 ? "" : "s") + " up on the town legs still need a type - press Pick ways up.";
+  return "";
+}
+function rotBlocked() {
+  const ups = rotUpsWhy();
+  if (ups) return ups;
   const ex = rotExport();
   if (ex.errors.length) return "Not exported: " + ex.errors.join(" · ");
   return "";
@@ -6787,10 +6801,15 @@ function rotRender() {
     if (ups.length) document.getElementById("rot-pick").textContent = left ? "Pick ways up (" + left + " left)" : "Ways up picked ✓";
     rotEl("p", out, "Add each supply to the bot's Supplies too (same name, Low below, Refill to) - the bot decides LOW from those.", "cc-help");
   } else document.getElementById("rot-pick").hidden = true;
-  document.getElementById("rot-copy").disabled = !rot.res;
-  document.getElementById("rot-download").disabled = !rot.res;
-  document.getElementById("rot-mb0t-copy").disabled = !rot.res;
-  document.getElementById("rot-mb0t-download").disabled = !rot.res;
+  const why = rotBlocked();
+  exportGate(["rot-copy", "rot-download"], why);
+  let mWhy = "";
+  if (mb0tFlag) {
+    mWhy = rotUpsWhy();
+    if (!mWhy) { const c = mb0tRotation(); if (c.errors.length) mWhy = c.errors[0]; }
+  }
+  exportGate(["rot-mb0t-copy", "rot-mb0t-download"], mWhy);
+  exportWhy("rot-why", rot.res ? [why, mb0tFlag && mWhy && mWhy !== why ? "mb0t: " + mWhy : ""] : []);
   document.getElementById("rot-msg").textContent = "";
 }
 function rotPickDepotAt(sx, sy) {
@@ -6851,6 +6870,27 @@ function mb0tFlagOn() {
 }
 let mb0tFlag = false;
 function mb0tRender() { document.querySelectorAll(".mb0t-only").forEach(function (el) { el.hidden = !mb0tFlag; }); }
+// Copy/Download stay greyed out while something still needs doing; the
+// reason shows on hover and in the line under them (whyId).
+function exportGate(ids, why) {
+  ids.forEach(function (id) {
+    const b = document.getElementById(id);
+    if (!b) return;
+    if (b.dataset.title === undefined) b.dataset.title = b.title || "";
+    b.disabled = !!why;
+    b.title = why ? "Not yet: " + why : b.dataset.title;
+  });
+}
+function exportWhy(whyId, lines) {
+  const el = document.getElementById(whyId);
+  if (!el) return;
+  const t = lines.filter(Boolean).join(" ");
+  el.textContent = t; el.hidden = !t;
+}
+function mb0tPathWhy(pts) {
+  const c = mb0tConvert(pts);
+  return c.errors.length ? c.errors[0] + (c.errors.length > 1 ? " (+" + (c.errors.length - 1) + " more)" : "") : "";
+}
 function mb0tAt(p, dir) {
   const st = BOT_DIR_STEP[dir || "here"];
   return st ? { z: p.z, x: p.x + st[0], y: p.y + st[1] } : null;
@@ -7515,6 +7555,11 @@ function botRenderMessages(extra) {
   const pk = document.getElementById("route-bot-pickups"), nUp = botUnpicked(routeState.points).length;
   pk.style.display = nUp ? "" : "none";
   pk.textContent = "Pick " + nUp + " way" + (nUp === 1 ? "" : "s") + " up on the map";
+  const why = !routeState.points.length ? "add points first" : nUp ? nUp + " way" + (nUp === 1 ? "" : "s") + " up still need" + (nUp === 1 ? "s" : "") + " a type" : "";
+  exportGate(["route-bot-copy", "route-bot-download"], why);
+  const mWhy = why || (mb0tFlag ? mb0tPathWhy(routeState.points) : "");
+  exportGate(["route-mb0t-copy", "route-mb0t-download"], mWhy);
+  exportWhy("route-why", [mb0tFlag && !why && mWhy ? "mb0t: " + mWhy : ""]);
   botRenderLegend();
 }
 
