@@ -64546,7 +64546,7 @@
    "name": "oven kit",
    "article": "an",
    "weight": 2500,
-   "description": "It doesn't seem to work."
+   "furnitureSid": 6356
   }
  },
  "6373": {
@@ -90808,7 +90808,7 @@
  },
  "8960": {
   "id": 8132,
-  "flags": 65,
+  "flags": 1,
   "group": 2,
   "properties": {
    "name": "slain mutated pumpkin",
@@ -90823,7 +90823,7 @@
  },
  "8961": {
   "id": 8133,
-  "flags": 65,
+  "flags": 1,
   "group": 0,
   "properties": {
    "name": "slain mutated pumpkin",
@@ -90831,13 +90831,13 @@
    "weight": 30000,
    "containerSize": "10",
    "decayTo": "8962",
-   "duration": 900,
+   "duration": 3600,
    "corpseType": "venom"
   }
  },
  "8962": {
   "id": 8134,
-  "flags": 65,
+  "flags": 1,
   "group": 0,
   "properties": {
    "name": "slain mutated pumpkin",
@@ -90845,20 +90845,20 @@
    "weight": 30000,
    "containerSize": "10",
    "decayTo": "8963",
-   "duration": 500,
+   "duration": 2400,
    "corpseType": "venom"
   }
  },
  "8963": {
   "id": 8135,
-  "flags": 65,
+  "flags": 1,
   "group": 0,
   "properties": {
    "name": "slain mutated pumpkin",
    "article": "a",
    "weight": 30000,
    "decayTo": "0",
-   "duration": 300,
+   "duration": 1200,
    "corpseType": "venom"
   }
  },
@@ -131733,7 +131733,7 @@
   }
  },
  "22193": {
-  "__note": "Hallowed hat (owner 2026-10-23: \"Hallowed Hat but it needs to replace the other halloween theme hat we made\", \"Like the blood moon hat\"): the owner's own drawing, a witch's hat with a carved jack-o'-lantern face whose glow flickers (2 frames, halloween_hat.rar hat_b_frame_1/2), client id 12914 (tools/dat-spr/add-item-from-frames.js --donor-cid 9103 --frames 2: the batwing hat's flags). It REPLACES the blood moon hat on this SID (that look was virtual CID 30071, a recolour of the batwing hat, now gone). Still a Halloween item and DORMANT (owner 2026-10-14: \"make both the backpacks and hat dormant for now\"): nothing gives it out, no shop row, no loot. Armor 3, 6.00 oz, head, no magic level, so it is a look item and never a hat of the mad for points.",
+  "__note": "Hallowed hat (owner 2026-10-23: \"Hallowed Hat but it needs to replace the other halloween theme hat we made\", \"Like the blood moon hat\"): the owner's own drawing, a witch's hat with a carved jack-o'-lantern face whose glow flickers (2 frames, halloween_hat.rar hat_b_frame_1/2), client id 12914 (tools/dat-spr/add-item-from-frames.js --donor-cid 9103 --frames 2: the batwing hat's flags). It REPLACES the blood moon hat on this SID (that look was virtual CID 30071, a recolour of the batwing hat, now gone). Still a Halloween item and DORMANT (owner 2026-10-14: \"make both the backpacks and hat dormant for now\"): nothing gives it out, no shop row, no loot. No armor (owner 2026-10-31, asked whether its armor 3 goes with the stat boosts: \"No armor is fine\"), 6.00 oz, head, no magic level, so it is a look item and never a hat of the mad for points.",
   "id": 12914,
   "flags": 96,
   "group": 0,
@@ -131741,7 +131741,6 @@
    "article": "a",
    "name": "hallowed hat",
    "weight": 600,
-   "armor": 3,
    "slotType": "head"
   }
  },
@@ -133038,14 +133037,14 @@
   }
  },
  "22295": {
-  "__note": "Beneath Rookgaard: Gorg the Forgemaster's sure drop (LINKS, see 22293).",
+  "__note": "Beneath Rookgaard v3 (2026-10-28): Tor's twelve links in his puzzle room, laid out by src/quest/beneath-rookgaard.js; moveable, not pickupable (flags 64: they cannot leave the room in a backpack).",
   "id": 3110,
-  "flags": 96,
+  "flags": 64,
   "group": 0,
   "properties": {
    "article": "a",
    "name": "new-forged chain link",
-   "description": "A link of the founders' chain, forged again by a cyclops. It is still warm.",
+   "description": "A link Tor forged for the founders' chain. It is still warm.",
    "weight": 600
   }
  },
@@ -133085,6 +133084,4514 @@
    "armor": 17,
    "slotType": "body",
    "description": "It is a trophy of the alpha hunt."
+  }
+ },
+ "22299": {
+  "__note": "The Bounty Collection (owner 2026-10-28): prestige items for Wyat's Bounty Points shop, drawn in code (~/Documents/minibia-item-pixels/<item>), shown to and picked by the owner. SIDs 22299-22303 = CIDs 12965-12969 (tools/dat-spr/add-item-sprite.js, donors 3011/9389 as the Court Collection; cells tools/dat-spr/generated-cells/bounty-collection). A set of four (trophy, hat, figurine, mask) is sold each quarter, data/760/bounty-shop/catalog.json; each copies a court twin's format (keepsake 20, crown 40, doll 50, mask 80). The wanted poster is the owner's own drawing since 2026-10-31 and hangs on walls: CID 12989 (2x2 tiles, 3 patterns: floor, south wall, east wall; tools/dat-spr/add-item-from-frames.js, donor the picture 2639), hangable (flag 65536); CID 12965 is no longer used.",
+  "id": 12989,
+  "flags": 65632,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "wanted poster",
+   "description": "A face Wyat's hunters have learned to look for.",
+   "weight": 50
+  }
+ },
+ "22300": {
+  "__note": "The Bounty Collection (owner 2026-10-28): prestige items for Wyat's Bounty Points shop, drawn in code (~/Documents/minibia-item-pixels/<item>), shown to and picked by the owner. SIDs 22299-22303 = CIDs 12965-12969 (tools/dat-spr/add-item-sprite.js, donors 3011/9389 as the Court Collection; cells tools/dat-spr/generated-cells/bounty-collection). A set of four (trophy, hat, figurine, mask) is sold each quarter, data/760/bounty-shop/catalog.json; each copies a court twin's format (keepsake 20, crown 40, doll 50, mask 80).",
+  "id": 12966,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "bounty hunter's hat",
+   "description": "Worn by those who bring in the names on Wyat's list.",
+   "weight": 600,
+   "armor": 7,
+   "slotType": "head"
+  }
+ },
+ "22301": {
+  "__note": "The Bounty Collection (owner 2026-10-28): prestige items for Wyat's Bounty Points shop, drawn in code (~/Documents/minibia-item-pixels/<item>), shown to and picked by the owner. SIDs 22299-22303 = CIDs 12965-12969 (tools/dat-spr/add-item-sprite.js, donors 3011/9389 as the Court Collection; cells tools/dat-spr/generated-cells/bounty-collection). A set of four (trophy, hat, figurine, mask) is sold each quarter, data/760/bounty-shop/catalog.json; each copies a court twin's format (keepsake 20, crown 40, doll 50, mask 80).",
+  "id": 12982,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "figurine of Wyat",
+   "description": "The sheriff of Thais, carved and painted by a grateful hunter.",
+   "weight": 650
+  }
+ },
+ "22302": {
+  "__note": "The Bounty Collection (owner 2026-10-28): prestige items for Wyat's Bounty Points shop, drawn in code (~/Documents/minibia-item-pixels/<item>), shown to and picked by the owner. SIDs 22299-22303 = CIDs 12965-12969 (tools/dat-spr/add-item-sprite.js, donors 3011/9389 as the Court Collection; cells tools/dat-spr/generated-cells/bounty-collection). A set of four (trophy, hat, figurine, mask) is sold each quarter, data/760/bounty-shop/catalog.json; each copies a court twin's format (keepsake 20, crown 40, doll 50, mask 80).",
+  "id": 12968,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "bandit's mask",
+   "description": "Taken from an outlaw who will not be needing it again.",
+   "weight": 700,
+   "armor": 6,
+   "slotType": "head"
+  }
+ },
+ "22303": {
+  "__note": "The Bounty Collection (owner 2026-10-28): prestige items for Wyat's Bounty Points shop, drawn in code (~/Documents/minibia-item-pixels/<item>), shown to and picked by the owner. SIDs 22299-22303 = CIDs 12965-12969 (tools/dat-spr/add-item-sprite.js, donors 3011/9389 as the Court Collection; cells tools/dat-spr/generated-cells/bounty-collection). A set of four (trophy, hat, figurine, mask) is sold each quarter, data/760/bounty-shop/catalog.json; each copies a court twin's format (keepsake 20, crown 40, doll 50, mask 80).",
+  "id": 12969,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "sheriff's star",
+   "description": "Only the sheriff's own deputies were ever given one.",
+   "weight": 80
+  }
+ },
+ "22304": {
+  "__note": "The Bounty Collection, sets 2-4 (owner 2026-10-28: \"lets edit some armors/ shields / amulet instead\", picked over five rounds, names, stats and prices set by the owner in the editor page): mid-tier gear built on the game's own sprites (~/Documents/minibia-item-pixels/bounty-bases), cells tools/dat-spr/generated-cells/bounty-collection. SIDs 22304-22315 = CIDs 12970-12981, donors 3370 armor / 3420 shield / 3307 sword / 3318 axe / 3387 helmet / 3389 legs, top-level flags/group copied from those. One set a quarter in Wyat's shop, data/760/bounty-shop/catalog.json. No elements, no level requirement.",
+  "id": 12970,
+  "flags": 96,
+  "group": 5,
+  "properties": {
+   "article": "a",
+   "name": "marshal's coat",
+   "description": "A long duster with brass trim and a marshal's star on the breast.",
+   "weight": 2500,
+   "armor": 11,
+   "slotType": "body"
+  }
+ },
+ "22305": {
+  "__note": "The Bounty Collection, sets 2-4 (owner 2026-10-28: \"lets edit some armors/ shields / amulet instead\", picked over five rounds, names, stats and prices set by the owner in the editor page): mid-tier gear built on the game's own sprites (~/Documents/minibia-item-pixels/bounty-bases), cells tools/dat-spr/generated-cells/bounty-collection. SIDs 22304-22315 = CIDs 12970-12981, donors 3370 armor / 3420 shield / 3307 sword / 3318 axe / 3387 helmet / 3389 legs, top-level flags/group copied from those. One set a quarter in Wyat's shop, data/760/bounty-shop/catalog.json. No elements, no level requirement.",
+  "id": 12971,
+  "flags": 96,
+  "group": 3,
+  "properties": {
+   "article": "a",
+   "name": "sheriff's shield",
+   "description": "Red and navy, with the sheriff's star where a crest would be.",
+   "weight": 5500,
+   "defense": 28,
+   "weaponType": "shield"
+  }
+ },
+ "22306": {
+  "__note": "The Bounty Collection, sets 2-4 (owner 2026-10-28: \"lets edit some armors/ shields / amulet instead\", picked over five rounds, names, stats and prices set by the owner in the editor page): mid-tier gear built on the game's own sprites (~/Documents/minibia-item-pixels/bounty-bases), cells tools/dat-spr/generated-cells/bounty-collection. SIDs 22304-22315 = CIDs 12970-12981, donors 3370 armor / 3420 shield / 3307 sword / 3318 axe / 3387 helmet / 3389 legs, top-level flags/group copied from those. One set a quarter in Wyat's shop, data/760/bounty-shop/catalog.json. No elements, no level requirement.",
+  "id": 12972,
+  "flags": 112,
+  "group": 3,
+  "properties": {
+   "article": "a",
+   "name": "marshal's sabre",
+   "description": "A cavalry blade with a brass guard, carried by those who keep the peace.",
+   "weight": 2900,
+   "attack": 29,
+   "defense": 20,
+   "weaponType": "sword"
+  }
+ },
+ "22307": {
+  "__note": "The Bounty Collection, sets 2-4 (owner 2026-10-28: \"lets edit some armors/ shields / amulet instead\", picked over five rounds, names, stats and prices set by the owner in the editor page): mid-tier gear built on the game's own sprites (~/Documents/minibia-item-pixels/bounty-bases), cells tools/dat-spr/generated-cells/bounty-collection. SIDs 22304-22315 = CIDs 12970-12981, donors 3370 armor / 3420 shield / 3307 sword / 3318 axe / 3387 helmet / 3389 legs, top-level flags/group copied from those. One set a quarter in Wyat's shop, data/760/bounty-shop/catalog.json. No elements, no level requirement.",
+  "id": 12973,
+  "flags": 96,
+  "group": 5,
+  "properties": {
+   "article": "a",
+   "name": "marshal's hat",
+   "weight": 800,
+   "armor": 7,
+   "slotType": "head"
+  }
+ },
+ "22308": {
+  "__note": "The Bounty Collection, sets 2-4 (owner 2026-10-28: \"lets edit some armors/ shields / amulet instead\", picked over five rounds, names, stats and prices set by the owner in the editor page): mid-tier gear built on the game's own sprites (~/Documents/minibia-item-pixels/bounty-bases), cells tools/dat-spr/generated-cells/bounty-collection. SIDs 22304-22315 = CIDs 12970-12981, donors 3370 armor / 3420 shield / 3307 sword / 3318 axe / 3387 helmet / 3389 legs, top-level flags/group copied from those. One set a quarter in Wyat's shop, data/760/bounty-shop/catalog.json. No elements, no level requirement.",
+  "id": 12974,
+  "flags": 96,
+  "group": 5,
+  "properties": {
+   "article": "a",
+   "name": "warden's coat",
+   "description": "Navy wool and brass buttons, the uniform of those who hold the keys.",
+   "weight": 2700,
+   "armor": 8,
+   "slotType": "body"
+  }
+ },
+ "22309": {
+  "__note": "The Bounty Collection, sets 2-4 (owner 2026-10-28: \"lets edit some armors/ shields / amulet instead\", picked over five rounds, names, stats and prices set by the owner in the editor page): mid-tier gear built on the game's own sprites (~/Documents/minibia-item-pixels/bounty-bases), cells tools/dat-spr/generated-cells/bounty-collection. SIDs 22304-22315 = CIDs 12970-12981, donors 3370 armor / 3420 shield / 3307 sword / 3318 axe / 3387 helmet / 3389 legs, top-level flags/group copied from those. One set a quarter in Wyat's shop, data/760/bounty-shop/catalog.json. No elements, no level requirement.",
+  "id": 12975,
+  "flags": 96,
+  "group": 3,
+  "properties": {
+   "article": "a",
+   "name": "warden's shield",
+   "description": "Iron bands on dark wood, as stubborn as a cell door.",
+   "weight": 8200,
+   "defense": 30,
+   "weaponType": "shield"
+  }
+ },
+ "22310": {
+  "__note": "The Bounty Collection, sets 2-4 (owner 2026-10-28: \"lets edit some armors/ shields / amulet instead\", picked over five rounds, names, stats and prices set by the owner in the editor page): mid-tier gear built on the game's own sprites (~/Documents/minibia-item-pixels/bounty-bases), cells tools/dat-spr/generated-cells/bounty-collection. SIDs 22304-22315 = CIDs 12970-12981, donors 3370 armor / 3420 shield / 3307 sword / 3318 axe / 3387 helmet / 3389 legs, top-level flags/group copied from those. One set a quarter in Wyat's shop, data/760/bounty-shop/catalog.json. No elements, no level requirement.",
+  "id": 12976,
+  "flags": 112,
+  "group": 3,
+  "properties": {
+   "article": "a",
+   "name": "jailer's cleaver",
+   "description": "Heavy enough to end any argument in the cell block.",
+   "weight": 6300,
+   "attack": 32,
+   "defense": 18,
+   "weaponType": "axe"
+  }
+ },
+ "22311": {
+  "__note": "The Bounty Collection, sets 2-4 (owner 2026-10-28: \"lets edit some armors/ shields / amulet instead\", picked over five rounds, names, stats and prices set by the owner in the editor page): mid-tier gear built on the game's own sprites (~/Documents/minibia-item-pixels/bounty-bases), cells tools/dat-spr/generated-cells/bounty-collection. SIDs 22304-22315 = CIDs 12970-12981, donors 3370 armor / 3420 shield / 3307 sword / 3318 axe / 3387 helmet / 3389 legs, top-level flags/group copied from those. One set a quarter in Wyat's shop, data/760/bounty-shop/catalog.json. No elements, no level requirement.",
+  "id": 12977,
+  "flags": 96,
+  "group": 5,
+  "properties": {
+   "article": "a",
+   "name": "warden's stetson",
+   "description": "Navy felt, worn low over the eyes on the night watch.",
+   "weight": 800,
+   "armor": 8,
+   "slotType": "head"
+  }
+ },
+ "22312": {
+  "__note": "The Bounty Collection, sets 2-4 (owner 2026-10-28: \"lets edit some armors/ shields / amulet instead\", picked over five rounds, names, stats and prices set by the owner in the editor page): mid-tier gear built on the game's own sprites (~/Documents/minibia-item-pixels/bounty-bases), cells tools/dat-spr/generated-cells/bounty-collection. SIDs 22304-22315 = CIDs 12970-12981, donors 3370 armor / 3420 shield / 3307 sword / 3318 axe / 3387 helmet / 3389 legs, top-level flags/group copied from those. One set a quarter in Wyat's shop, data/760/bounty-shop/catalog.json. No elements, no level requirement.",
+  "id": 12978,
+  "flags": 96,
+  "group": 5,
+  "properties": {
+   "article": "a",
+   "name": "deputy's coat",
+   "description": "A long brown coat, the sheriff's star pinned to it.",
+   "weight": 2400,
+   "armor": 9,
+   "slotType": "body"
+  }
+ },
+ "22313": {
+  "__note": "The Bounty Collection, sets 2-4 (owner 2026-10-28: \"lets edit some armors/ shields / amulet instead\", picked over five rounds, names, stats and prices set by the owner in the editor page): mid-tier gear built on the game's own sprites (~/Documents/minibia-item-pixels/bounty-bases), cells tools/dat-spr/generated-cells/bounty-collection. SIDs 22304-22315 = CIDs 12970-12981, donors 3370 armor / 3420 shield / 3307 sword / 3318 axe / 3387 helmet / 3389 legs, top-level flags/group copied from those. One set a quarter in Wyat's shop, data/760/bounty-shop/catalog.json. No elements, no level requirement.",
+  "id": 12979,
+  "flags": 96,
+  "group": 3,
+  "properties": {
+   "article": "a",
+   "name": "deputy's shield",
+   "description": "Black and studded with brass, made to take the first blow.",
+   "weight": 6200,
+   "defense": 27,
+   "weaponType": "shield"
+  }
+ },
+ "22314": {
+  "__note": "The Bounty Collection, sets 2-4 (owner 2026-10-28: \"lets edit some armors/ shields / amulet instead\", picked over five rounds, names, stats and prices set by the owner in the editor page): mid-tier gear built on the game's own sprites (~/Documents/minibia-item-pixels/bounty-bases), cells tools/dat-spr/generated-cells/bounty-collection. SIDs 22304-22315 = CIDs 12970-12981, donors 3370 armor / 3420 shield / 3307 sword / 3318 axe / 3387 helmet / 3389 legs, top-level flags/group copied from those. One set a quarter in Wyat's shop, data/760/bounty-shop/catalog.json. No elements, no level requirement.",
+  "id": 12980,
+  "flags": 96,
+  "group": 5,
+  "properties": {
+   "name": "deputy's legs",
+   "description": "Tan leather riding legs, buckled for long days in the saddle.",
+   "weight": 3500,
+   "armor": 6,
+   "slotType": "legs"
+  }
+ },
+ "22315": {
+  "__note": "The Bounty Collection, sets 2-4 (owner 2026-10-28: \"lets edit some armors/ shields / amulet instead\", picked over five rounds, names, stats and prices set by the owner in the editor page): mid-tier gear built on the game's own sprites (~/Documents/minibia-item-pixels/bounty-bases), cells tools/dat-spr/generated-cells/bounty-collection. SIDs 22304-22315 = CIDs 12970-12981, donors 3370 armor / 3420 shield / 3307 sword / 3318 axe / 3387 helmet / 3389 legs, top-level flags/group copied from those. One set a quarter in Wyat's shop, data/760/bounty-shop/catalog.json. No elements, no level requirement.",
+  "id": 12981,
+  "flags": 96,
+  "group": 5,
+  "properties": {
+   "article": "a",
+   "name": "deputy's stetson",
+   "description": "Grey felt, dusty from the trail.",
+   "weight": 800,
+   "armor": 7,
+   "slotType": "head"
+  }
+ },
+ "22316": {
+  "__note": "Crown of the Usurper (owner 2026-10-29: \"insert crown 8 seperetly it looks great\", named from three picks, \"Staff only for now\"): the eighth crown of a redrawn Court Collection set someone sent (crowns.rar; the other seven redrew 22253-22259 in place). CID 12983 by tools/dat-spr/add-item-sprite.js, donor 12934 (crown of the old kings: head, no stats, as every Court crown); art tools/dat-spr/generated-cells/court-collection/redraw-2026-10-29. In no shop and no loot: staff create it.",
+  "id": 12983,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "crown of the usurper",
+   "description": "Taken from a rightful head and never given back.",
+   "weight": 1500,
+   "slotType": "head"
+  }
+ },
+ "22317": {
+  "__note": "Annihilator tier (owner 2026-10-29: picked the shiny blade on the Annihilator Tier Armory page, \"Add but with the annihilator items stats\"): the 15.32 shiny blade's look (1098extended 15.32 sid 18465) with every stat of the magic sword (2400). CID 12984 by tools/dat-spr/add-item-sprite.js, donor 3288; art tools/dat-spr/generated-cells/annihilator-tier. The owner puts it in the quest chests.",
+  "id": 12984,
+  "flags": 112,
+  "group": 3,
+  "properties": {
+   "article": "a",
+   "name": "shiny blade",
+   "weight": 4200,
+   "defense": 35,
+   "attack": 48,
+   "weaponType": "sword"
+  }
+ },
+ "22318": {
+  "__note": "Annihilator tier (owner 2026-10-29: picked the crystalline axe on the Annihilator Tier Armory page, \"Add but with the annihilator items stats\"): the 15.32 crystalline axe's look (1098extended 15.32 sid 18451) with every stat of the stonecutter axe (2431). CID 12985 by tools/dat-spr/add-item-sprite.js, donor 3319; art tools/dat-spr/generated-cells/annihilator-tier. The owner puts it in the quest chests.",
+  "id": 12985,
+  "flags": 112,
+  "group": 3,
+  "properties": {
+   "article": "a",
+   "name": "crystalline axe",
+   "weight": 9900,
+   "defense": 30,
+   "attack": 50,
+   "weaponType": "axe"
+  }
+ },
+ "22319": {
+  "__note": "Annihilator tier (owner 2026-10-29: picked the naga club on the Annihilator Tier Armory page, \"Add but with the annihilator items stats\"): the 15.32 naga club's look (1098extended 15.32 sid 44188) with every stat of the thunder hammer (2421). CID 12986 by tools/dat-spr/add-item-sprite.js, donor 3309; art tools/dat-spr/generated-cells/annihilator-tier. The owner puts it in the quest chests.",
+  "id": 12986,
+  "flags": 112,
+  "group": 3,
+  "properties": {
+   "article": "a",
+   "name": "naga club",
+   "weight": 12500,
+   "defense": 35,
+   "attack": 49,
+   "weaponType": "club"
+  }
+ },
+ "22320": {
+  "__note": "Keepsake (owner 2026-10-29, picked on the Odric's Rest Keepsakes page and then \"lets stick to 3 rewards (1 out of 3 like annihilator)\", \"symbol of sun and sea but import this item i like it\"): the 15.32 symbol of sun and sea (1098extended 15.32 sid 34087), no stats. CID 12987 by tools/dat-spr/add-item-sprite.js, donor 3241 (ornamented ankh: a plain carryable decoration; flags/group copied from 2354); art tools/dat-spr/generated-cells/keepsakes. Not in Odric's rest (its three chests hold the weapons), no shop, no loot: how players get it is the owner's call; staff can create it.",
+  "id": 12987,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "symbol of sun and sea",
+   "description": "A golden sun rising over the sea.",
+   "weight": 100
+  }
+ },
+ "22321": {
+  "__note": "Trickster's hat (owner 2026-10-30: \"We need a different reward than the hat for players with no vacation ... take the existing one and change the colors up a bit and give it a different stat boost\"; picked: orange, \"+1 sword, club and axe\", \"can only be used by a non vocation player\", the name \"trickster's hat\"): the hallowed hat (22193) recoloured orange, outline and glowing face kept, 2 frames (tools/dat-spr/add-item-from-frames.js --donor-cid 12914 --frames 2: CID 12988; art tools/dat-spr/generated-cells/trickster-hat). The Halloween treat's hat for a character with no vocation (utils/halloween), once per character, instead of the hallowed hat. No armor and no skill bonus (owner 2026-10-31: \"we need to remove the stats boost from both main and rook halloween hats\": the sword, club and axe +1 of 10-30 is gone, and so is its line on the equipment buff allowlist; then \"No armor is fine\": its armor 3 is gone too); vocations none: no other vocation can put it on.",
+  "id": 12988,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "trickster's hat",
+   "weight": 600,
+   "slotType": "head",
+   "vocations": "none"
+  }
+ },
+ "22322": {
+  "__note": "The Saturday Demon Umbrax (owner 2026-11-02: a second Valak-style weekly boss; \"for now just use the infernal demon as base\"): the 15.32 Infernal Demon (1098extended-15.32 look 1313) imported as looktype 1348 with its own corpse chain (15.32 client ids 33901 -> 33900 -> 33899 -> 33898) by tools/dat-spr/add-monster-from-cells.js (cells ~/Documents/minibia-item-pixels/saturday-demon/cells-infernal), CIDs 12990-12993, donors 12642 (Valak's fresh remains: 2x2, a container) and 12645 (his last stage: 2x2, no container). Durations follow Valak's chain.",
+  "id": 12990,
+  "flags": 64,
+  "group": 2,
+  "properties": {
+   "article": "the",
+   "name": "remains of Umbrax",
+   "containerSize": 10,
+   "decayTo": 22323,
+   "duration": 60,
+   "corpseType": "blood",
+   "type": "corpse"
+  }
+ },
+ "22323": {
+  "__note": "The Saturday Demon Umbrax (owner 2026-11-02: a second Valak-style weekly boss; \"for now just use the infernal demon as base\"): the 15.32 Infernal Demon (1098extended-15.32 look 1313) imported as looktype 1348 with its own corpse chain (15.32 client ids 33901 -> 33900 -> 33899 -> 33898) by tools/dat-spr/add-monster-from-cells.js (cells ~/Documents/minibia-item-pixels/saturday-demon/cells-infernal), CIDs 12990-12993, donors 12642 (Valak's fresh remains: 2x2, a container) and 12645 (his last stage: 2x2, no container). Durations follow Valak's chain.",
+  "id": 12991,
+  "flags": 64,
+  "group": 2,
+  "properties": {
+   "article": "the",
+   "name": "remains of Umbrax",
+   "decayTo": 22324,
+   "duration": 120,
+   "corpseType": "blood",
+   "type": "corpse"
+  }
+ },
+ "22324": {
+  "__note": "The Saturday Demon Umbrax (owner 2026-11-02: a second Valak-style weekly boss; \"for now just use the infernal demon as base\"): the 15.32 Infernal Demon (1098extended-15.32 look 1313) imported as looktype 1348 with its own corpse chain (15.32 client ids 33901 -> 33900 -> 33899 -> 33898) by tools/dat-spr/add-monster-from-cells.js (cells ~/Documents/minibia-item-pixels/saturday-demon/cells-infernal), CIDs 12990-12993, donors 12642 (Valak's fresh remains: 2x2, a container) and 12645 (his last stage: 2x2, no container). Durations follow Valak's chain.",
+  "id": 12992,
+  "flags": 64,
+  "group": 2,
+  "properties": {
+   "article": "the",
+   "name": "remains of Umbrax",
+   "decayTo": 22325,
+   "duration": 120,
+   "corpseType": "blood",
+   "type": "corpse"
+  }
+ },
+ "22325": {
+  "__note": "The Saturday Demon Umbrax (owner 2026-11-02: a second Valak-style weekly boss; \"for now just use the infernal demon as base\"): the 15.32 Infernal Demon (1098extended-15.32 look 1313) imported as looktype 1348 with its own corpse chain (15.32 client ids 33901 -> 33900 -> 33899 -> 33898) by tools/dat-spr/add-monster-from-cells.js (cells ~/Documents/minibia-item-pixels/saturday-demon/cells-infernal), CIDs 12990-12993, donors 12642 (Valak's fresh remains: 2x2, a container) and 12645 (his last stage: 2x2, no container). Durations follow Valak's chain.",
+  "id": 12993,
+  "flags": 64,
+  "group": 2,
+  "properties": {
+   "article": "the",
+   "name": "remains of Umbrax",
+   "decayTo": 0,
+   "duration": 120,
+   "corpseType": "blood",
+   "type": "corpse"
+  }
+ },
+ "22326": {
+  "id": 12994,
+  "flags": 32833,
+  "group": 2,
+  "properties": {
+   "article": "an",
+   "name": "alchemistic cabinet",
+   "rotateTo": "22327",
+   "type": "container",
+   "containerSize": 8
+  }
+ },
+ "22327": {
+  "id": 12995,
+  "flags": 32833,
+  "group": 2,
+  "properties": {
+   "article": "an",
+   "name": "alchemistic cabinet",
+   "rotateTo": "22326",
+   "type": "container",
+   "containerSize": 8
+  }
+ },
+ "22328": {
+  "id": 12996,
+  "flags": 32844,
+  "group": 0,
+  "properties": {
+   "article": "an",
+   "name": "alchemistic chair",
+   "rotateTo": "22329"
+  }
+ },
+ "22329": {
+  "id": 12997,
+  "flags": 32844,
+  "group": 0,
+  "properties": {
+   "article": "an",
+   "name": "alchemistic chair",
+   "rotateTo": "22328"
+  }
+ },
+ "22330": {
+  "id": 12998,
+  "flags": 65600,
+  "group": 0,
+  "properties": {
+   "article": "an",
+   "name": "alchemistic cupboard"
+  }
+ },
+ "22331": {
+  "id": 12999,
+  "flags": 32844,
+  "group": 0,
+  "properties": {
+   "article": "an",
+   "name": "artist chair",
+   "rotateTo": "22332"
+  }
+ },
+ "22332": {
+  "id": 13000,
+  "flags": 32844,
+  "group": 0,
+  "properties": {
+   "article": "an",
+   "name": "artist chair",
+   "rotateTo": "22333"
+  }
+ },
+ "22333": {
+  "id": 13001,
+  "flags": 32844,
+  "group": 0,
+  "properties": {
+   "article": "an",
+   "name": "artist chair",
+   "rotateTo": "22334"
+  }
+ },
+ "22334": {
+  "id": 13002,
+  "flags": 32844,
+  "group": 0,
+  "properties": {
+   "article": "an",
+   "name": "artist chair",
+   "rotateTo": "22331"
+  }
+ },
+ "22335": {
+  "id": 13003,
+  "flags": 32845,
+  "group": 2,
+  "properties": {
+   "article": "an",
+   "name": "artist chest",
+   "rotateTo": "22337",
+   "type": "container",
+   "containerSize": 18
+  }
+ },
+ "22336": {
+  "id": 13004,
+  "flags": 32845,
+  "group": 2,
+  "properties": {
+   "article": "an",
+   "name": "artist chest",
+   "rotateTo": "22335",
+   "type": "container",
+   "containerSize": 18
+  }
+ },
+ "22337": {
+  "id": 13005,
+  "flags": 32845,
+  "group": 2,
+  "properties": {
+   "article": "an",
+   "name": "artist chest",
+   "rotateTo": "22338",
+   "type": "container",
+   "containerSize": 18
+  }
+ },
+ "22338": {
+  "id": 13006,
+  "flags": 32845,
+  "group": 2,
+  "properties": {
+   "article": "an",
+   "name": "artist chest",
+   "rotateTo": "22336",
+   "type": "container",
+   "containerSize": 18
+  }
+ },
+ "22339": {
+  "id": 13007,
+  "flags": 0,
+  "group": 0,
+  "properties": {
+   "article": "an",
+   "name": "azure carpet",
+   "carpet": true
+  }
+ },
+ "22340": {
+  "id": 13008,
+  "flags": 0,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "bamboo mat",
+   "carpet": true
+  }
+ },
+ "22341": {
+  "id": 13009,
+  "flags": 65,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "blooming cactus",
+   "description": "A beautiful cactus in full bloom."
+  }
+ },
+ "22342": {
+  "id": 13010,
+  "flags": 76,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "blossom chair"
+  }
+ },
+ "22343": {
+  "id": 13011,
+  "flags": 72,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "blue round cushion"
+  }
+ },
+ "22344": {
+  "id": 13012,
+  "flags": 72,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "blue square cushion"
+  }
+ },
+ "22345": {
+  "id": 13013,
+  "flags": 65,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "blue witches' cauldron flower"
+  }
+ },
+ "22346": {
+  "id": 13014,
+  "flags": 32833,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "carnivorous plant",
+   "description": "Beware of the biting plant.",
+   "rotateTo": "22347"
+  }
+ },
+ "22347": {
+  "id": 13015,
+  "flags": 32833,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "carnivorous plant",
+   "description": "Beware of the biting plant.",
+   "rotateTo": "22346"
+  }
+ },
+ "22348": {
+  "id": 13016,
+  "flags": 76,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "cave bench"
+  }
+ },
+ "22349": {
+  "id": 13017,
+  "flags": 76,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "cave chair"
+  }
+ },
+ "22350": {
+  "id": 13018,
+  "flags": 77,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "cave table"
+  }
+ },
+ "22351": {
+  "id": 13019,
+  "flags": 0,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "colourful carpet",
+   "carpet": true
+  }
+ },
+ "22352": {
+  "id": 13020,
+  "flags": 0,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "crimson carpet",
+   "carpet": true
+  }
+ },
+ "22353": {
+  "id": 13021,
+  "flags": 65,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "crystal cabinet"
+  }
+ },
+ "22354": {
+  "id": 13022,
+  "flags": 76,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "crystal chair"
+  }
+ },
+ "22355": {
+  "id": 13023,
+  "flags": 76,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "crystal chest"
+  }
+ },
+ "22356": {
+  "id": 13024,
+  "flags": 65,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "crystal lamp"
+  }
+ },
+ "22357": {
+  "id": 13025,
+  "flags": 65,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "crystal lamp"
+  }
+ },
+ "22358": {
+  "id": 13026,
+  "flags": 77,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "crystal table"
+  }
+ },
+ "22359": {
+  "id": 13027,
+  "flags": 32833,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "cupboard",
+   "rotateTo": "22360",
+   "type": "container",
+   "containerSize": 8
+  }
+ },
+ "22360": {
+  "id": 13028,
+  "flags": 32833,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "cupboard",
+   "rotateTo": "22359",
+   "type": "container",
+   "containerSize": 8
+  }
+ },
+ "22361": {
+  "id": 13029,
+  "flags": 0,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "diamond carpet",
+   "carpet": true
+  }
+ },
+ "22362": {
+  "id": 13030,
+  "flags": 0,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "dragon carpet",
+   "carpet": true
+  }
+ },
+ "22363": {
+  "id": 13031,
+  "flags": 0,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "dragon lord carpet",
+   "carpet": true
+  }
+ },
+ "22364": {
+  "id": 13032,
+  "flags": 65,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "dragon plant",
+   "description": "Now and then it roars hungrily."
+  }
+ },
+ "22365": {
+  "id": 13033,
+  "flags": 65,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "dragon plant",
+   "description": "Now and then it roars hungrily.",
+   "decayTo": 22364,
+   "duration": 2
+  }
+ },
+ "22366": {
+  "id": 13034,
+  "flags": 32833,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "dwarven stone cabinet",
+   "rotateTo": "22367",
+   "type": "container",
+   "containerSize": 8
+  }
+ },
+ "22367": {
+  "id": 13035,
+  "flags": 32833,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "dwarven stone cabinet",
+   "rotateTo": "22366",
+   "type": "container",
+   "containerSize": 8
+  }
+ },
+ "22368": {
+  "id": 13036,
+  "flags": 32844,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "dwarven stone chair",
+   "rotateTo": "22369"
+  }
+ },
+ "22369": {
+  "id": 13037,
+  "flags": 32844,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "dwarven stone chair",
+   "rotateTo": "22370"
+  }
+ },
+ "22370": {
+  "id": 13038,
+  "flags": 32844,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "dwarven stone chair",
+   "rotateTo": "22371"
+  }
+ },
+ "22371": {
+  "id": 13039,
+  "flags": 32844,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "dwarven stone chair",
+   "rotateTo": "22368"
+  }
+ },
+ "22372": {
+  "id": 13040,
+  "flags": 32845,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "dwarven stone chest",
+   "rotateTo": "22374",
+   "type": "container",
+   "containerSize": 18
+  }
+ },
+ "22373": {
+  "id": 13041,
+  "flags": 32845,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "dwarven stone chest",
+   "rotateTo": "22372",
+   "type": "container",
+   "containerSize": 18
+  }
+ },
+ "22374": {
+  "id": 13042,
+  "flags": 32845,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "dwarven stone chest",
+   "rotateTo": "22375",
+   "type": "container",
+   "containerSize": 18
+  }
+ },
+ "22375": {
+  "id": 13043,
+  "flags": 32845,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "dwarven stone chest",
+   "rotateTo": "22373",
+   "type": "container",
+   "containerSize": 18
+  }
+ },
+ "22376": {
+  "id": 13044,
+  "flags": 77,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "dwarven stone table"
+  }
+ },
+ "22377": {
+  "id": 13045,
+  "flags": 0,
+  "group": 0,
+  "properties": {
+   "article": "an",
+   "name": "eldritch carpet",
+   "carpet": true
+  }
+ },
+ "22378": {
+  "id": 13046,
+  "flags": 0,
+  "group": 0,
+  "properties": {
+   "article": "an",
+   "name": "elemental carpet",
+   "carpet": true
+  }
+ },
+ "22379": {
+  "id": 13047,
+  "flags": 76,
+  "group": 0,
+  "properties": {
+   "article": "an",
+   "name": "ember bench"
+  }
+ },
+ "22380": {
+  "id": 13048,
+  "flags": 65,
+  "group": 0,
+  "properties": {
+   "article": "an",
+   "name": "ember cabinet"
+  }
+ },
+ "22381": {
+  "id": 13049,
+  "flags": 76,
+  "group": 0,
+  "properties": {
+   "article": "an",
+   "name": "ember chair"
+  }
+ },
+ "22382": {
+  "id": 13050,
+  "flags": 76,
+  "group": 0,
+  "properties": {
+   "article": "an",
+   "name": "ember chest"
+  }
+ },
+ "22383": {
+  "id": 13051,
+  "flags": 77,
+  "group": 0,
+  "properties": {
+   "article": "an",
+   "name": "ember table"
+  }
+ },
+ "22384": {
+  "id": 13052,
+  "flags": 0,
+  "group": 0,
+  "properties": {
+   "article": "an",
+   "name": "emerald carpet",
+   "carpet": true
+  }
+ },
+ "22385": {
+  "id": 13053,
+  "flags": 32833,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "flower cabinet",
+   "rotateTo": "22386",
+   "type": "container",
+   "containerSize": 8
+  }
+ },
+ "22386": {
+  "id": 13054,
+  "flags": 32833,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "flower cabinet",
+   "rotateTo": "22385",
+   "type": "container",
+   "containerSize": 8
+  }
+ },
+ "22387": {
+  "id": 13055,
+  "flags": 32845,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "flower chest",
+   "rotateTo": "22388",
+   "type": "container",
+   "containerSize": 18
+  }
+ },
+ "22388": {
+  "id": 13056,
+  "flags": 32845,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "flower chest",
+   "rotateTo": "22389",
+   "type": "container",
+   "containerSize": 18
+  }
+ },
+ "22389": {
+  "id": 13057,
+  "flags": 32845,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "flower chest",
+   "rotateTo": "22390",
+   "type": "container",
+   "containerSize": 18
+  }
+ },
+ "22390": {
+  "id": 13058,
+  "flags": 32845,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "flower chest",
+   "rotateTo": "22387",
+   "type": "container",
+   "containerSize": 18
+  }
+ },
+ "22391": {
+  "id": 13059,
+  "flags": 77,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "flower table"
+  }
+ },
+ "22392": {
+  "id": 13060,
+  "flags": 77,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "flower table"
+  }
+ },
+ "22393": {
+  "id": 13061,
+  "flags": 77,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "flower table"
+  }
+ },
+ "22394": {
+  "id": 13062,
+  "flags": 0,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "flowery carpet",
+   "carpet": true
+  }
+ },
+ "22395": {
+  "id": 13063,
+  "flags": 0,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "grandiose carpet",
+   "carpet": true
+  }
+ },
+ "22396": {
+  "id": 13064,
+  "flags": 32844,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "grandiose chair",
+   "rotateTo": "22397"
+  }
+ },
+ "22397": {
+  "id": 13065,
+  "flags": 32844,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "grandiose chair",
+   "rotateTo": "22398"
+  }
+ },
+ "22398": {
+  "id": 13066,
+  "flags": 32844,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "grandiose chair",
+   "rotateTo": "22399"
+  }
+ },
+ "22399": {
+  "id": 13067,
+  "flags": 32844,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "grandiose chair",
+   "rotateTo": "22396"
+  }
+ },
+ "22400": {
+  "id": 13068,
+  "flags": 32845,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "grandiose table",
+   "rotateTo": "22401",
+   "type": "container",
+   "containerSize": 8
+  }
+ },
+ "22401": {
+  "id": 13069,
+  "flags": 32845,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "grandiose table",
+   "rotateTo": "22400",
+   "type": "container",
+   "containerSize": 8
+  }
+ },
+ "22402": {
+  "id": 13070,
+  "flags": 76,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "gravestone chair"
+  }
+ },
+ "22403": {
+  "id": 13071,
+  "flags": 72,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "green round cushion"
+  }
+ },
+ "22404": {
+  "id": 13072,
+  "flags": 72,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "green square cushion"
+  }
+ },
+ "22405": {
+  "id": 13073,
+  "flags": 32833,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "heart cabinet",
+   "rotateTo": "22406",
+   "type": "container",
+   "containerSize": 8
+  }
+ },
+ "22406": {
+  "id": 13074,
+  "flags": 32833,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "heart cabinet",
+   "rotateTo": "22405",
+   "type": "container",
+   "containerSize": 8
+  }
+ },
+ "22407": {
+  "id": 13075,
+  "flags": 32845,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "heart chest",
+   "rotateTo": "22409",
+   "type": "container",
+   "containerSize": 18
+  }
+ },
+ "22408": {
+  "id": 13076,
+  "flags": 32845,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "heart chest",
+   "rotateTo": "22407",
+   "type": "container",
+   "containerSize": 18
+  }
+ },
+ "22409": {
+  "id": 13077,
+  "flags": 32845,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "heart chest",
+   "rotateTo": "22410",
+   "type": "container",
+   "containerSize": 18
+  }
+ },
+ "22410": {
+  "id": 13078,
+  "flags": 32845,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "heart chest",
+   "rotateTo": "22408",
+   "type": "container",
+   "containerSize": 18
+  }
+ },
+ "22411": {
+  "id": 13079,
+  "flags": 32833,
+  "group": 2,
+  "properties": {
+   "article": "an",
+   "name": "ice cabinet",
+   "rotateTo": "22412",
+   "type": "container",
+   "containerSize": 8
+  }
+ },
+ "22412": {
+  "id": 13080,
+  "flags": 32833,
+  "group": 2,
+  "properties": {
+   "article": "an",
+   "name": "ice cabinet",
+   "rotateTo": "22411",
+   "type": "container",
+   "containerSize": 8
+  }
+ },
+ "22413": {
+  "id": 13081,
+  "flags": 32845,
+  "group": 2,
+  "properties": {
+   "article": "an",
+   "name": "ice chest",
+   "rotateTo": "22414",
+   "type": "container",
+   "containerSize": 18
+  }
+ },
+ "22414": {
+  "id": 13082,
+  "flags": 32845,
+  "group": 2,
+  "properties": {
+   "article": "an",
+   "name": "ice chest",
+   "rotateTo": "22416",
+   "type": "container",
+   "containerSize": 18
+  }
+ },
+ "22415": {
+  "id": 13083,
+  "flags": 32845,
+  "group": 2,
+  "properties": {
+   "article": "an",
+   "name": "ice chest",
+   "rotateTo": "22413",
+   "type": "container",
+   "containerSize": 18
+  }
+ },
+ "22416": {
+  "id": 13084,
+  "flags": 32845,
+  "group": 2,
+  "properties": {
+   "article": "an",
+   "name": "ice chest",
+   "rotateTo": "22415",
+   "type": "container",
+   "containerSize": 18
+  }
+ },
+ "22417": {
+  "id": 13085,
+  "flags": 77,
+  "group": 0,
+  "properties": {
+   "article": "an",
+   "name": "ice table"
+  }
+ },
+ "22418": {
+  "id": 13086,
+  "flags": 32833,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "knightly cabinet",
+   "rotateTo": "22419",
+   "type": "container",
+   "containerSize": 8
+  }
+ },
+ "22419": {
+  "id": 13087,
+  "flags": 32833,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "knightly cabinet",
+   "rotateTo": "22418",
+   "type": "container",
+   "containerSize": 8
+  }
+ },
+ "22420": {
+  "id": 13088,
+  "flags": 32844,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "knightly chair",
+   "rotateTo": "22421"
+  }
+ },
+ "22421": {
+  "id": 13089,
+  "flags": 32844,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "knightly chair",
+   "rotateTo": "22422"
+  }
+ },
+ "22422": {
+  "id": 13090,
+  "flags": 32844,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "knightly chair",
+   "rotateTo": "22423"
+  }
+ },
+ "22423": {
+  "id": 13091,
+  "flags": 32844,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "knightly chair",
+   "rotateTo": "22420"
+  }
+ },
+ "22424": {
+  "id": 13092,
+  "flags": 32845,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "knightly chest",
+   "rotateTo": "22425",
+   "type": "container",
+   "containerSize": 18
+  }
+ },
+ "22425": {
+  "id": 13093,
+  "flags": 32845,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "knightly chest",
+   "rotateTo": "22426",
+   "type": "container",
+   "containerSize": 18
+  }
+ },
+ "22426": {
+  "id": 13094,
+  "flags": 32845,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "knightly chest",
+   "rotateTo": "22427",
+   "type": "container",
+   "containerSize": 18
+  }
+ },
+ "22427": {
+  "id": 13095,
+  "flags": 32845,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "knightly chest",
+   "rotateTo": "22424",
+   "type": "container",
+   "containerSize": 18
+  }
+ },
+ "22428": {
+  "id": 13096,
+  "flags": 32845,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "knightly table",
+   "rotateTo": "22429"
+  }
+ },
+ "22429": {
+  "id": 13097,
+  "flags": 32845,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "knightly table",
+   "rotateTo": "22428"
+  }
+ },
+ "22430": {
+  "id": 13098,
+  "flags": 0,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "lilac carpet",
+   "carpet": true
+  }
+ },
+ "22431": {
+  "id": 13099,
+  "flags": 32833,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "magnificent cabinet",
+   "rotateTo": "22432",
+   "type": "container",
+   "containerSize": 8
+  }
+ },
+ "22432": {
+  "id": 13100,
+  "flags": 32833,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "magnificent cabinet",
+   "rotateTo": "22431",
+   "type": "container",
+   "containerSize": 8
+  }
+ },
+ "22433": {
+  "id": 13101,
+  "flags": 32844,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "magnificent chair",
+   "rotateTo": "22434"
+  }
+ },
+ "22434": {
+  "id": 13102,
+  "flags": 32844,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "magnificent chair",
+   "rotateTo": "22435"
+  }
+ },
+ "22435": {
+  "id": 13103,
+  "flags": 32844,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "magnificent chair",
+   "rotateTo": "22436"
+  }
+ },
+ "22436": {
+  "id": 13104,
+  "flags": 32844,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "magnificent chair",
+   "rotateTo": "22433"
+  }
+ },
+ "22437": {
+  "id": 13105,
+  "flags": 32845,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "magnificent table",
+   "rotateTo": "22438"
+  }
+ },
+ "22438": {
+  "id": 13106,
+  "flags": 32845,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "magnificent table",
+   "rotateTo": "22437"
+  }
+ },
+ "22439": {
+  "id": 13107,
+  "flags": 32845,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "magnificent trunk",
+   "rotateTo": "22440",
+   "type": "container",
+   "containerSize": 18
+  }
+ },
+ "22440": {
+  "id": 13108,
+  "flags": 32845,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "magnificent trunk",
+   "rotateTo": "22441",
+   "type": "container",
+   "containerSize": 18
+  }
+ },
+ "22441": {
+  "id": 13109,
+  "flags": 32845,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "magnificent trunk",
+   "rotateTo": "22442",
+   "type": "container",
+   "containerSize": 18
+  }
+ },
+ "22442": {
+  "id": 13110,
+  "flags": 32845,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "magnificent trunk",
+   "rotateTo": "22439",
+   "type": "container",
+   "containerSize": 18
+  }
+ },
+ "22443": {
+  "id": 13111,
+  "flags": 0,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "mystic carpet",
+   "carpet": true
+  }
+ },
+ "22444": {
+  "id": 13112,
+  "flags": 0,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "night sky carpet",
+   "carpet": true
+  }
+ },
+ "22445": {
+  "id": 13113,
+  "flags": 32833,
+  "group": 0,
+  "properties": {
+   "article": "an",
+   "name": "opulent book case",
+   "rotateTo": "22446"
+  }
+ },
+ "22446": {
+  "id": 13114,
+  "flags": 32833,
+  "group": 0,
+  "properties": {
+   "article": "an",
+   "name": "opulent book case",
+   "rotateTo": "22445"
+  }
+ },
+ "22447": {
+  "id": 13115,
+  "flags": 0,
+  "group": 0,
+  "properties": {
+   "article": "an",
+   "name": "opulent carpet",
+   "carpet": true
+  }
+ },
+ "22448": {
+  "id": 13116,
+  "flags": 32844,
+  "group": 0,
+  "properties": {
+   "article": "an",
+   "name": "opulent chair",
+   "rotateTo": "22449"
+  }
+ },
+ "22449": {
+  "id": 13117,
+  "flags": 32844,
+  "group": 0,
+  "properties": {
+   "article": "an",
+   "name": "opulent chair",
+   "rotateTo": "22450"
+  }
+ },
+ "22450": {
+  "id": 13118,
+  "flags": 32844,
+  "group": 0,
+  "properties": {
+   "article": "an",
+   "name": "opulent chair",
+   "rotateTo": "22451"
+  }
+ },
+ "22451": {
+  "id": 13119,
+  "flags": 32844,
+  "group": 0,
+  "properties": {
+   "article": "an",
+   "name": "opulent chair",
+   "rotateTo": "22448"
+  }
+ },
+ "22452": {
+  "id": 13120,
+  "flags": 0,
+  "group": 0,
+  "properties": {
+   "article": "an",
+   "name": "Orshabaal carpet",
+   "carpet": true
+  }
+ },
+ "22453": {
+  "id": 13121,
+  "flags": 0,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "patterned carpet",
+   "carpet": true
+  }
+ },
+ "22454": {
+  "id": 13122,
+  "flags": 0,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "rift carpet",
+   "description": "This carpet is extremely soft to the touch - and forever will be.",
+   "carpet": true
+  }
+ },
+ "22455": {
+  "id": 13123,
+  "flags": 0,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "romantic carpet",
+   "carpet": true
+  }
+ },
+ "22456": {
+  "id": 13124,
+  "flags": 65,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "skull cabinet"
+  }
+ },
+ "22457": {
+  "id": 13125,
+  "flags": 77,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "square side table"
+  }
+ },
+ "22458": {
+  "id": 13126,
+  "flags": 0,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "sublime tournament carpet",
+   "carpet": true
+  }
+ },
+ "22459": {
+  "id": 13127,
+  "flags": 0,
+  "group": 0,
+  "properties": {
+   "article": "",
+   "name": "the book of death carpet",
+   "description": "This carpet resembles the book of death prime artefact. It feels soft to the touch and seems to have almost no weight.",
+   "carpet": true
+  }
+ },
+ "22460": {
+  "id": 13128,
+  "flags": 0,
+  "group": 0,
+  "properties": {
+   "article": "",
+   "name": "the cobra amulet carpet",
+   "description": "This carpet resembles the cobra amulet prime artefact. It feels soft to the touch and seems to have almost no weight.",
+   "carpet": true
+  }
+ },
+ "22461": {
+  "id": 13129,
+  "flags": 0,
+  "group": 0,
+  "properties": {
+   "article": "",
+   "name": "the ring of ending carpet",
+   "description": "This carpet resembles the ring of ending prime artefact. It feels soft to the touch and seems to have almost no weight.",
+   "carpet": true
+  }
+ },
+ "22462": {
+  "id": 13130,
+  "flags": 0,
+  "group": 0,
+  "properties": {
+   "article": "",
+   "name": "the spatial almanach carpet",
+   "description": "This carpet resembles the spatial almanach prime artefact. It feels soft to the touch and seems to have almost no weight.",
+   "carpet": true
+  }
+ },
+ "22463": {
+  "id": 13131,
+  "flags": 0,
+  "group": 0,
+  "properties": {
+   "article": "",
+   "name": "the supreme cube carpet",
+   "description": "This carpet resembles the supreme cube prime artefact. It feels soft to the touch and seems to have almost no weight.",
+   "carpet": true
+  }
+ },
+ "22464": {
+  "id": 13132,
+  "flags": 0,
+  "group": 0,
+  "properties": {
+   "article": "",
+   "name": "the sylvan sapling carpet",
+   "description": "This carpet resembles the sylvan sapling prime artefact. It feels soft to the touch and seems to have almost no weight.",
+   "carpet": true
+  }
+ },
+ "22465": {
+  "id": 13133,
+  "flags": 0,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "tournament carpet",
+   "carpet": true
+  }
+ },
+ "22466": {
+  "id": 13134,
+  "flags": 32844,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "vengothic chair",
+   "rotateTo": "22467"
+  }
+ },
+ "22467": {
+  "id": 13135,
+  "flags": 32844,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "vengothic chair",
+   "rotateTo": "22468"
+  }
+ },
+ "22468": {
+  "id": 13136,
+  "flags": 32844,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "vengothic chair",
+   "rotateTo": "22469"
+  }
+ },
+ "22469": {
+  "id": 13137,
+  "flags": 32844,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "vengothic chair",
+   "rotateTo": "22466"
+  }
+ },
+ "22470": {
+  "id": 13138,
+  "flags": 72,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "violet round cushion"
+  }
+ },
+ "22471": {
+  "id": 13139,
+  "flags": 72,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "violet square cushion"
+  }
+ },
+ "22472": {
+  "id": 13140,
+  "flags": 32845,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "volcanic chest",
+   "rotateTo": "22473",
+   "type": "container",
+   "containerSize": 18
+  }
+ },
+ "22473": {
+  "id": 13141,
+  "flags": 32845,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "volcanic chest",
+   "rotateTo": "22474",
+   "type": "container",
+   "containerSize": 18
+  }
+ },
+ "22474": {
+  "id": 13142,
+  "flags": 32845,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "volcanic chest",
+   "rotateTo": "22475",
+   "type": "container",
+   "containerSize": 18
+  }
+ },
+ "22475": {
+  "id": 13143,
+  "flags": 32845,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "volcanic chest",
+   "rotateTo": "22472",
+   "type": "container",
+   "containerSize": 18
+  }
+ },
+ "22476": {
+  "id": 13144,
+  "flags": 32833,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "wooden bookcase",
+   "rotateTo": "22477",
+   "type": "container",
+   "containerSize": 8
+  }
+ },
+ "22477": {
+  "id": 13145,
+  "flags": 32833,
+  "group": 2,
+  "properties": {
+   "article": "a",
+   "name": "wooden bookcase",
+   "rotateTo": "22476",
+   "type": "container",
+   "containerSize": 8
+  }
+ },
+ "22478": {
+  "id": 13146,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "flower bed",
+   "type": "bed",
+   "partnerDirection": "south",
+   "transformTo": "22485"
+  }
+ },
+ "22479": {
+  "id": 13147,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "flower bed",
+   "type": "bed",
+   "partnerDirection": "north",
+   "transformTo": "22486"
+  }
+ },
+ "22480": {
+  "id": 13148,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "flower bed",
+   "type": "bed",
+   "partnerDirection": "east",
+   "transformTo": "22487"
+  }
+ },
+ "22481": {
+  "id": 13149,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "flower bed",
+   "type": "bed",
+   "partnerDirection": "west",
+   "transformTo": "22488"
+  }
+ },
+ "22482": {
+  "id": 13150,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "flower bed",
+   "type": "bed",
+   "partnerDirection": "south",
+   "transformTo": "22485"
+  }
+ },
+ "22483": {
+  "id": 13151,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "flower bed",
+   "type": "bed",
+   "partnerDirection": "north",
+   "transformTo": "22486"
+  }
+ },
+ "22484": {
+  "id": 13152,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "flower bed",
+   "type": "bed",
+   "partnerDirection": "east",
+   "transformTo": "22487"
+  }
+ },
+ "22485": {
+  "id": 13153,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "flower bed",
+   "type": "bed",
+   "partnerDirection": "south",
+   "maleSleeper": "22478",
+   "femaleSleeper": "22482"
+  }
+ },
+ "22486": {
+  "id": 13154,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "flower bed",
+   "type": "bed",
+   "partnerDirection": "north",
+   "maleSleeper": "22479",
+   "femaleSleeper": "22483"
+  }
+ },
+ "22487": {
+  "id": 13155,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "flower bed",
+   "type": "bed",
+   "partnerDirection": "east",
+   "maleSleeper": "22480",
+   "femaleSleeper": "22484"
+  }
+ },
+ "22488": {
+  "id": 13156,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "flower bed",
+   "type": "bed",
+   "partnerDirection": "west",
+   "maleSleeper": "22481",
+   "femaleSleeper": "22489"
+  }
+ },
+ "22489": {
+  "id": 13157,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "flower bed",
+   "type": "bed",
+   "partnerDirection": "west",
+   "transformTo": "22488"
+  }
+ },
+ "22490": {
+  "id": 13158,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "homely bed",
+   "type": "bed",
+   "partnerDirection": "south",
+   "transformTo": "22498"
+  }
+ },
+ "22491": {
+  "id": 13159,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "homely bed",
+   "type": "bed",
+   "partnerDirection": "north",
+   "transformTo": "22499"
+  }
+ },
+ "22492": {
+  "id": 13160,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "homely bed",
+   "type": "bed",
+   "partnerDirection": "east",
+   "transformTo": "22500"
+  }
+ },
+ "22493": {
+  "id": 13161,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "homely bed",
+   "type": "bed",
+   "partnerDirection": "west",
+   "transformTo": "22501"
+  }
+ },
+ "22494": {
+  "id": 13162,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "homely bed",
+   "type": "bed",
+   "partnerDirection": "south",
+   "transformTo": "22498"
+  }
+ },
+ "22495": {
+  "id": 13163,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "homely bed",
+   "type": "bed",
+   "partnerDirection": "north",
+   "transformTo": "22499"
+  }
+ },
+ "22496": {
+  "id": 13164,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "homely bed",
+   "type": "bed",
+   "partnerDirection": "east",
+   "transformTo": "22500"
+  }
+ },
+ "22497": {
+  "id": 13165,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "homely bed",
+   "type": "bed",
+   "partnerDirection": "west",
+   "transformTo": "22501"
+  }
+ },
+ "22498": {
+  "id": 13166,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "homely bed",
+   "type": "bed",
+   "partnerDirection": "south",
+   "maleSleeper": "22490",
+   "femaleSleeper": "22494"
+  }
+ },
+ "22499": {
+  "id": 13167,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "homely bed",
+   "type": "bed",
+   "partnerDirection": "north",
+   "maleSleeper": "22491",
+   "femaleSleeper": "22495"
+  }
+ },
+ "22500": {
+  "id": 13168,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "homely bed",
+   "type": "bed",
+   "partnerDirection": "east",
+   "maleSleeper": "22492",
+   "femaleSleeper": "22496"
+  }
+ },
+ "22501": {
+  "id": 13169,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "homely bed",
+   "type": "bed",
+   "partnerDirection": "west",
+   "maleSleeper": "22493",
+   "femaleSleeper": "22497"
+  }
+ },
+ "22502": {
+  "id": 13170,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "knightly bed",
+   "type": "bed",
+   "partnerDirection": "south",
+   "transformTo": "22510"
+  }
+ },
+ "22503": {
+  "id": 13171,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "knightly bed",
+   "type": "bed",
+   "partnerDirection": "north",
+   "transformTo": "22511"
+  }
+ },
+ "22504": {
+  "id": 13172,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "knightly bed",
+   "type": "bed",
+   "partnerDirection": "east",
+   "transformTo": "22512"
+  }
+ },
+ "22505": {
+  "id": 13173,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "knightly bed",
+   "type": "bed",
+   "partnerDirection": "west",
+   "transformTo": "22513"
+  }
+ },
+ "22506": {
+  "id": 13174,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "knightly bed",
+   "type": "bed",
+   "partnerDirection": "south",
+   "transformTo": "22510"
+  }
+ },
+ "22507": {
+  "id": 13175,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "knightly bed",
+   "type": "bed",
+   "partnerDirection": "north",
+   "transformTo": "22511"
+  }
+ },
+ "22508": {
+  "id": 13176,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "knightly bed",
+   "type": "bed",
+   "partnerDirection": "east",
+   "transformTo": "22512"
+  }
+ },
+ "22509": {
+  "id": 13177,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "knightly bed",
+   "type": "bed",
+   "partnerDirection": "west",
+   "transformTo": "22513"
+  }
+ },
+ "22510": {
+  "id": 13178,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "knightly bed",
+   "type": "bed",
+   "partnerDirection": "south",
+   "maleSleeper": "22502",
+   "femaleSleeper": "22506"
+  }
+ },
+ "22511": {
+  "id": 13179,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "knightly bed",
+   "type": "bed",
+   "partnerDirection": "north",
+   "maleSleeper": "22503",
+   "femaleSleeper": "22507"
+  }
+ },
+ "22512": {
+  "id": 13180,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "knightly bed",
+   "type": "bed",
+   "partnerDirection": "east",
+   "maleSleeper": "22504",
+   "femaleSleeper": "22508"
+  }
+ },
+ "22513": {
+  "id": 13181,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "knightly bed",
+   "type": "bed",
+   "partnerDirection": "west",
+   "maleSleeper": "22505",
+   "femaleSleeper": "22509"
+  }
+ },
+ "22514": {
+  "id": 13182,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "magnificent bed",
+   "type": "bed",
+   "partnerDirection": "south",
+   "transformTo": "22522"
+  }
+ },
+ "22515": {
+  "id": 13183,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "magnificent bed",
+   "type": "bed",
+   "partnerDirection": "north",
+   "transformTo": "22523"
+  }
+ },
+ "22516": {
+  "id": 13184,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "magnificent bed",
+   "type": "bed",
+   "partnerDirection": "east",
+   "transformTo": "22524"
+  }
+ },
+ "22517": {
+  "id": 13185,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "magnificent bed",
+   "type": "bed",
+   "partnerDirection": "west",
+   "transformTo": "22525"
+  }
+ },
+ "22518": {
+  "id": 13186,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "magnificent bed",
+   "type": "bed",
+   "partnerDirection": "south",
+   "transformTo": "22522"
+  }
+ },
+ "22519": {
+  "id": 13187,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "magnificent bed",
+   "type": "bed",
+   "partnerDirection": "north",
+   "transformTo": "22523"
+  }
+ },
+ "22520": {
+  "id": 13188,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "magnificent bed",
+   "type": "bed",
+   "partnerDirection": "east",
+   "transformTo": "22524"
+  }
+ },
+ "22521": {
+  "id": 13189,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "magnificent bed",
+   "type": "bed",
+   "partnerDirection": "west",
+   "transformTo": "22525"
+  }
+ },
+ "22522": {
+  "id": 13190,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "magnificent bed",
+   "type": "bed",
+   "partnerDirection": "south",
+   "maleSleeper": "22514",
+   "femaleSleeper": "22518"
+  }
+ },
+ "22523": {
+  "id": 13191,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "magnificent bed",
+   "type": "bed",
+   "partnerDirection": "north",
+   "maleSleeper": "22515",
+   "femaleSleeper": "22519"
+  }
+ },
+ "22524": {
+  "id": 13192,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "magnificent bed",
+   "type": "bed",
+   "partnerDirection": "east",
+   "maleSleeper": "22516",
+   "femaleSleeper": "22520"
+  }
+ },
+ "22525": {
+  "id": 13193,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "magnificent bed",
+   "type": "bed",
+   "partnerDirection": "west",
+   "maleSleeper": "22517",
+   "femaleSleeper": "22521"
+  }
+ },
+ "22526": {
+  "id": 13194,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "seafarer bed",
+   "type": "bed",
+   "partnerDirection": "south",
+   "transformTo": "22534"
+  }
+ },
+ "22527": {
+  "id": 13195,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "seafarer bed",
+   "type": "bed",
+   "partnerDirection": "north",
+   "transformTo": "22535"
+  }
+ },
+ "22528": {
+  "id": 13196,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "seafarer bed",
+   "type": "bed",
+   "partnerDirection": "east",
+   "transformTo": "22536"
+  }
+ },
+ "22529": {
+  "id": 13197,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "seafarer bed",
+   "type": "bed",
+   "partnerDirection": "west",
+   "transformTo": "22537"
+  }
+ },
+ "22530": {
+  "id": 13198,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "seafarer bed",
+   "type": "bed",
+   "partnerDirection": "south",
+   "transformTo": "22534"
+  }
+ },
+ "22531": {
+  "id": 13199,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "seafarer bed",
+   "type": "bed",
+   "partnerDirection": "north",
+   "transformTo": "22535"
+  }
+ },
+ "22532": {
+  "id": 13200,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "seafarer bed",
+   "type": "bed",
+   "partnerDirection": "east",
+   "transformTo": "22536"
+  }
+ },
+ "22533": {
+  "id": 13201,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "seafarer bed",
+   "type": "bed",
+   "partnerDirection": "west",
+   "transformTo": "22537"
+  }
+ },
+ "22534": {
+  "id": 13202,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "seafarer bed",
+   "type": "bed",
+   "partnerDirection": "south",
+   "maleSleeper": "22526",
+   "femaleSleeper": "22530"
+  }
+ },
+ "22535": {
+  "id": 13203,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "seafarer bed",
+   "type": "bed",
+   "partnerDirection": "north",
+   "maleSleeper": "22527",
+   "femaleSleeper": "22531"
+  }
+ },
+ "22536": {
+  "id": 13204,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "seafarer bed",
+   "type": "bed",
+   "partnerDirection": "east",
+   "maleSleeper": "22528",
+   "femaleSleeper": "22532"
+  }
+ },
+ "22537": {
+  "id": 13205,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "seafarer bed",
+   "type": "bed",
+   "partnerDirection": "west",
+   "maleSleeper": "22529",
+   "femaleSleeper": "22533"
+  }
+ },
+ "22538": {
+  "id": 13206,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "vengothic bed",
+   "type": "bed",
+   "partnerDirection": "south",
+   "transformTo": "22546"
+  }
+ },
+ "22539": {
+  "id": 13207,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "vengothic bed",
+   "type": "bed",
+   "partnerDirection": "north",
+   "transformTo": "22547"
+  }
+ },
+ "22540": {
+  "id": 13208,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "vengothic bed",
+   "type": "bed",
+   "partnerDirection": "east",
+   "transformTo": "22548"
+  }
+ },
+ "22541": {
+  "id": 13209,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "vengothic bed",
+   "type": "bed",
+   "partnerDirection": "west",
+   "transformTo": "22549"
+  }
+ },
+ "22542": {
+  "id": 13210,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "vengothic bed",
+   "type": "bed",
+   "partnerDirection": "south",
+   "transformTo": "22546"
+  }
+ },
+ "22543": {
+  "id": 13211,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "vengothic bed",
+   "type": "bed",
+   "partnerDirection": "north",
+   "transformTo": "22547"
+  }
+ },
+ "22544": {
+  "id": 13212,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "vengothic bed",
+   "type": "bed",
+   "partnerDirection": "east",
+   "transformTo": "22548"
+  }
+ },
+ "22545": {
+  "id": 13213,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "vengothic bed",
+   "type": "bed",
+   "partnerDirection": "west",
+   "transformTo": "22549"
+  }
+ },
+ "22546": {
+  "id": 13214,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "vengothic bed",
+   "type": "bed",
+   "partnerDirection": "south",
+   "maleSleeper": "22538",
+   "femaleSleeper": "22542"
+  }
+ },
+ "22547": {
+  "id": 13215,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "vengothic bed",
+   "type": "bed",
+   "partnerDirection": "north",
+   "maleSleeper": "22539",
+   "femaleSleeper": "22543"
+  }
+ },
+ "22548": {
+  "id": 13216,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "vengothic bed",
+   "type": "bed",
+   "partnerDirection": "east",
+   "maleSleeper": "22540",
+   "femaleSleeper": "22544"
+  }
+ },
+ "22549": {
+  "id": 13217,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "vengothic bed",
+   "type": "bed",
+   "partnerDirection": "west",
+   "maleSleeper": "22541",
+   "femaleSleeper": "22545"
+  }
+ },
+ "22550": {
+  "id": 13218,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "voodoo bed",
+   "type": "bed",
+   "partnerDirection": "south",
+   "transformTo": "22558"
+  }
+ },
+ "22551": {
+  "id": 13219,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "voodoo bed",
+   "type": "bed",
+   "partnerDirection": "north",
+   "transformTo": "22559"
+  }
+ },
+ "22552": {
+  "id": 13220,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "voodoo bed",
+   "type": "bed",
+   "partnerDirection": "east",
+   "transformTo": "22560"
+  }
+ },
+ "22553": {
+  "id": 13221,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "voodoo bed",
+   "type": "bed",
+   "partnerDirection": "west",
+   "transformTo": "22561"
+  }
+ },
+ "22554": {
+  "id": 13222,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "voodoo bed",
+   "type": "bed",
+   "partnerDirection": "south",
+   "transformTo": "22558"
+  }
+ },
+ "22555": {
+  "id": 13223,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "voodoo bed",
+   "type": "bed",
+   "partnerDirection": "north",
+   "transformTo": "22559"
+  }
+ },
+ "22556": {
+  "id": 13224,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "voodoo bed",
+   "type": "bed",
+   "partnerDirection": "east",
+   "transformTo": "22560"
+  }
+ },
+ "22557": {
+  "id": 13225,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "voodoo bed",
+   "type": "bed",
+   "partnerDirection": "west",
+   "transformTo": "22561"
+  }
+ },
+ "22558": {
+  "id": 13226,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "voodoo bed",
+   "type": "bed",
+   "partnerDirection": "south",
+   "maleSleeper": "22550",
+   "femaleSleeper": "22554"
+  }
+ },
+ "22559": {
+  "id": 13227,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "voodoo bed",
+   "type": "bed",
+   "partnerDirection": "north",
+   "maleSleeper": "22551",
+   "femaleSleeper": "22555"
+  }
+ },
+ "22560": {
+  "id": 13228,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "voodoo bed",
+   "type": "bed",
+   "partnerDirection": "east",
+   "maleSleeper": "22552",
+   "femaleSleeper": "22556"
+  }
+ },
+ "22561": {
+  "id": 13229,
+  "flags": 5,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "voodoo bed",
+   "type": "bed",
+   "partnerDirection": "west",
+   "maleSleeper": "22553",
+   "femaleSleeper": "22557"
+  }
+ },
+ "22562": {
+  "id": 13230,
+  "flags": 65632,
+  "group": 0,
+  "properties": {
+   "article": "an",
+   "name": "all-seeing tapestry",
+   "description": "Following your every move.",
+   "weight": 1000
+  }
+ },
+ "22563": {
+  "id": 13231,
+  "flags": 65632,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "brocade tapestry",
+   "weight": 1000
+  }
+ },
+ "22564": {
+  "id": 13232,
+  "flags": 65632,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "golden dragon tapestry",
+   "weight": 1000
+  }
+ },
+ "22565": {
+  "id": 13233,
+  "flags": 65632,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "menacing tapestry",
+   "description": "The dark side is vigilant.",
+   "weight": 1000
+  }
+ },
+ "22566": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "an",
+   "name": "alchemistic cabinet kit",
+   "weight": 2500,
+   "furnitureSid": 22327,
+   "furnitureForms": [
+    22326,
+    22327
+   ]
+  }
+ },
+ "22567": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "an",
+   "name": "alchemistic chair kit",
+   "weight": 2500,
+   "furnitureSid": 22329,
+   "furnitureForms": [
+    22328,
+    22329
+   ]
+  }
+ },
+ "22568": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "an",
+   "name": "alchemistic cupboard kit",
+   "weight": 2500,
+   "furnitureSid": 22330,
+   "furnitureForms": [
+    22330
+   ]
+  }
+ },
+ "22569": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "an",
+   "name": "artist chair kit",
+   "weight": 2500,
+   "furnitureSid": 22331,
+   "furnitureForms": [
+    22331,
+    22332,
+    22333,
+    22334
+   ]
+  }
+ },
+ "22570": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "an",
+   "name": "artist chest kit",
+   "weight": 2500,
+   "furnitureSid": 22335,
+   "furnitureForms": [
+    22335,
+    22336,
+    22337,
+    22338
+   ]
+  }
+ },
+ "22571": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "an",
+   "name": "azure carpet kit",
+   "weight": 2500,
+   "furnitureSid": 22339,
+   "furnitureForms": [
+    22339
+   ]
+  }
+ },
+ "22572": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "bamboo mat kit",
+   "weight": 2500,
+   "furnitureSid": 22340,
+   "furnitureForms": [
+    22340
+   ]
+  }
+ },
+ "22573": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "blooming cactus kit",
+   "weight": 2500,
+   "furnitureSid": 22341,
+   "furnitureForms": [
+    22341
+   ]
+  }
+ },
+ "22574": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "blossom chair kit",
+   "weight": 2500,
+   "furnitureSid": 22342,
+   "furnitureForms": [
+    22342
+   ]
+  }
+ },
+ "22575": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "blue round cushion kit",
+   "weight": 2500,
+   "furnitureSid": 22343,
+   "furnitureForms": [
+    22343
+   ]
+  }
+ },
+ "22576": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "blue square cushion kit",
+   "weight": 2500,
+   "furnitureSid": 22344,
+   "furnitureForms": [
+    22344
+   ]
+  }
+ },
+ "22577": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "blue witches' cauldron flower kit",
+   "weight": 2500,
+   "furnitureSid": 22345,
+   "furnitureForms": [
+    22345
+   ]
+  }
+ },
+ "22578": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "carnivorous plant kit",
+   "weight": 2500,
+   "furnitureSid": 22347,
+   "furnitureForms": [
+    22346,
+    22347
+   ]
+  }
+ },
+ "22579": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "cave bench kit",
+   "weight": 2500,
+   "furnitureSid": 22348,
+   "furnitureForms": [
+    22348
+   ]
+  }
+ },
+ "22580": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "cave chair kit",
+   "weight": 2500,
+   "furnitureSid": 22349,
+   "furnitureForms": [
+    22349
+   ]
+  }
+ },
+ "22581": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "cave table kit",
+   "weight": 2500,
+   "furnitureSid": 22350,
+   "furnitureForms": [
+    22350
+   ]
+  }
+ },
+ "22582": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "colourful carpet kit",
+   "weight": 2500,
+   "furnitureSid": 22351,
+   "furnitureForms": [
+    22351
+   ]
+  }
+ },
+ "22583": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "crimson carpet kit",
+   "weight": 2500,
+   "furnitureSid": 22352,
+   "furnitureForms": [
+    22352
+   ]
+  }
+ },
+ "22584": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "crystal cabinet kit",
+   "weight": 2500,
+   "furnitureSid": 22353,
+   "furnitureForms": [
+    22353
+   ]
+  }
+ },
+ "22585": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "crystal chair kit",
+   "weight": 2500,
+   "furnitureSid": 22354,
+   "furnitureForms": [
+    22354
+   ]
+  }
+ },
+ "22586": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "crystal chest kit",
+   "weight": 2500,
+   "furnitureSid": 22355,
+   "furnitureForms": [
+    22355
+   ]
+  }
+ },
+ "22587": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "crystal lamp kit",
+   "weight": 2500,
+   "furnitureSid": 22356,
+   "furnitureForms": [
+    22356,
+    22357
+   ]
+  }
+ },
+ "22588": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "crystal table kit",
+   "weight": 2500,
+   "furnitureSid": 22358,
+   "furnitureForms": [
+    22358
+   ]
+  }
+ },
+ "22589": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "cupboard kit",
+   "weight": 2500,
+   "furnitureSid": 22359,
+   "furnitureForms": [
+    22359,
+    22360
+   ]
+  }
+ },
+ "22590": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "diamond carpet kit",
+   "weight": 2500,
+   "furnitureSid": 22361,
+   "furnitureForms": [
+    22361
+   ]
+  }
+ },
+ "22591": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "dragon carpet kit",
+   "weight": 2500,
+   "furnitureSid": 22362,
+   "furnitureForms": [
+    22362
+   ]
+  }
+ },
+ "22592": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "dragon lord carpet kit",
+   "weight": 2500,
+   "furnitureSid": 22363,
+   "furnitureForms": [
+    22363
+   ]
+  }
+ },
+ "22593": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "dragon plant kit",
+   "weight": 2500,
+   "furnitureSid": 22364,
+   "furnitureForms": [
+    22364,
+    22365
+   ]
+  }
+ },
+ "22594": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "dwarven stone cabinet kit",
+   "weight": 2500,
+   "furnitureSid": 22366,
+   "furnitureForms": [
+    22366,
+    22367
+   ]
+  }
+ },
+ "22595": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "dwarven stone chair kit",
+   "weight": 2500,
+   "furnitureSid": 22370,
+   "furnitureForms": [
+    22368,
+    22369,
+    22370,
+    22371
+   ]
+  }
+ },
+ "22596": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "dwarven stone chest kit",
+   "weight": 2500,
+   "furnitureSid": 22372,
+   "furnitureForms": [
+    22372,
+    22373,
+    22374,
+    22375
+   ]
+  }
+ },
+ "22597": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "dwarven stone table kit",
+   "weight": 2500,
+   "furnitureSid": 22376,
+   "furnitureForms": [
+    22376
+   ]
+  }
+ },
+ "22598": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "an",
+   "name": "eldritch carpet kit",
+   "weight": 2500,
+   "furnitureSid": 22377,
+   "furnitureForms": [
+    22377
+   ]
+  }
+ },
+ "22599": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "an",
+   "name": "elemental carpet kit",
+   "weight": 2500,
+   "furnitureSid": 22378,
+   "furnitureForms": [
+    22378
+   ]
+  }
+ },
+ "22600": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "an",
+   "name": "ember bench kit",
+   "weight": 2500,
+   "furnitureSid": 22379,
+   "furnitureForms": [
+    22379
+   ]
+  }
+ },
+ "22601": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "an",
+   "name": "ember cabinet kit",
+   "weight": 2500,
+   "furnitureSid": 22380,
+   "furnitureForms": [
+    22380
+   ]
+  }
+ },
+ "22602": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "an",
+   "name": "ember chair kit",
+   "weight": 2500,
+   "furnitureSid": 22381,
+   "furnitureForms": [
+    22381
+   ]
+  }
+ },
+ "22603": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "an",
+   "name": "ember chest kit",
+   "weight": 2500,
+   "furnitureSid": 22382,
+   "furnitureForms": [
+    22382
+   ]
+  }
+ },
+ "22604": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "an",
+   "name": "ember table kit",
+   "weight": 2500,
+   "furnitureSid": 22383,
+   "furnitureForms": [
+    22383
+   ]
+  }
+ },
+ "22605": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "an",
+   "name": "emerald carpet kit",
+   "weight": 2500,
+   "furnitureSid": 22384,
+   "furnitureForms": [
+    22384
+   ]
+  }
+ },
+ "22606": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "flower bed kit",
+   "weight": 2500,
+   "furnitureSid": 22485,
+   "furnitureForms": [
+    22485,
+    22486,
+    22488,
+    22487
+   ],
+   "bedKit": {
+    "south": 22485,
+    "north": 22486,
+    "west": 22488,
+    "east": 22487
+   }
+  }
+ },
+ "22607": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "flower cabinet kit",
+   "weight": 2500,
+   "furnitureSid": 22385,
+   "furnitureForms": [
+    22385,
+    22386
+   ]
+  }
+ },
+ "22608": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "flower chest kit",
+   "weight": 2500,
+   "furnitureSid": 22387,
+   "furnitureForms": [
+    22387,
+    22388,
+    22389,
+    22390
+   ]
+  }
+ },
+ "22609": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "flower table kit",
+   "weight": 2500,
+   "furnitureSid": 22391,
+   "furnitureForms": [
+    22391,
+    22392,
+    22393
+   ]
+  }
+ },
+ "22610": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "flowery carpet kit",
+   "weight": 2500,
+   "furnitureSid": 22394,
+   "furnitureForms": [
+    22394
+   ]
+  }
+ },
+ "22611": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "grandiose carpet kit",
+   "weight": 2500,
+   "furnitureSid": 22395,
+   "furnitureForms": [
+    22395
+   ]
+  }
+ },
+ "22612": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "grandiose chair kit",
+   "weight": 2500,
+   "furnitureSid": 22396,
+   "furnitureForms": [
+    22396,
+    22397,
+    22398,
+    22399
+   ]
+  }
+ },
+ "22613": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "grandiose table kit",
+   "weight": 2500,
+   "furnitureSid": 22400,
+   "furnitureForms": [
+    22400,
+    22401
+   ]
+  }
+ },
+ "22614": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "gravestone chair kit",
+   "weight": 2500,
+   "furnitureSid": 22402,
+   "furnitureForms": [
+    22402
+   ]
+  }
+ },
+ "22615": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "green round cushion kit",
+   "weight": 2500,
+   "furnitureSid": 22403,
+   "furnitureForms": [
+    22403
+   ]
+  }
+ },
+ "22616": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "green square cushion kit",
+   "weight": 2500,
+   "furnitureSid": 22404,
+   "furnitureForms": [
+    22404
+   ]
+  }
+ },
+ "22617": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "heart cabinet kit",
+   "weight": 2500,
+   "furnitureSid": 22405,
+   "furnitureForms": [
+    22405,
+    22406
+   ]
+  }
+ },
+ "22618": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "heart chest kit",
+   "weight": 2500,
+   "furnitureSid": 22407,
+   "furnitureForms": [
+    22407,
+    22408,
+    22409,
+    22410
+   ]
+  }
+ },
+ "22619": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "homely bed kit",
+   "weight": 2500,
+   "furnitureSid": 22498,
+   "furnitureForms": [
+    22498,
+    22499,
+    22500,
+    22501
+   ],
+   "bedKit": {
+    "south": 22498,
+    "north": 22499,
+    "east": 22500,
+    "west": 22501
+   }
+  }
+ },
+ "22620": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "an",
+   "name": "ice cabinet kit",
+   "weight": 2500,
+   "furnitureSid": 22411,
+   "furnitureForms": [
+    22411,
+    22412
+   ]
+  }
+ },
+ "22621": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "an",
+   "name": "ice chest kit",
+   "weight": 2500,
+   "furnitureSid": 22413,
+   "furnitureForms": [
+    22413,
+    22414,
+    22415,
+    22416
+   ]
+  }
+ },
+ "22622": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "an",
+   "name": "ice table kit",
+   "weight": 2500,
+   "furnitureSid": 22417,
+   "furnitureForms": [
+    22417
+   ]
+  }
+ },
+ "22623": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "knightly bed kit",
+   "weight": 2500,
+   "furnitureSid": 22510,
+   "furnitureForms": [
+    22510,
+    22511,
+    22512,
+    22513
+   ],
+   "bedKit": {
+    "south": 22510,
+    "north": 22511,
+    "east": 22512,
+    "west": 22513
+   }
+  }
+ },
+ "22624": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "knightly cabinet kit",
+   "weight": 2500,
+   "furnitureSid": 22418,
+   "furnitureForms": [
+    22418,
+    22419
+   ]
+  }
+ },
+ "22625": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "knightly chair kit",
+   "weight": 2500,
+   "furnitureSid": 22420,
+   "furnitureForms": [
+    22420,
+    22421,
+    22422,
+    22423
+   ]
+  }
+ },
+ "22626": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "knightly chest kit",
+   "weight": 2500,
+   "furnitureSid": 22424,
+   "furnitureForms": [
+    22424,
+    22425,
+    22426,
+    22427
+   ]
+  }
+ },
+ "22627": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "knightly table kit",
+   "weight": 2500,
+   "furnitureSid": 22428,
+   "furnitureForms": [
+    22428,
+    22429
+   ]
+  }
+ },
+ "22628": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "lilac carpet kit",
+   "weight": 2500,
+   "furnitureSid": 22430,
+   "furnitureForms": [
+    22430
+   ]
+  }
+ },
+ "22629": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "magnificent bed kit",
+   "weight": 2500,
+   "furnitureSid": 22522,
+   "furnitureForms": [
+    22522,
+    22523,
+    22524,
+    22525
+   ],
+   "bedKit": {
+    "south": 22522,
+    "north": 22523,
+    "east": 22524,
+    "west": 22525
+   }
+  }
+ },
+ "22630": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "magnificent cabinet kit",
+   "weight": 2500,
+   "furnitureSid": 22431,
+   "furnitureForms": [
+    22431,
+    22432
+   ]
+  }
+ },
+ "22631": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "magnificent chair kit",
+   "weight": 2500,
+   "furnitureSid": 22435,
+   "furnitureForms": [
+    22433,
+    22434,
+    22435,
+    22436
+   ]
+  }
+ },
+ "22632": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "magnificent table kit",
+   "weight": 2500,
+   "furnitureSid": 22438,
+   "furnitureForms": [
+    22437,
+    22438
+   ]
+  }
+ },
+ "22633": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "magnificent trunk kit",
+   "weight": 2500,
+   "furnitureSid": 22439,
+   "furnitureForms": [
+    22439,
+    22440,
+    22441,
+    22442
+   ]
+  }
+ },
+ "22634": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "mystic carpet kit",
+   "weight": 2500,
+   "furnitureSid": 22443,
+   "furnitureForms": [
+    22443
+   ]
+  }
+ },
+ "22635": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "night sky carpet kit",
+   "weight": 2500,
+   "furnitureSid": 22444,
+   "furnitureForms": [
+    22444
+   ]
+  }
+ },
+ "22636": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "an",
+   "name": "opulent book case kit",
+   "weight": 2500,
+   "furnitureSid": 22445,
+   "furnitureForms": [
+    22445,
+    22446
+   ]
+  }
+ },
+ "22637": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "an",
+   "name": "opulent carpet kit",
+   "weight": 2500,
+   "furnitureSid": 22447,
+   "furnitureForms": [
+    22447
+   ]
+  }
+ },
+ "22638": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "an",
+   "name": "opulent chair kit",
+   "weight": 2500,
+   "furnitureSid": 22448,
+   "furnitureForms": [
+    22448,
+    22449,
+    22450,
+    22451
+   ]
+  }
+ },
+ "22639": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "an",
+   "name": "orshabaal carpet kit",
+   "weight": 2500,
+   "furnitureSid": 22452,
+   "furnitureForms": [
+    22452
+   ]
+  }
+ },
+ "22640": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "patterned carpet kit",
+   "weight": 2500,
+   "furnitureSid": 22453,
+   "furnitureForms": [
+    22453
+   ]
+  }
+ },
+ "22641": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "rift carpet kit",
+   "weight": 2500,
+   "furnitureSid": 22454,
+   "furnitureForms": [
+    22454
+   ]
+  }
+ },
+ "22642": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "romantic carpet kit",
+   "weight": 2500,
+   "furnitureSid": 22455,
+   "furnitureForms": [
+    22455
+   ]
+  }
+ },
+ "22643": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "seafarer bed kit",
+   "weight": 2500,
+   "furnitureSid": 22534,
+   "furnitureForms": [
+    22534,
+    22535,
+    22536,
+    22537
+   ],
+   "bedKit": {
+    "south": 22534,
+    "north": 22535,
+    "east": 22536,
+    "west": 22537
+   }
+  }
+ },
+ "22644": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "skull cabinet kit",
+   "weight": 2500,
+   "furnitureSid": 22456,
+   "furnitureForms": [
+    22456
+   ]
+  }
+ },
+ "22645": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "square side table kit",
+   "weight": 2500,
+   "furnitureSid": 22457,
+   "furnitureForms": [
+    22457
+   ]
+  }
+ },
+ "22646": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "sublime tournament carpet kit",
+   "weight": 2500,
+   "furnitureSid": 22458,
+   "furnitureForms": [
+    22458
+   ]
+  }
+ },
+ "22647": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "",
+   "name": "the book of death carpet kit",
+   "weight": 2500,
+   "furnitureSid": 22459,
+   "furnitureForms": [
+    22459
+   ]
+  }
+ },
+ "22648": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "",
+   "name": "the cobra amulet carpet kit",
+   "weight": 2500,
+   "furnitureSid": 22460,
+   "furnitureForms": [
+    22460
+   ]
+  }
+ },
+ "22649": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "",
+   "name": "the ring of ending carpet kit",
+   "weight": 2500,
+   "furnitureSid": 22461,
+   "furnitureForms": [
+    22461
+   ]
+  }
+ },
+ "22650": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "",
+   "name": "the spatial almanach carpet kit",
+   "weight": 2500,
+   "furnitureSid": 22462,
+   "furnitureForms": [
+    22462
+   ]
+  }
+ },
+ "22651": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "",
+   "name": "the supreme cube carpet kit",
+   "weight": 2500,
+   "furnitureSid": 22463,
+   "furnitureForms": [
+    22463
+   ]
+  }
+ },
+ "22652": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "",
+   "name": "the sylvan sapling carpet kit",
+   "weight": 2500,
+   "furnitureSid": 22464,
+   "furnitureForms": [
+    22464
+   ]
+  }
+ },
+ "22653": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "tournament carpet kit",
+   "weight": 2500,
+   "furnitureSid": 22465,
+   "furnitureForms": [
+    22465
+   ]
+  }
+ },
+ "22654": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "vengothic bed kit",
+   "weight": 2500,
+   "furnitureSid": 22546,
+   "furnitureForms": [
+    22546,
+    22547,
+    22548,
+    22549
+   ],
+   "bedKit": {
+    "south": 22546,
+    "north": 22547,
+    "east": 22548,
+    "west": 22549
+   }
+  }
+ },
+ "22655": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "vengothic chair kit",
+   "weight": 2500,
+   "furnitureSid": 22468,
+   "furnitureForms": [
+    22466,
+    22467,
+    22468,
+    22469
+   ]
+  }
+ },
+ "22656": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "violet round cushion kit",
+   "weight": 2500,
+   "furnitureSid": 22470,
+   "furnitureForms": [
+    22470
+   ]
+  }
+ },
+ "22657": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "violet square cushion kit",
+   "weight": 2500,
+   "furnitureSid": 22471,
+   "furnitureForms": [
+    22471
+   ]
+  }
+ },
+ "22658": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "volcanic chest kit",
+   "weight": 2500,
+   "furnitureSid": 22472,
+   "furnitureForms": [
+    22472,
+    22473,
+    22474,
+    22475
+   ]
+  }
+ },
+ "22659": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "voodoo bed kit",
+   "weight": 2500,
+   "furnitureSid": 22558,
+   "furnitureForms": [
+    22558,
+    22559,
+    22560,
+    22561
+   ],
+   "bedKit": {
+    "south": 22558,
+    "north": 22559,
+    "east": 22560,
+    "west": 22561
+   }
+  }
+ },
+ "22660": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "wooden bookcase kit",
+   "weight": 2500,
+   "furnitureSid": 22476,
+   "furnitureForms": [
+    22476,
+    22477
+   ]
   }
  }
 }
