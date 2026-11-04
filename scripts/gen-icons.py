@@ -15,7 +15,10 @@ patch file are small enough for data/raw/):
       --dat data/raw/Minibia.dat
 
 47704 is the count the existing icons re-render pixel-identical with (2026-10-26);
-items that need a sprite from the base file are listed as skipped. Either way,
+items that need a sprite from the base file are listed as skipped. On 2026-11-04
+the patch was folded into Minibia.spr (50779 sprites) and Minibia.patch.spr came
+down empty (6 bytes), so this shortcut renders nothing until a new patch ships -
+pass --spr. Either way,
 an item whose .dat object (sid) another item with an icon already shares gets
 that icon (same sprite).
 
