@@ -90,8 +90,8 @@
         {
             "id": 67,
             "name": "Summon Creature",
-            "words": "utevo res",
-            "mana": 0,
+            "words": "utevo res \"creature\"",
+            "mana": "200-690",
             "level": 1,
             "vocations": [
                 "sorcerer",
@@ -248,6 +248,18 @@
                 "knight"
             ],
             "aggressive": false,
+            "area": false
+        },
+        {
+            "id": 73,
+            "name": "Poison Strike",
+            "words": "exori pox",
+            "mana": 20,
+            "level": 3,
+            "vocations": [
+                "druid"
+            ],
+            "aggressive": true,
             "area": false
         },
         {
@@ -754,6 +766,18 @@
             "level": 20,
             "vocations": [
                 "sorcerer"
+            ],
+            "aggressive": true,
+            "area": true
+        },
+        {
+            "id": 72,
+            "name": "Great Poison Beam",
+            "words": "exevo gran vis pox",
+            "mana": 200,
+            "level": 20,
+            "vocations": [
+                "druid"
             ],
             "aggressive": true,
             "area": true
@@ -4125,12 +4149,6 @@
                     "probability": 0.04042,
                     "min": 1,
                     "max": 1
-                },
-                {
-                    "name": "smugglers' cargo tag",
-                    "probability": 0.025,
-                    "min": 1,
-                    "max": 1
                 }
             ]
         },
@@ -7233,12 +7251,6 @@
                     "max": 1
                 },
                 {
-                    "name": "marauders' cargo tag",
-                    "probability": 0.025,
-                    "min": 1,
-                    "max": 1
-                },
-                {
                     "name": "hook",
                     "probability": 0.006,
                     "min": 1,
@@ -9015,12 +9027,6 @@
                     "max": 1
                 },
                 {
-                    "name": "cutthroats' cargo tag",
-                    "probability": 0.025,
-                    "min": 1,
-                    "max": 1
-                },
-                {
                     "name": "hook",
                     "probability": 0.006,
                     "min": 1,
@@ -10485,12 +10491,6 @@
                 {
                     "name": "battle shield",
                     "probability": 0.0385,
-                    "min": 1,
-                    "max": 1
-                },
-                {
-                    "name": "buccaneers' cargo tag",
-                    "probability": 0.025,
                     "min": 1,
                     "max": 1
                 },
@@ -17281,6 +17281,71 @@
                 {
                     "name": "crown armor",
                     "probability": 0.0027,
+                    "min": 1,
+                    "max": 1
+                }
+            ]
+        },
+        {
+            "name": "Worker Golem",
+            "health": 1400,
+            "experience": 1250,
+            "speed": 95,
+            "armor": 40,
+            "attacks": [
+                {
+                    "name": "melee",
+                    "min": 0,
+                    "max": 240,
+                    "element": null
+                },
+                {
+                    "name": "physical",
+                    "min": 0,
+                    "max": 125,
+                    "element": null
+                }
+            ],
+            "elements": {
+                "earth": 50,
+                "holy": 50,
+                "energy": -5,
+                "physical": 10,
+                "ice": 10,
+                "death": 10
+            },
+            "immunities": {
+                "invisible": true,
+                "paralyze": true
+            },
+            "loot": [
+                {
+                    "name": "gold coin",
+                    "probability": 0.93817,
+                    "min": 1,
+                    "max": 139
+                },
+                {
+                    "name": "life crystal",
+                    "probability": 0.0101,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "war hammer",
+                    "probability": 0.0099,
+                    "min": 1,
+                    "max": 1
+                },
+                {
+                    "name": "small diamond",
+                    "probability": 0.00974,
+                    "min": 1,
+                    "max": 2
+                },
+                {
+                    "name": "might ring",
+                    "probability": 0.00502,
                     "min": 1,
                     "max": 1
                 }
@@ -24682,7 +24747,7 @@
         },
         {
             "name": "Storm Dragon",
-            "health": 2900,
+            "health": 3300,
             "experience": 5000,
             "speed": 140,
             "armor": 20,
@@ -29366,6 +29431,38 @@
                     "max": 1
                 }
             ]
+        },
+        {
+            "name": "The Mutated Pumpkin",
+            "health": 1000000,
+            "experience": 30000,
+            "speed": 330,
+            "armor": 30,
+            "attacks": [
+                {
+                    "name": "melee",
+                    "min": 0,
+                    "max": 300,
+                    "element": null
+                },
+                {
+                    "name": "manadrain",
+                    "min": 0,
+                    "max": 12,
+                    "element": null
+                },
+                {
+                    "name": "drunk",
+                    "min": 0,
+                    "max": 0,
+                    "element": null
+                }
+            ],
+            "elements": {},
+            "immunities": {
+                "invisible": true
+            },
+            "loot": []
         },
         {
             "name": "Ferumbras",
@@ -34567,7 +34664,7 @@
                 "trip",
                 "ice",
                 "ghost",
-                "venore"
+                "aldren"
             ],
             "sells": [],
             "buys": []
@@ -40560,6 +40657,17 @@
             ]
         },
         {
+            "name": "Halric the Wallwarden",
+            "position": {
+                "x": 32107,
+                "y": 32341,
+                "z": 9
+            },
+            "keywords": [],
+            "sells": [],
+            "buys": []
+        },
+        {
             "name": "Halvar",
             "position": {
                 "x": 32228,
@@ -42119,6 +42227,17 @@
             "position": {
                 "x": 32357,
                 "y": 32087,
+                "z": 10
+            },
+            "keywords": [],
+            "sells": [],
+            "buys": []
+        },
+        {
+            "name": "Ilsa the Blind",
+            "position": {
+                "x": 32132,
+                "y": 32408,
                 "z": 10
             },
             "keywords": [],
@@ -44732,6 +44851,17 @@
                     "price": 260
                 }
             ],
+            "buys": []
+        },
+        {
+            "name": "Ludo",
+            "position": {
+                "x": 32344,
+                "y": 31797,
+                "z": 11
+            },
+            "keywords": [],
+            "sells": [],
             "buys": []
         },
         {
@@ -55262,6 +55392,7 @@
                 "job",
                 "three boats",
                 "tales",
+                "hermit",
                 "tower",
                 "rahkemun",
                 "zerath",
@@ -55276,6 +55407,17 @@
                 "x": 32935,
                 "y": 32141,
                 "z": 6
+            },
+            "keywords": [],
+            "sells": [],
+            "buys": []
+        },
+        {
+            "name": "Warden Brannoc",
+            "position": {
+                "x": 31863,
+                "y": 32257,
+                "z": 15
             },
             "keywords": [],
             "sells": [],
@@ -60694,26 +60836,6 @@
             "category": "other"
         },
         {
-            "cid": 22291,
-            "sid": 3507,
-            "droppedBy": [
-                {
-                    "name": "Pirate Buccaneer",
-                    "p": 0.025
-                }
-            ],
-            "name": "buccaneers' cargo tag",
-            "article": "a",
-            "weight": 10,
-            "attack": 0,
-            "defense": 0,
-            "armor": 0,
-            "weaponType": null,
-            "slotType": null,
-            "description": "A tag that marks a buccaneers' barrel, stamped with two crossed sabres.",
-            "category": "other"
-        },
-        {
             "cid": 2005,
             "sid": 2873,
             "droppedBy": [],
@@ -62977,6 +63099,21 @@
             "category": "other"
         },
         {
+            "cid": 22318,
+            "sid": 12985,
+            "droppedBy": [],
+            "name": "crystalline axe",
+            "article": "a",
+            "weight": 9900,
+            "attack": 50,
+            "defense": 30,
+            "armor": 0,
+            "weaponType": "axe",
+            "slotType": null,
+            "description": "",
+            "category": "melee"
+        },
+        {
             "cid": 2013,
             "sid": 2881,
             "droppedBy": [],
@@ -63017,26 +63154,6 @@
                     "region": "main"
                 }
             ]
-        },
-        {
-            "cid": 22292,
-            "sid": 3507,
-            "droppedBy": [
-                {
-                    "name": "Pirate Cutthroat",
-                    "p": 0.025
-                }
-            ],
-            "name": "cutthroats' cargo tag",
-            "article": "a",
-            "weight": 10,
-            "attack": 0,
-            "defense": 0,
-            "armor": 0,
-            "weaponType": null,
-            "slotType": null,
-            "description": "A tag that marks a cutthroats' chest. It is stained dark at one edge.",
-            "category": "other"
         },
         {
             "cid": 2379,
@@ -66558,6 +66675,10 @@
                 {
                     "name": "Quara Mantassin Scout",
                     "p": 0.93987
+                },
+                {
+                    "name": "Worker Golem",
+                    "p": 0.93817
                 },
                 {
                     "name": "General Murius",
@@ -70498,6 +70619,10 @@
                     "p": 0.01059
                 },
                 {
+                    "name": "Worker Golem",
+                    "p": 0.0101
+                },
+                {
                     "name": "Demodras",
                     "p": 0.00855
                 },
@@ -71477,26 +71602,6 @@
             "category": "other"
         },
         {
-            "cid": 22290,
-            "sid": 3507,
-            "droppedBy": [
-                {
-                    "name": "Pirate Marauder",
-                    "p": 0.025
-                }
-            ],
-            "name": "marauders' cargo tag",
-            "article": "a",
-            "weight": 10,
-            "attack": 0,
-            "defense": 0,
-            "armor": 0,
-            "weaponType": null,
-            "slotType": null,
-            "description": "A tag that marks a marauders' crate. Someone has scratched a skull into it.",
-            "category": "other"
-        },
-        {
             "cid": 20029,
             "sid": 2816,
             "droppedBy": [],
@@ -71998,6 +72103,10 @@
                 {
                     "name": "Hero",
                     "p": 0.00527
+                },
+                {
+                    "name": "Worker Golem",
+                    "p": 0.00502
                 },
                 {
                     "name": "Demon",
@@ -72529,6 +72638,21 @@
             ]
         },
         {
+            "cid": 22319,
+            "sid": 12986,
+            "droppedBy": [],
+            "name": "naga club",
+            "article": "a",
+            "weight": 12500,
+            "attack": 49,
+            "defense": 35,
+            "armor": 0,
+            "weaponType": "club",
+            "slotType": null,
+            "description": "",
+            "category": "melee"
+        },
+        {
             "cid": 2426,
             "sid": 3314,
             "droppedBy": [],
@@ -72768,7 +72892,7 @@
         },
         {
             "cid": 14050,
-            "sid": 3483,
+            "sid": 13234,
             "droppedBy": [],
             "name": "old rod",
             "article": "an",
@@ -76975,6 +77099,21 @@
             "category": "shield"
         },
         {
+            "cid": 22317,
+            "sid": 12984,
+            "droppedBy": [],
+            "name": "shiny blade",
+            "article": "a",
+            "weight": 4200,
+            "attack": 48,
+            "defense": 35,
+            "armor": 0,
+            "weaponType": "sword",
+            "slotType": null,
+            "description": "",
+            "category": "melee"
+        },
+        {
             "cid": 11227,
             "sid": 10310,
             "droppedBy": [
@@ -78004,6 +78143,10 @@
                     "p": 0.01
                 },
                 {
+                    "name": "Worker Golem",
+                    "p": 0.00974
+                },
+                {
                     "name": "Wyrm",
                     "p": 0.00912
                 },
@@ -78819,26 +78962,6 @@
             "weaponType": null,
             "slotType": null,
             "description": "",
-            "category": "other"
-        },
-        {
-            "cid": 22289,
-            "sid": 3507,
-            "droppedBy": [
-                {
-                    "name": "Smuggler",
-                    "p": 0.025
-                }
-            ],
-            "name": "smugglers' cargo tag",
-            "article": "a",
-            "weight": 10,
-            "attack": 0,
-            "defense": 0,
-            "armor": 0,
-            "weaponType": null,
-            "slotType": null,
-            "description": "A tarred tag that marks a smugglers' bale. One corner is cut in the shape of a hook.",
             "category": "other"
         },
         {
@@ -82565,6 +82688,10 @@
                 {
                     "name": "Giant",
                     "p": 0.017
+                },
+                {
+                    "name": "Worker Golem",
+                    "p": 0.0099
                 },
                 {
                     "name": "Hero",
