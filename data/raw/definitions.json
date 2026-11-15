@@ -9874,7 +9874,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hookEast": true
   }
  },
  "1112": {
@@ -9883,7 +9884,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hookSouth": true
   }
  },
  "1113": {
@@ -9901,7 +9903,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hangFace": "south"
   }
  },
  "1115": {
@@ -9910,7 +9913,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hangFace": "south"
   }
  },
  "1116": {
@@ -9919,7 +9923,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hangFace": "east"
   }
  },
  "1117": {
@@ -9928,7 +9933,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hookSouth": true
   }
  },
  "1118": {
@@ -9937,7 +9943,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hangFace": "south"
   }
  },
  "1119": {
@@ -9946,7 +9953,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hangFace": "south"
   }
  },
  "1120": {
@@ -10027,7 +10035,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hangFace": "south"
   }
  },
  "1129": {
@@ -10036,7 +10045,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hangFace": "south"
   }
  },
  "1130": {
@@ -10045,7 +10055,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hangFace": "east"
   }
  },
  "1131": {
@@ -10054,7 +10065,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hangFace": "east"
   }
  },
  "1132": {
@@ -10063,7 +10075,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hangFace": "south"
   }
  },
  "1133": {
@@ -10072,7 +10085,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hangFace": "south"
   }
  },
  "1134": {
@@ -10081,7 +10095,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hangFace": "east"
   }
  },
  "1135": {
@@ -10090,7 +10105,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hangFace": "east"
   }
  },
  "1136": {
@@ -10099,7 +10115,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hangFace": "south"
   }
  },
  "1137": {
@@ -10108,7 +10125,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hangFace": "east"
   }
  },
  "1138": {
@@ -10117,7 +10135,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hangFace": "south"
   }
  },
  "1139": {
@@ -10126,7 +10145,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hangFace": "east"
   }
  },
  "1140": {
@@ -10135,7 +10155,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hangFace": "south"
   }
  },
  "1141": {
@@ -10144,7 +10165,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hangFace": "east"
   }
  },
  "1142": {
@@ -10153,7 +10175,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hangFace": "south"
   }
  },
  "1143": {
@@ -10162,7 +10185,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hangFace": "east"
   }
  },
  "1144": {
@@ -10171,7 +10195,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hangFace": "south"
   }
  },
  "1145": {
@@ -10180,7 +10205,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hangFace": "east"
   }
  },
  "1146": {
@@ -10189,7 +10215,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hangFace": "south"
   }
  },
  "1147": {
@@ -10198,7 +10225,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hangFace": "east"
   }
  },
  "1148": {
@@ -10207,7 +10235,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hangFace": "south"
   }
  },
  "1149": {
@@ -10216,7 +10245,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hangFace": "east"
   }
  },
  "1150": {
@@ -10225,7 +10255,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hangFace": "south"
   }
  },
  "1151": {
@@ -10234,7 +10265,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hangFace": "east"
   }
  },
  "1152": {
@@ -10243,7 +10275,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hangFace": "south"
   }
  },
  "1153": {
@@ -10355,7 +10388,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hangFace": "south"
   }
  },
  "1165": {
@@ -10364,7 +10398,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hangFace": "east"
   }
  },
  "1166": {
@@ -10373,7 +10408,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hangFace": "south"
   }
  },
  "1167": {
@@ -10382,7 +10418,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hangFace": "east"
   }
  },
  "1168": {
@@ -10391,7 +10428,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hangFace": "south"
   }
  },
  "1169": {
@@ -10400,7 +10438,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hangFace": "east"
   }
  },
  "1170": {
@@ -10463,7 +10502,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hangFace": "south"
   }
  },
  "1177": {
@@ -10472,7 +10512,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hangFace": "east"
   }
  },
  "1178": {
@@ -10481,7 +10522,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hangFace": "south"
   }
  },
  "1179": {
@@ -10490,7 +10532,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hangFace": "east"
   }
  },
  "1180": {
@@ -10499,7 +10542,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hangFace": "south"
   }
  },
  "1181": {
@@ -10508,7 +10552,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hangFace": "south"
   }
  },
  "1182": {
@@ -10517,7 +10562,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hangFace": "east"
   }
  },
  "1183": {
@@ -10526,7 +10572,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hangFace": "east"
   }
  },
  "1184": {
@@ -10535,7 +10582,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hangFace": "south"
   }
  },
  "1185": {
@@ -10544,7 +10592,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hangFace": "south"
   }
  },
  "1186": {
@@ -10553,7 +10602,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hangFace": "east"
   }
  },
  "1187": {
@@ -10562,7 +10612,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hangFace": "east"
   }
  },
  "1188": {
@@ -10571,7 +10622,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hangFace": "south"
   }
  },
  "1189": {
@@ -10580,7 +10632,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hangFace": "east"
   }
  },
  "1190": {
@@ -10589,7 +10642,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hangFace": "south"
   }
  },
  "1191": {
@@ -10598,7 +10652,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hangFace": "east"
   }
  },
  "1192": {
@@ -10607,7 +10662,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hangFace": "south"
   }
  },
  "1193": {
@@ -10616,7 +10672,8 @@
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "marble wall"
+   "name": "marble wall",
+   "hangFace": "east"
   }
  },
  "1194": {
@@ -34513,7 +34570,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "3362": {
@@ -34522,7 +34580,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "3363": {
@@ -34540,7 +34599,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hangFace": "south"
   }
  },
  "3365": {
@@ -34549,7 +34609,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hangFace": "south"
   }
  },
  "3366": {
@@ -34558,7 +34619,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hangFace": "east"
   }
  },
  "3367": {
@@ -34567,7 +34629,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "3368": {
@@ -34576,7 +34639,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hangFace": "south"
   }
  },
  "3369": {
@@ -34585,7 +34649,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hangFace": "south"
   }
  },
  "3370": {
@@ -34594,7 +34659,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hangFace": "east"
   }
  },
  "3371": {
@@ -34603,7 +34669,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hangFace": "east"
   }
  },
  "3372": {
@@ -34612,7 +34679,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hangFace": "south"
   }
  },
  "3373": {
@@ -34621,7 +34689,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hangFace": "east"
   }
  },
  "3374": {
@@ -34630,7 +34699,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hangFace": "east"
   }
  },
  "3375": {
@@ -34639,7 +34709,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hangFace": "east"
   }
  },
  "3376": {
@@ -34648,7 +34719,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hangFace": "east"
   }
  },
  "3377": {
@@ -34657,7 +34729,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hangFace": "east"
   }
  },
  "3378": {
@@ -34666,7 +34739,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hangFace": "east"
   }
  },
  "3379": {
@@ -34675,7 +34749,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hangFace": "east"
   }
  },
  "3380": {
@@ -34684,7 +34759,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hangFace": "east"
   }
  },
  "3381": {
@@ -34693,7 +34769,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hangFace": "east"
   }
  },
  "3382": {
@@ -34702,7 +34779,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hangFace": "east"
   }
  },
  "3383": {
@@ -34711,7 +34789,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hangFace": "east"
   }
  },
  "3384": {
@@ -34720,7 +34799,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hangFace": "east"
   }
  },
  "3385": {
@@ -34729,7 +34809,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hangFace": "east"
   }
  },
  "3386": {
@@ -34738,7 +34819,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hangFace": "east"
   }
  },
  "3387": {
@@ -34747,7 +34829,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hangFace": "east"
   }
  },
  "3388": {
@@ -34756,7 +34839,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hangFace": "south"
   }
  },
  "3389": {
@@ -34765,7 +34849,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hangFace": "east"
   }
  },
  "3390": {
@@ -34774,7 +34859,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hangFace": "east"
   }
  },
  "3391": {
@@ -34783,7 +34869,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hangFace": "south"
   }
  },
  "3392": {
@@ -34792,7 +34879,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hangFace": "south"
   }
  },
  "3393": {
@@ -34837,7 +34925,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hangFace": "east"
   }
  },
  "3398": {
@@ -34846,7 +34935,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hangFace": "east"
   }
  },
  "3399": {
@@ -34855,7 +34945,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hangFace": "east"
   }
  },
  "3400": {
@@ -34873,7 +34964,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hangFace": "south"
   }
  },
  "3402": {
@@ -34882,7 +34974,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hangFace": "south"
   }
  },
  "3403": {
@@ -34891,7 +34984,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hangFace": "south"
   }
  },
  "3404": {
@@ -34900,7 +34994,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hangFace": "south"
   }
  },
  "3405": {
@@ -34909,7 +35004,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hangFace": "south"
   }
  },
  "3406": {
@@ -34918,7 +35014,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hangFace": "south"
   }
  },
  "3407": {
@@ -34927,7 +35024,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hangFace": "south"
   }
  },
  "3408": {
@@ -34936,7 +35034,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hangFace": "south"
   }
  },
  "3409": {
@@ -34945,7 +35044,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hangFace": "south"
   }
  },
  "3410": {
@@ -34972,7 +35072,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hangFace": "east"
   }
  },
  "3413": {
@@ -34981,7 +35082,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hangFace": "east"
   }
  },
  "3414": {
@@ -34990,7 +35092,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hangFace": "south"
   }
  },
  "3415": {
@@ -34999,7 +35102,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hangFace": "south"
   }
  },
  "3416": {
@@ -35008,7 +35112,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hangFace": "south"
   }
  },
  "3417": {
@@ -35017,7 +35122,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hangFace": "south"
   }
  },
  "3418": {
@@ -35026,7 +35132,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hangFace": "south"
   }
  },
  "3419": {
@@ -35035,7 +35142,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hangFace": "south"
   }
  },
  "3420": {
@@ -35044,7 +35152,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hangFace": "south"
   }
  },
  "3421": {
@@ -35053,7 +35162,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hangFace": "south"
   }
  },
  "3422": {
@@ -35062,7 +35172,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hangFace": "south"
   }
  },
  "3423": {
@@ -51776,7 +51887,8 @@
   "group": 0,
   "properties": {
    "name": "framework wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "5147": {
@@ -51785,7 +51897,8 @@
   "group": 0,
   "properties": {
    "name": "framework wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "5148": {
@@ -51794,7 +51907,8 @@
   "group": 0,
   "properties": {
    "name": "framework wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "5149": {
@@ -51803,7 +51917,8 @@
   "group": 0,
   "properties": {
    "name": "framework wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "5150": {
@@ -51812,7 +51927,8 @@
   "group": 0,
   "properties": {
    "name": "framework wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "5151": {
@@ -51821,7 +51937,8 @@
   "group": 0,
   "properties": {
    "name": "framework wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "5152": {
@@ -51830,7 +51947,8 @@
   "group": 0,
   "properties": {
    "name": "framework wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "5153": {
@@ -51839,7 +51957,8 @@
   "group": 0,
   "properties": {
    "name": "framework wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "5154": {
@@ -51848,7 +51967,8 @@
   "group": 0,
   "properties": {
    "name": "framework wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "5155": {
@@ -51857,7 +51977,8 @@
   "group": 0,
   "properties": {
    "name": "framework wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "5156": {
@@ -52811,7 +52932,8 @@
   "group": 0,
   "properties": {
    "name": "wooden wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "5262": {
@@ -52820,7 +52942,8 @@
   "group": 0,
   "properties": {
    "name": "wooden wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "5263": {
@@ -52865,7 +52988,8 @@
   "group": 0,
   "properties": {
    "name": "wooden wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "5268": {
@@ -52883,7 +53007,8 @@
   "group": 0,
   "properties": {
    "name": "wooden wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "5270": {
@@ -52910,7 +53035,8 @@
   "group": 0,
   "properties": {
    "name": "wooden wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "5273": {
@@ -52919,7 +53045,8 @@
   "group": 0,
   "properties": {
    "name": "wooden wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "5274": {
@@ -52928,7 +53055,8 @@
   "group": 0,
   "properties": {
    "name": "wooden wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "5275": {
@@ -52937,7 +53065,8 @@
   "group": 0,
   "properties": {
    "name": "wooden wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "5276": {
@@ -55278,7 +55407,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "5521": {
@@ -62034,7 +62164,8 @@
   "group": 0,
   "properties": {
    "name": "tree wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "6134": {
@@ -62061,7 +62192,8 @@
   "group": 0,
   "properties": {
    "name": "tree wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "6137": {
@@ -62124,7 +62256,8 @@
   "group": 0,
   "properties": {
    "name": "tree wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "6144": {
@@ -62142,7 +62275,8 @@
   "group": 0,
   "properties": {
    "name": "tree wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "6146": {
@@ -63014,7 +63148,8 @@
   "group": 0,
   "properties": {
    "name": "tendril wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "6239": {
@@ -63023,7 +63158,8 @@
   "group": 0,
   "properties": {
    "name": "tendril wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "6240": {
@@ -63068,7 +63204,8 @@
   "group": 0,
   "properties": {
    "name": "tendril wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "6245": {
@@ -63086,7 +63223,8 @@
   "group": 0,
   "properties": {
    "name": "tendril wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "6247": {
@@ -68044,7 +68182,8 @@
   "group": 0,
   "properties": {
    "name": "ice wall",
-   "article": "an"
+   "article": "an",
+   "hookEast": true
   }
  },
  "6729": {
@@ -68053,7 +68192,8 @@
   "group": 0,
   "properties": {
    "name": "ice wall",
-   "article": "an"
+   "article": "an",
+   "hookSouth": true
   }
  },
  "6730": {
@@ -68098,7 +68238,8 @@
   "group": 0,
   "properties": {
    "name": "ice wall",
-   "article": "an"
+   "article": "an",
+   "hookEast": true
   }
  },
  "6735": {
@@ -68116,7 +68257,8 @@
   "group": 0,
   "properties": {
    "name": "ice wall",
-   "article": "an"
+   "article": "an",
+   "hookSouth": true
   }
  },
  "6737": {
@@ -68143,7 +68285,8 @@
   "group": 0,
   "properties": {
    "name": "frozen wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "6740": {
@@ -68152,7 +68295,8 @@
   "group": 0,
   "properties": {
    "name": "frozen wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "6741": {
@@ -68197,7 +68341,8 @@
   "group": 0,
   "properties": {
    "name": "frozen wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "6746": {
@@ -68215,7 +68360,8 @@
   "group": 0,
   "properties": {
    "name": "frozen wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "6748": {
@@ -68452,7 +68598,8 @@
   "group": 0,
   "properties": {
    "name": "fur wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "6774": {
@@ -68461,7 +68608,8 @@
   "group": 0,
   "properties": {
    "name": "fur wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "6775": {
@@ -68506,7 +68654,8 @@
   "group": 0,
   "properties": {
    "name": "fur wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "6780": {
@@ -68524,7 +68673,8 @@
   "group": 0,
   "properties": {
    "name": "fur wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "6782": {
@@ -68551,7 +68701,8 @@
   "group": 0,
   "properties": {
    "name": "fur wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "6785": {
@@ -68560,7 +68711,8 @@
   "group": 0,
   "properties": {
    "name": "fur wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "6786": {
@@ -68569,7 +68721,8 @@
   "group": 0,
   "properties": {
    "name": "fur wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "6787": {
@@ -68578,7 +68731,8 @@
   "group": 0,
   "properties": {
    "name": "fur wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "6788": {
@@ -69066,7 +69220,8 @@
   "group": 0,
   "properties": {
    "name": "wooden wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "6840": {
@@ -69075,7 +69230,8 @@
   "group": 0,
   "properties": {
    "name": "wooden wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "6841": {
@@ -69120,7 +69276,8 @@
   "group": 0,
   "properties": {
    "name": "wooden wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "6846": {
@@ -69138,7 +69295,8 @@
   "group": 0,
   "properties": {
    "name": "wooden wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "6848": {
@@ -69165,7 +69323,8 @@
   "group": 0,
   "properties": {
    "name": "ornamented wall",
-   "article": "an"
+   "article": "an",
+   "hookEast": true
   }
  },
  "6851": {
@@ -69174,7 +69333,8 @@
   "group": 0,
   "properties": {
    "name": "stone base",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "6852": {
@@ -69183,7 +69343,8 @@
   "group": 0,
   "properties": {
    "name": "stone base",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "6853": {
@@ -69192,7 +69353,8 @@
   "group": 0,
   "properties": {
    "name": "ornamented wall",
-   "article": "an"
+   "article": "an",
+   "hookSouth": true
   }
  },
  "6854": {
@@ -69201,7 +69363,8 @@
   "group": 0,
   "properties": {
    "name": "stone base",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "6855": {
@@ -69210,7 +69373,8 @@
   "group": 0,
   "properties": {
    "name": "stone base",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "6856": {
@@ -69219,7 +69383,8 @@
   "group": 0,
   "properties": {
    "name": "stone base",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "6857": {
@@ -69228,7 +69393,8 @@
   "group": 0,
   "properties": {
    "name": "stone base",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "6858": {
@@ -69237,7 +69403,8 @@
   "group": 0,
   "properties": {
    "name": "stone base",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "6859": {
@@ -69246,7 +69413,8 @@
   "group": 0,
   "properties": {
    "name": "stone base",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "6860": {
@@ -69282,7 +69450,8 @@
   "group": 0,
   "properties": {
    "name": "stone base",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "6864": {
@@ -69300,7 +69469,8 @@
   "group": 0,
   "properties": {
    "name": "stone base",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "6866": {
@@ -71883,7 +72053,8 @@
   "group": 0,
   "properties": {
    "name": "buttress",
-   "article": "a"
+   "article": "a",
+   "hangFace": "east"
   }
  },
  "7144": {
@@ -71892,7 +72063,8 @@
   "group": 0,
   "properties": {
    "name": "buttress",
-   "article": "a"
+   "article": "a",
+   "hangFace": "south"
   }
  },
  "7145": {
@@ -85827,7 +85999,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "8476": {
@@ -85836,7 +86009,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "8477": {
@@ -85881,7 +86055,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "8482": {
@@ -85899,7 +86074,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "8484": {
@@ -85926,7 +86102,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "8487": {
@@ -85935,7 +86112,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "8488": {
@@ -85944,7 +86122,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "8489": {
@@ -85953,7 +86132,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "8490": {
@@ -85962,7 +86142,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "8491": {
@@ -85998,7 +86179,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "8495": {
@@ -86016,7 +86198,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "8497": {
@@ -86043,7 +86226,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "8500": {
@@ -86052,7 +86236,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "8501": {
@@ -86061,7 +86246,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "8502": {
@@ -86070,7 +86256,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "8503": {
@@ -86079,7 +86266,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "8504": {
@@ -86088,7 +86276,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "8505": {
@@ -86133,7 +86322,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "8510": {
@@ -86142,7 +86332,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "8511": {
@@ -86151,7 +86342,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "8512": {
@@ -86160,7 +86352,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "8513": {
@@ -86169,7 +86362,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "8514": {
@@ -86178,7 +86372,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "8515": {
@@ -86187,7 +86382,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "8516": {
@@ -86196,7 +86392,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "8517": {
@@ -86205,7 +86402,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "8518": {
@@ -86250,7 +86448,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "8523": {
@@ -86259,7 +86458,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "8524": {
@@ -86268,7 +86468,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "8525": {
@@ -86277,7 +86478,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "8526": {
@@ -92412,7 +92614,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "9119": {
@@ -92421,7 +92624,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "9120": {
@@ -92466,7 +92670,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "9125": {
@@ -92484,7 +92689,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "9127": {
@@ -92511,7 +92717,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "9130": {
@@ -92520,7 +92727,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "9131": {
@@ -92529,7 +92737,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "9132": {
@@ -92538,7 +92747,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "9133": {
@@ -92547,7 +92757,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "9134": {
@@ -92565,7 +92776,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "9136": {
@@ -92574,7 +92786,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "9137": {
@@ -92583,7 +92796,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "9138": {
@@ -92592,7 +92806,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "9139": {
@@ -92601,7 +92816,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "9140": {
@@ -92632,7 +92848,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "9143": {
@@ -92641,7 +92858,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "9144": {
@@ -92677,7 +92895,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "9148": {
@@ -92686,7 +92905,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "9149": {
@@ -92695,7 +92915,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "9150": {
@@ -92704,7 +92925,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "9151": {
@@ -92713,7 +92935,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "9152": {
@@ -92722,7 +92945,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "9153": {
@@ -92731,7 +92955,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "9154": {
@@ -92740,7 +92965,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "9155": {
@@ -92749,7 +92975,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "9156": {
@@ -92758,7 +92985,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "9157": {
@@ -92767,7 +92995,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "9158": {
@@ -92776,7 +93005,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "9159": {
@@ -93035,7 +93265,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "9184": {
@@ -93044,7 +93275,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "9185": {
@@ -93053,7 +93285,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "9186": {
@@ -93062,7 +93295,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "9187": {
@@ -93071,7 +93305,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "9188": {
@@ -93080,7 +93315,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "9189": {
@@ -93252,7 +93488,8 @@
   "group": 0,
   "properties": {
    "name": "iron wall",
-   "article": "an"
+   "article": "an",
+   "hookEast": true
   }
  },
  "9208": {
@@ -93261,7 +93498,8 @@
   "group": 0,
   "properties": {
    "name": "iron wall",
-   "article": "an"
+   "article": "an",
+   "hookEast": true
   }
  },
  "9209": {
@@ -93270,7 +93508,8 @@
   "group": 0,
   "properties": {
    "name": "iron wall",
-   "article": "an"
+   "article": "an",
+   "hookEast": true
   }
  },
  "9210": {
@@ -93279,7 +93518,8 @@
   "group": 0,
   "properties": {
    "name": "iron wall",
-   "article": "an"
+   "article": "an",
+   "hookSouth": true
   }
  },
  "9211": {
@@ -93288,7 +93528,8 @@
   "group": 0,
   "properties": {
    "name": "iron wall",
-   "article": "an"
+   "article": "an",
+   "hookSouth": true
   }
  },
  "9212": {
@@ -93297,7 +93538,8 @@
   "group": 0,
   "properties": {
    "name": "iron wall",
-   "article": "an"
+   "article": "an",
+   "hookSouth": true
   }
  },
  "9213": {
@@ -93342,7 +93584,8 @@
   "group": 0,
   "properties": {
    "name": "iron wall",
-   "article": "an"
+   "article": "an",
+   "hookEast": true
   }
  },
  "9218": {
@@ -93360,7 +93603,8 @@
   "group": 0,
   "properties": {
    "name": "iron wall",
-   "article": "an"
+   "article": "an",
+   "hookSouth": true
   }
  },
  "9220": {
@@ -93387,7 +93631,8 @@
   "group": 0,
   "properties": {
    "name": "iron wall",
-   "article": "an"
+   "article": "an",
+   "hookEast": true
   }
  },
  "9223": {
@@ -93396,7 +93641,8 @@
   "group": 0,
   "properties": {
    "name": "iron wall",
-   "article": "an"
+   "article": "an",
+   "hookSouth": true
   }
  },
  "9224": {
@@ -94007,7 +94253,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "9290": {
@@ -94016,7 +94263,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "9291": {
@@ -94025,7 +94273,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "9292": {
@@ -94034,7 +94283,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "9293": {
@@ -94043,7 +94293,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "9294": {
@@ -102841,7 +103092,8 @@
   "group": 0,
   "properties": {
    "name": "limestone wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "10178": {
@@ -102850,7 +103102,8 @@
   "group": 0,
   "properties": {
    "name": "limestone wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "10179": {
@@ -102895,7 +103148,8 @@
   "group": 0,
   "properties": {
    "name": "limestone wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "10184": {
@@ -102913,7 +103167,8 @@
   "group": 0,
   "properties": {
    "name": "limestone wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "10186": {
@@ -102976,7 +103231,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "10193": {
@@ -102985,7 +103241,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "10194": {
@@ -103003,7 +103260,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "10196": {
@@ -103012,7 +103270,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "10197": {
@@ -103324,7 +103583,8 @@
   "group": 0,
   "properties": {
    "name": "framework wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "10227": {
@@ -103333,7 +103593,8 @@
   "group": 0,
   "properties": {
    "name": "framework wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "10228": {
@@ -103378,7 +103639,8 @@
   "group": 0,
   "properties": {
    "name": "framework wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "10233": {
@@ -103396,7 +103658,8 @@
   "group": 0,
   "properties": {
    "name": "framework wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "10235": {
@@ -103441,7 +103704,8 @@
   "group": 0,
   "properties": {
    "name": "framework wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "10240": {
@@ -103450,7 +103714,8 @@
   "group": 0,
   "properties": {
    "name": "framework wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "10241": {
@@ -103459,7 +103724,8 @@
   "group": 0,
   "properties": {
    "name": "framework wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "10242": {
@@ -103468,7 +103734,8 @@
   "group": 0,
   "properties": {
    "name": "framework wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "10243": {
@@ -103477,7 +103744,8 @@
   "group": 0,
   "properties": {
    "name": "framework wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "10244": {
@@ -103486,7 +103754,8 @@
   "group": 0,
   "properties": {
    "name": "framework wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "10245": {
@@ -103495,7 +103764,8 @@
   "group": 0,
   "properties": {
    "name": "framework wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "10246": {
@@ -103504,7 +103774,8 @@
   "group": 0,
   "properties": {
    "name": "framework wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "10247": {
@@ -103513,7 +103784,8 @@
   "group": 0,
   "properties": {
    "name": "framework wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "10248": {
@@ -103522,7 +103794,8 @@
   "group": 0,
   "properties": {
    "name": "framework wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "10249": {
@@ -103531,7 +103804,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "10250": {
@@ -103540,7 +103814,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "10251": {
@@ -103567,7 +103842,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hangFace": "south"
   }
  },
  "10254": {
@@ -103576,7 +103852,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hangFace": "east"
   }
  },
  "10255": {
@@ -103585,7 +103862,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "10256": {
@@ -103603,7 +103881,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "10258": {
@@ -103630,7 +103909,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "10261": {
@@ -103639,7 +103919,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "10262": {
@@ -103666,7 +103947,8 @@
    "name": "framework window",
    "article": "a",
    "type": "door",
-   "blockprojectile": true
+   "blockprojectile": true,
+   "hangFace": "south"
   }
  },
  "10265": {
@@ -103677,7 +103959,8 @@
    "name": "framework window",
    "article": "a",
    "type": "door",
-   "blockprojectile": true
+   "blockprojectile": true,
+   "hangFace": "east"
   }
  },
  "10266": {
@@ -103687,7 +103970,8 @@
   "properties": {
    "name": "framework window",
    "article": "a",
-   "type": "door"
+   "type": "door",
+   "hangFace": "south"
   }
  },
  "10267": {
@@ -103697,7 +103981,8 @@
   "properties": {
    "name": "framework window",
    "article": "a",
-   "type": "door"
+   "type": "door",
+   "hangFace": "east"
   }
  },
  "10268": {
@@ -103902,7 +104187,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookEast": true
   }
  },
  "10287": {
@@ -103911,7 +104197,8 @@
   "group": 0,
   "properties": {
    "name": "stone wall",
-   "article": "a"
+   "article": "a",
+   "hookSouth": true
   }
  },
  "10288": {
@@ -126960,7 +127247,7 @@
   }
  },
  "14050": {
-  "id": 3483,
+  "id": 13234,
   "flags": 112,
   "group": 0,
   "properties": {
@@ -133386,7 +133673,7 @@
   }
  },
  "22321": {
-  "__note": "Trickster's hat (owner 2026-10-30: \"We need a different reward than the hat for players with no vacation ... take the existing one and change the colors up a bit and give it a different stat boost\"; picked: orange, \"+1 sword, club and axe\", \"can only be used by a non vocation player\", the name \"trickster's hat\"): the hallowed hat (22193) recoloured orange, outline and glowing face kept, 2 frames (tools/dat-spr/add-item-from-frames.js --donor-cid 12914 --frames 2: CID 12988; art tools/dat-spr/generated-cells/trickster-hat). The Halloween treat's hat for a character with no vocation (utils/halloween), once per character, instead of the hallowed hat. No armor and no skill bonus (owner 2026-10-31: \"we need to remove the stats boost from both main and rook halloween hats\": the sword, club and axe +1 of 10-30 is gone, and so is its line on the equipment buff allowlist; then \"No armor is fine\": its armor 3 is gone too); vocations none: no other vocation can put it on.",
+  "__note": "Trickster's hat (owner 2026-10-30: \"We need a different reward than the hat for players with no vacation ... take the existing one and change the colors up a bit and give it a different stat boost\"; picked: orange, \"+1 sword, club and axe\", \"can only be used by a non vocation player\", the name \"trickster's hat\"): the hallowed hat (22193) recoloured orange, outline and glowing face kept, 2 frames (tools/dat-spr/add-item-from-frames.js --donor-cid 12914 --frames 2: CID 12988; art tools/dat-spr/generated-cells/trickster-hat). The Halloween treat's hat for a character with no vocation (utils/halloween), once per character, instead of the hallowed hat. Armor 1 (owner 2026-10-31 took its armor 3 and skills off: \"we need to remove the stats boost from both main and rook halloween hats\", \"No armor is fine\"; 2026-11-05: \"give it 1 armor\"); sword, club and axe +1 again, back on the equipment buff allowlist (owner 2026-11-05: \"add back the + skills on the halloween hat in rook\"); vocations none: no other vocation can put it on, and it does nothing on one.",
   "id": 12988,
   "flags": 96,
   "group": 0,
@@ -133394,7 +133681,11 @@
    "article": "a",
    "name": "trickster's hat",
    "weight": 600,
+   "armor": 1,
    "slotType": "head",
+   "skillSword": 1,
+   "skillClub": 1,
+   "skillAxe": 1,
    "vocations": "none"
   }
  },
@@ -133628,11 +133919,12 @@
  },
  "22342": {
   "id": 13010,
-  "flags": 76,
+  "flags": 32844,
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "blossom chair"
+   "name": "blossom chair",
+   "rotateTo": "22664"
   }
  },
  "22343": {
@@ -133695,11 +133987,12 @@
  },
  "22349": {
   "id": 13017,
-  "flags": 76,
+  "flags": 32844,
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "cave chair"
+   "name": "cave chair",
+   "rotateTo": "22673"
   }
  },
  "22350": {
@@ -133734,28 +134027,33 @@
  "22353": {
   "id": 13021,
   "flags": 65,
-  "group": 0,
+  "group": 2,
   "properties": {
    "article": "a",
-   "name": "crystal cabinet"
+   "name": "crystal cabinet",
+   "type": "container",
+   "containerSize": 8
   }
  },
  "22354": {
   "id": 13022,
-  "flags": 76,
+  "flags": 32844,
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "crystal chair"
+   "name": "crystal chair",
+   "rotateTo": "22667"
   }
  },
  "22355": {
   "id": 13023,
-  "flags": 76,
-  "group": 0,
+  "flags": 77,
+  "group": 2,
   "properties": {
    "article": "a",
-   "name": "crystal chest"
+   "name": "crystal chest",
+   "type": "container",
+   "containerSize": 18
   }
  },
  "22356": {
@@ -134014,28 +134312,33 @@
  "22380": {
   "id": 13048,
   "flags": 65,
-  "group": 0,
+  "group": 2,
   "properties": {
    "article": "an",
-   "name": "ember cabinet"
+   "name": "ember cabinet",
+   "type": "container",
+   "containerSize": 8
   }
  },
  "22381": {
   "id": 13049,
-  "flags": 76,
+  "flags": 32844,
   "group": 0,
   "properties": {
    "article": "an",
-   "name": "ember chair"
+   "name": "ember chair",
+   "rotateTo": "22661"
   }
  },
  "22382": {
   "id": 13050,
-  "flags": 76,
-  "group": 0,
+  "flags": 77,
+  "group": 2,
   "properties": {
    "article": "an",
-   "name": "ember chest"
+   "name": "ember chest",
+   "type": "container",
+   "containerSize": 18
   }
  },
  "22383": {
@@ -134242,11 +134545,12 @@
  },
  "22402": {
   "id": 13070,
-  "flags": 76,
+  "flags": 32844,
   "group": 0,
   "properties": {
    "article": "a",
-   "name": "gravestone chair"
+   "name": "gravestone chair",
+   "rotateTo": "22670"
   }
  },
  "22403": {
@@ -134828,10 +135132,12 @@
  "22456": {
   "id": 13124,
   "flags": 65,
-  "group": 0,
+  "group": 2,
   "properties": {
    "article": "a",
-   "name": "skull cabinet"
+   "name": "skull cabinet",
+   "type": "container",
+   "containerSize": 8
   }
  },
  "22457": {
@@ -136267,7 +136573,10 @@
    "weight": 2500,
    "furnitureSid": 22342,
    "furnitureForms": [
-    22342
+    22342,
+    22664,
+    22665,
+    22666
    ]
   }
  },
@@ -136352,7 +136661,8 @@
    "weight": 2500,
    "furnitureSid": 22349,
    "furnitureForms": [
-    22349
+    22349,
+    22673
    ]
   }
  },
@@ -136422,7 +136732,10 @@
    "weight": 2500,
    "furnitureSid": 22354,
    "furnitureForms": [
-    22354
+    22354,
+    22667,
+    22668,
+    22669
    ]
   }
  },
@@ -136670,7 +136983,10 @@
    "weight": 2500,
    "furnitureSid": 22381,
    "furnitureForms": [
-    22381
+    22381,
+    22661,
+    22662,
+    22663
    ]
   }
  },
@@ -136857,7 +137173,10 @@
    "weight": 2500,
    "furnitureSid": 22402,
    "furnitureForms": [
-    22402
+    22402,
+    22670,
+    22671,
+    22672
    ]
   }
  },
@@ -137591,6 +137910,348 @@
    "furnitureForms": [
     22476,
     22477
+   ]
+  }
+ },
+ "22661": {
+  "id": 13235,
+  "flags": 32844,
+  "group": 0,
+  "properties": {
+   "article": "an",
+   "name": "ember chair",
+   "rotateTo": "22662"
+  }
+ },
+ "22662": {
+  "id": 13236,
+  "flags": 32844,
+  "group": 0,
+  "properties": {
+   "article": "an",
+   "name": "ember chair",
+   "rotateTo": "22663"
+  }
+ },
+ "22663": {
+  "id": 13237,
+  "flags": 32844,
+  "group": 0,
+  "properties": {
+   "article": "an",
+   "name": "ember chair",
+   "rotateTo": "22381"
+  }
+ },
+ "22664": {
+  "id": 13238,
+  "flags": 32844,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "blossom chair",
+   "rotateTo": "22665"
+  }
+ },
+ "22665": {
+  "id": 13239,
+  "flags": 32844,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "blossom chair",
+   "rotateTo": "22666"
+  }
+ },
+ "22666": {
+  "id": 13240,
+  "flags": 32844,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "blossom chair",
+   "rotateTo": "22342"
+  }
+ },
+ "22667": {
+  "id": 13241,
+  "flags": 32844,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "crystal chair",
+   "rotateTo": "22668"
+  }
+ },
+ "22668": {
+  "id": 13242,
+  "flags": 32844,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "crystal chair",
+   "rotateTo": "22669"
+  }
+ },
+ "22669": {
+  "id": 13243,
+  "flags": 32844,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "crystal chair",
+   "rotateTo": "22354"
+  }
+ },
+ "22670": {
+  "id": 13244,
+  "flags": 32844,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "gravestone chair",
+   "rotateTo": "22671"
+  }
+ },
+ "22671": {
+  "id": 13245,
+  "flags": 32844,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "gravestone chair",
+   "rotateTo": "22672"
+  }
+ },
+ "22672": {
+  "id": 13246,
+  "flags": 32844,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "gravestone chair",
+   "rotateTo": "22402"
+  }
+ },
+ "22673": {
+  "id": 13247,
+  "flags": 32844,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "cave chair",
+   "rotateTo": "22349"
+  }
+ },
+ "22674": {
+  "__note": "The Broken Seals card set, Tier 1 reward (owner 2026-11-10 sent new_card_set_rewards.rar (four sprites), picked one per tier, \"staff should be deco make the helmet tier 4\", \"can we also work with just 4 tiers?\"): a decoration, no stats. CID 13248 by tools/dat-spr/add-item-sprite.js, donor 3241 (ornamented ankh: a plain carryable decoration); art tools/dat-spr/generated-cells/broken-seals-card-rewards (the owner's own sprite). Obtainable only as a card reward (config CARDS_REWARDS.ITEM_SIDS, minibia-cards lib/collection/rewards.ts); no shop, no loot; staff can create it.",
+  "id": 13248,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "holy scorpion",
+   "description": "A scorpion of gold and lapis that once guarded a pharaoh's tomb.",
+   "weight": 650
+  }
+ },
+ "22675": {
+  "__note": "The Broken Seals card set, Tier 2 reward (owner 2026-11-10 sent new_card_set_rewards.rar (four sprites), picked one per tier, \"staff should be deco make the helmet tier 4\", \"can we also work with just 4 tiers?\"): defense 36, between the demon shield (35) and the mastermind shield (37). CID 13249 by tools/dat-spr/add-item-sprite.js, donor 3420 (demon shield); art tools/dat-spr/generated-cells/broken-seals-card-rewards (the owner's own sprite). Obtainable only as a card reward (config CARDS_REWARDS.ITEM_SIDS, minibia-cards lib/collection/rewards.ts); no shop, no loot; staff can create it.",
+  "id": 13249,
+  "flags": 96,
+  "group": 3,
+  "properties": {
+   "article": "a",
+   "name": "pharaoh shield",
+   "description": "Borne by the guards of a pharaoh's seal.",
+   "weight": 4600,
+   "defense": 36,
+   "weaponType": "shield"
+  }
+ },
+ "22676": {
+  "__note": "The Broken Seals card set, Tier 3 reward (owner 2026-11-10 sent new_card_set_rewards.rar (four sprites), picked one per tier, \"staff should be deco make the helmet tier 4\", \"can we also work with just 4 tiers?\"): a decoration, no stats (owner: \"staff should be deco\"). CID 13250 by tools/dat-spr/add-item-sprite.js, donor 3241 (ornamented ankh: a plain carryable decoration); art tools/dat-spr/generated-cells/broken-seals-card-rewards (the owner's own sprite). Obtainable only as a card reward (config CARDS_REWARDS.ITEM_SIDS, minibia-cards lib/collection/rewards.ts); no shop, no loot; staff can create it.",
+  "id": 13250,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "Wadjet staff",
+   "description": "The winged cobra of Wadjet coils around it.",
+   "weight": 2800
+  }
+ },
+ "22677": {
+  "__note": "The Broken Seals card set, Tier 4 reward (owner 2026-11-10 sent new_card_set_rewards.rar (four sprites), picked one per tier, \"staff should be deco make the helmet tier 4\", \"can we also work with just 4 tiers?\"; stats owner's pick: \"Armor 6, magic level +1\"): magic level +1 is on the equipment buff allowlist. CID 13251 by tools/dat-spr/add-item-sprite.js, donor 3387 (demon helmet: head); art tools/dat-spr/generated-cells/broken-seals-card-rewards (the owner's own sprite). Obtainable only as a card reward (config CARDS_REWARDS.ITEM_SIDS, minibia-cards lib/collection/rewards.ts); no shop, no loot; staff can create it. Sorcerers, druids and paladins only (owner 2026-11-11: \"silver tiara should be only for sorcer druid and paladin\"): the equip check refuses a knight.",
+  "id": 13251,
+  "flags": 96,
+  "group": 5,
+  "properties": {
+   "article": "a",
+   "name": "silver tiara",
+   "description": "Worn only by a Master of the Broken Seals.",
+   "weight": 1500,
+   "armor": 6,
+   "magiclevelpoints": 1,
+   "slotType": "head",
+   "vocations": "sorcerer,druid,paladin"
+  }
+ },
+ "22678": {
+  "__note": "Umbrax the Lightless and his Shadow, the owner's own void demon (owner 2026-11-14 sent demon_void_v8.rar with \"umbrax and void armor and void shield\"): looktype 1349 with its own three-stage corpse by tools/dat-spr/add-monster-from-cells.js (cells ~/Documents/minibia-item-pixels/umbrax-void-v8/cells, the sheet's columns read E, N, W, S), CIDs 13252-13254, donors 12990/12991/12993 (the Infernal Demon chain it replaces: 2x2, the first a container). Durations follow Valak's chain.",
+  "id": 13252,
+  "flags": 64,
+  "group": 2,
+  "properties": {
+   "article": "the",
+   "name": "remains of Umbrax",
+   "containerSize": 10,
+   "decayTo": 22679,
+   "duration": 60,
+   "corpseType": "blood",
+   "type": "corpse"
+  }
+ },
+ "22679": {
+  "__note": "Umbrax the Lightless and his Shadow, the owner's own void demon (owner 2026-11-14 sent demon_void_v8.rar with \"umbrax and void armor and void shield\"): looktype 1349 with its own three-stage corpse by tools/dat-spr/add-monster-from-cells.js (cells ~/Documents/minibia-item-pixels/umbrax-void-v8/cells, the sheet's columns read E, N, W, S), CIDs 13252-13254, donors 12990/12991/12993 (the Infernal Demon chain it replaces: 2x2, the first a container). Durations follow Valak's chain.",
+  "id": 13253,
+  "flags": 64,
+  "group": 2,
+  "properties": {
+   "article": "the",
+   "name": "remains of Umbrax",
+   "decayTo": 22680,
+   "duration": 120,
+   "corpseType": "blood",
+   "type": "corpse"
+  }
+ },
+ "22680": {
+  "__note": "Umbrax the Lightless and his Shadow, the owner's own void demon (owner 2026-11-14 sent demon_void_v8.rar with \"umbrax and void armor and void shield\"): looktype 1349 with its own three-stage corpse by tools/dat-spr/add-monster-from-cells.js (cells ~/Documents/minibia-item-pixels/umbrax-void-v8/cells, the sheet's columns read E, N, W, S), CIDs 13252-13254, donors 12990/12991/12993 (the Infernal Demon chain it replaces: 2x2, the first a container). Durations follow Valak's chain.",
+  "id": 13254,
+  "flags": 64,
+  "group": 2,
+  "properties": {
+   "article": "the",
+   "name": "remains of Umbrax",
+   "decayTo": 0,
+   "duration": 120,
+   "corpseType": "blood",
+   "type": "corpse"
+  }
+ },
+ "22681": {
+  "__note": "The Void Armor. Umbrax's relic (owner 2026-11-14 sent void.rar, the owner's own sprite, with \"umbrax and void armor and void shield\"): rolled once per raid at the win (quest/umbrax-reward.js UMBRAX_DROPS) and paid by Ilsa the Blind with the rune bag; no shop, no loot; staff can create it. Armor 16 (the demon armor's, MY PICK); weight 2000 = 20 oz, very light (owner 2026-11-14: \"make them very light armor oz 20 and shield oz 12\"). CID 13255 by tools/dat-spr/add-item-sprite.js, donor 3366 (magic plate armor: body).",
+  "id": 13255,
+  "flags": 96,
+  "group": 5,
+  "properties": {
+   "article": "a",
+   "name": "void armor",
+   "description": "Forged in the dark that once swallowed the sun.",
+   "weight": 2000,
+   "armor": 16,
+   "slotType": "body"
+  }
+ },
+ "22682": {
+  "__note": "The Void Shield. Umbrax's relic (owner 2026-11-14 sent void.rar, the owner's own sprite, with \"umbrax and void armor and void shield\"): rolled once per raid at the win (quest/umbrax-reward.js UMBRAX_DROPS) and paid by Ilsa the Blind with the rune bag; no shop, no loot; staff can create it. Defense 37 (owner 2026-11-14: \"give void shield 38 armor\", then \"i mean 37\": a shield's defense; the mastermind shield's 37, was 36); weight 1200 = 12 oz, very light (owner 2026-11-14: \"make them very light armor oz 20 and shield oz 12\"). CID 13256 by tools/dat-spr/add-item-sprite.js, donor 3420 (demon shield: shield).",
+  "id": 13256,
+  "flags": 96,
+  "group": 3,
+  "properties": {
+   "article": "a",
+   "name": "void shield",
+   "description": "Its face drinks the light.",
+   "weight": 1200,
+   "defense": 37,
+   "weaponType": "shield"
+  }
+ },
+ "22683": {
+  "__note": "Umbrax's claw (owner 2026-11-14: \"Add loot to corpse Umbrax Claw but make it dark purple via virtual edit (like valaks claw)\"): Valak's claw (SID 21127) made for Umbrax: the same base, the Noxious Spawn's claw, recoloured dark purple through virtual CID 30076 (client/src/data/virtual-items.js). A curio worn in the ring slot, no stats, like Valak's. ONE per won raid: laid in Umbrax's corpse at the win by saturday-demon.js onWin (not monster loot: Umbrax can fall and rise again, and loot would pay every fall, even in a raid that is lost).",
+  "id": 30076,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "an",
+   "name": "Umbrax's claw",
+   "description": "Torn from the Lightless where he fell. No light touches it.",
+   "weight": 500,
+   "slotType": "ring"
+  }
+ },
+ "22684": {
+  "id": 13257,
+  "flags": 0,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "void carpet",
+   "description": "It came up out of the void when Umbrax fell. The pattern moves when nobody is looking at it.",
+   "carpet": true
+  }
+ },
+ "22685": {
+  "id": 13258,
+  "flags": 32833,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "demon skull",
+   "description": "The skull of a void demon that served Umbrax the Lightless.",
+   "rotateTo": "22686"
+  }
+ },
+ "22686": {
+  "id": 13259,
+  "flags": 32833,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "demon skull",
+   "description": "The skull of a void demon that served Umbrax the Lightless.",
+   "rotateTo": "22685"
+  }
+ },
+ "22687": {
+  "id": 13260,
+  "flags": 96,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "sun mirror",
+   "description": "A sliver of the sun Umbrax swallowed still burns inside it.",
+   "weight": 850,
+   "slotType": "ammo"
+  }
+ },
+ "22688": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "void carpet kit",
+   "weight": 2500,
+   "furnitureSid": 22684,
+   "furnitureForms": [
+    22684
+   ]
+  }
+ },
+ "22689": {
+  "id": 2471,
+  "flags": 104,
+  "group": 0,
+  "properties": {
+   "article": "a",
+   "name": "demon skull kit",
+   "weight": 2500,
+   "furnitureSid": 22685,
+   "furnitureForms": [
+    22685,
+    22686
    ]
   }
  }
